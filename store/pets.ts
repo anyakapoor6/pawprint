@@ -6,6 +6,7 @@ interface PetsState {
   reports: PetReport[];
   updatePetStatus: (petId: string, status: ReportStatus) => void;
   getReportsByStatus: (status: ReportStatus) => PetReport[];
+  getReportById: (id: string) => PetReport | undefined;
 }
 
 export const usePets = create<PetsState>((set, get) => ({
@@ -23,5 +24,9 @@ export const usePets = create<PetsState>((set, get) => ({
   
   getReportsByStatus: (status: ReportStatus) => {
     return get().reports.filter(report => report.status === status);
+  },
+
+  getReportById: (id: string) => {
+    return get().reports.find(report => report.id === id);
   },
 }));

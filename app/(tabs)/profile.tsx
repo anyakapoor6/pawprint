@@ -1,23 +1,20 @@
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, CreditCard as Edit } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { usePets } from '@/store/pets';
+import { mockStories } from '@/data/mockData';
+import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const { getReportsByStatus } = usePets();
   const router = useRouter();
   
-  // Get actual counts from the pets store
   const activeReports = getReportsByStatus('active');
   const resolvedReports = getReportsByStatus('resolved');
-
-  // Calculate total rewards given (in a real app, this would come from a rewards store)
-  const totalRewardsGiven = activeReports.reduce((total, report) => {
-    return total + (report.reward?.amount || 0);
-  }, 0);
+  const userStories = mockStories.filter(story => story.userId === user?.id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,23 +38,9 @@ export default function ProfileScreen() {
         </View>
         
         <View style={styles.profileHeader}>
-          <View style={styles.photoContainer}>
-            <Image 
-              source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-              style={styles.profileImage} 
-            />
-            <TouchableOpacity 
-              style={styles.editButton}
-              onPress={() => router.push('/profile/edit')}
-            >
-              <Edit size={16} color={colors.white} />
-            </TouchableOpacity>
-          </View>
+          <Image source={{ uri: user?.photo }} style={styles.profileImage} />
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-          {user?.phone && (
-            <Text style={styles.profilePhone}>{user.phone}</Text>
-          )}
         </View>
         
         <View style={styles.statsContainer}>
@@ -72,8 +55,8 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>${totalRewardsGiven}</Text>
-            <Text style={styles.statLabel}>Rewards Given</Text>
+            <Text style={styles.statNumber}>{userStories.length}</Text>
+            <Text style={styles.statLabel}>Stories</Text>
           </View>
         </View>
       </View>
@@ -128,6 +111,32 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Your Stories</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => router.push('/story/create')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
+              <PenSquare size={20} color={colors.primary} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>Share Your Story</Text>
+              <Text style={styles.menuItemSubtitle}>Share your experience with the community</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {userStories.length > 0 && (
+          <View style={styles.storiesContainer}>
+            {userStories.map(story => (
+              <StoryCard key={story.id} story={story} />
+            ))}
+          </View>
+        )}
         
         <Text style={styles.sectionTitle}>Account</Text>
         
@@ -219,27 +228,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  photoContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-  },
-  editButton: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
+    marginBottom: 16,
   },
   profileName: {
     fontSize: 24,
@@ -248,11 +241,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   profileEmail: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  profilePhone: {
     fontSize: 14,
     color: colors.textSecondary,
   },
@@ -326,6 +314,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  storiesContainer: {
+    marginBottom: 16,
   },
   footer: {
     marginTop: 24,
