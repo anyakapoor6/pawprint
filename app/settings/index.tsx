@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
@@ -12,11 +12,9 @@ export default function SettingsScreen() {
   const { user } = useAuth();
   const { 
     pushNotifications, 
-    emailNotifications, 
-    darkMode,
+    emailNotifications,
     togglePushNotifications,
     toggleEmailNotifications,
-    toggleDarkMode
   } = useSettings();
 
   const handlePushToggle = async () => {
@@ -53,11 +51,6 @@ export default function SettingsScreen() {
     } else {
       toggleEmailNotifications();
     }
-  };
-
-  const handleDarkModeToggle = () => {
-    toggleDarkMode();
-    // In a real app, you would update the app's theme here
   };
 
   const handleBack = () => {
@@ -146,26 +139,6 @@ export default function SettingsScreen() {
             <Switch
               value={emailNotifications}
               onValueChange={handleEmailToggle}
-              trackColor={{ false: colors.gray[200], true: colors.primary }}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
-                <Moon size={20} color={colors.gray[600]} />
-              </View>
-              <View>
-                <Text style={styles.settingTitle}>Dark Mode</Text>
-                <Text style={styles.settingDescription}>Switch between light and dark themes</Text>
-              </View>
-            </View>
-            <Switch
-              value={darkMode}
-              onValueChange={handleDarkModeToggle}
               trackColor={{ false: colors.gray[200], true: colors.primary }}
             />
           </View>
