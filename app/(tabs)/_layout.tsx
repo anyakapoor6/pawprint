@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Platform } from 'react-native';
-import { Chrome as Home, Map, Camera, CirclePlus as Report, User, SquarePen as PenSquare } from 'lucide-react-native';
+import { Chrome as Home, Map, Camera, CirclePlus as Report, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 
 export default function TabLayout() {
@@ -75,6 +75,26 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <User size={size} color={color} />
           ),
+        }}
+      />
+      
+      {/* Hidden tab screens */}
+      <Tabs.Screen
+        name="urgent"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="recent"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="stories"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
