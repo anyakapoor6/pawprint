@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform, Image, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail, Monitor, Camera, User, Phone } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail, Camera, User, Phone } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
 import * as Notifications from 'expo-notifications';
-import { useTheme } from '@/hooks/useTheme';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, updateProfile, updateProfilePhoto } = useAuth();
-  const { colors } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -20,12 +18,8 @@ export default function SettingsScreen() {
   const { 
     pushNotifications, 
     emailNotifications, 
-    darkMode,
-    useSystemTheme,
     togglePushNotifications,
     toggleEmailNotifications,
-    toggleDarkMode,
-    toggleUseSystemTheme,
   } = useSettings();
 
   const handlePushToggle = async () => {
@@ -111,28 +105,28 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
           onPress={handleBack}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
+        <Text style={styles.headerTitle}>Settings</Text>
         {isEditing ? (
           <TouchableOpacity onPress={handleSaveProfile}>
-            <Text style={[styles.saveButton, { color: colors.primary }]}>Save</Text>
+            <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => setIsEditing(true)}>
-            <Text style={[styles.editButton, { color: colors.primary }]}>Edit</Text>
+            <Text style={styles.editButton}>Edit</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={[styles.profileSection, { backgroundColor: colors.card }]}>
+        <View style={styles.profileSection}>
           <TouchableOpacity 
             style={styles.photoContainer}
             onPress={handleUpdatePhoto}
@@ -152,7 +146,7 @@ export default function SettingsScreen() {
                 <View style={styles.inputGroup}>
                   <User size={16} color={colors.textSecondary} />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={styles.input}
                     value={name}
                     onChangeText={setName}
                     placeholder="Your name"
@@ -163,7 +157,7 @@ export default function SettingsScreen() {
                 <View style={styles.inputGroup}>
                   <Phone size={16} color={colors.textSecondary} />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={styles.input}
                     value={phone}
                     onChangeText={setPhone}
                     placeholder="Phone number"
@@ -173,7 +167,7 @@ export default function SettingsScreen() {
                 </View>
 
                 <TextInput
-                  style={[styles.bioInput, { color: colors.text }]}
+                  style={styles.bioInput}
                   value={bio}
                   onChangeText={setBio}
                   placeholder="Write a short bio..."
@@ -184,12 +178,12 @@ export default function SettingsScreen() {
               </>
             ) : (
               <>
-                <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}</Text>
+                <Text style={styles.profileName}>{user?.name}</Text>
                 {user?.phone && (
-                  <Text style={[styles.profilePhone, { color: colors.textSecondary }]}>{user.phone}</Text>
+                  <Text style={styles.profilePhone}>{user.phone}</Text>
                 )}
                 {user?.bio && (
-                  <Text style={[styles.profileBio, { color: colors.textSecondary }]}>{user.bio}</Text>
+                  <Text style={styles.profileBio}>{user.bio}</Text>
                 )}
               </>
             )}
@@ -197,15 +191,15 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Notifications</Text>
-          <View style={[styles.settingItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <View style={styles.settingItem}>
             <View style={styles.settingContent}>
               <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
                 <Bell size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={[styles.settingTitle, { color: colors.text }]}>Push Notifications</Text>
-                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Get notified about matches and updates</Text>
+                <Text style={styles.settingTitle}>Push Notifications</Text>
+                <Text style={styles.settingDescription}>Get notified about matches and updates</Text>
               </View>
             </View>
             <Switch
@@ -214,14 +208,14 @@ export default function SettingsScreen() {
               trackColor={{ false: colors.gray[200], true: colors.primary }}
             />
           </View>
-          <View style={[styles.settingItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <View style={styles.settingItem}>
             <View style={styles.settingContent}>
               <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
                 <Mail size={20} color={colors.accent} />
               </View>
               <View>
-                <Text style={[styles.settingTitle, { color: colors.text }]}>Email Notifications</Text>
-                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Receive email updates and alerts</Text>
+                <Text style={styles.settingTitle}>Email Notifications</Text>
+                <Text style={styles.settingDescription}>Receive email updates and alerts</Text>
               </View>
             </View>
             <Switch
@@ -233,48 +227,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
-          <View style={[styles.settingItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-            <View style={styles.settingContent}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
-                <Monitor size={20} color={colors.gray[600]} />
-              </View>
-              <View>
-                <Text style={[styles.settingTitle, { color: colors.text }]}>Use System Theme</Text>
-                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Match your device's appearance settings</Text>
-              </View>
-            </View>
-            <Switch
-              value={useSystemTheme}
-              onValueChange={toggleUseSystemTheme}
-              trackColor={{ false: colors.gray[200], true: colors.primary }}
-            />
-          </View>
-          <View style={[styles.settingItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-            <View style={styles.settingContent}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
-                <Moon size={20} color={colors.gray[600]} />
-              </View>
-              <View>
-                <Text style={[styles.settingTitle, { color: colors.text }]}>Dark Mode</Text>
-                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                  {useSystemTheme ? 'Controlled by system settings' : 'Switch between light and dark themes'}
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={darkMode}
-              onValueChange={toggleDarkMode}
-              disabled={useSystemTheme}
-              trackColor={{ false: colors.gray[200], true: colors.primary }}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
+          <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity 
-            style={[styles.settingItem, styles.dangerItem, { backgroundColor: colors.card }]}
+            style={[styles.settingItem, styles.dangerItem]}
             onPress={handleDeleteAccount}
           >
             <View style={styles.settingContent}>
@@ -283,15 +238,15 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={[styles.settingTitle, { color: colors.error }]}>Delete Account</Text>
-                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Permanently delete your account</Text>
+                <Text style={styles.settingDescription}>Permanently delete your account</Text>
               </View>
             </View>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.version, { color: colors.textTertiary }]}>Version 1.0.0</Text>
-          <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+          <Text style={styles.version}>Version 1.0.0</Text>
+          <Text style={styles.email}>{user?.email}</Text>
         </View>
       </ScrollView>
     </View>
@@ -301,6 +256,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -309,7 +265,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   backButton: {
     padding: 8,
@@ -317,14 +275,17 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
+    color: colors.text,
   },
   editButton: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.primary,
   },
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.primary,
   },
   content: {
     flex: 1,
@@ -332,6 +293,7 @@ const styles = StyleSheet.create({
   profileSection: {
     padding: 24,
     alignItems: 'center',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -364,14 +326,17 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 24,
     fontWeight: '600',
+    color: colors.text,
     marginBottom: 4,
   },
   profilePhone: {
     fontSize: 16,
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   profileBio: {
     fontSize: 14,
+    color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
@@ -389,6 +354,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     fontSize: 16,
+    color: colors.text,
   },
   bioInput: {
     width: '100%',
@@ -396,6 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+    color: colors.text,
     textAlignVertical: 'top',
     minHeight: 80,
   },
@@ -405,6 +372,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
     paddingHorizontal: 16,
     marginTop: 24,
     marginBottom: 8,
@@ -413,9 +381,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: colors.white,
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   settingContent: {
     flexDirection: 'row',
@@ -434,10 +404,12 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
+    color: colors.text,
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
+    color: colors.textSecondary,
   },
   dangerItem: {
     borderBottomWidth: 0,
@@ -449,9 +421,11 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: 14,
+    color: colors.textTertiary,
     marginBottom: 8,
   },
   email: {
     fontSize: 14,
+    color: colors.textSecondary,
   },
 });
