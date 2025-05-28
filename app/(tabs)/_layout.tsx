@@ -6,7 +6,7 @@ import { useNotifications } from '@/store/notifications';
 
 export default function TabLayout() {
   const bottomInset = Platform.OS === 'ios' ? 34 : 0;
-  const unreadCount = useNotifications(state => state.unreadCount);
+  const unreadCount = useNotifications(state => state.getUnreadCount());
 
   return (
     <Tabs
