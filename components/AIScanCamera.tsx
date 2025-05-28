@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { Layers, List, MapPin, Navigation, Search, Filter, TriangleAlert as AlertTriangle, X, RefreshCw, Scan } from 'lucide-react-native';
+import { X, Camera, RefreshCw, Scan } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -29,23 +29,22 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
   const [type, setType] = useState<CameraType>('back');
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView>(null);
+  const cameraRef = useRef<any>(null);
 
   const analyzeImage = async (imageUri: string): Promise<AIAnalysis> => {
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // In a real app, this would call a vision API
-    // For demo, return realistic analysis that matches some mock data
+    // Simulated AI analysis - in a real app this would call a vision API
     return {
       petType: 'dog',
-      breed: ['Golden Retriever'],
+      breed: ['Golden Retriever', 'Labrador Retriever'],
       color: ['golden', 'cream'],
       size: 'large',
-      features: ['long fur', 'collar', 'friendly face'],
-      confidence: 0.92,
-      distinctiveMarks: ['white patch on chest'],
-      estimatedAge: '3-4 years',
+      features: ['long fur', 'pointed ears', 'collar'],
+      confidence: 0.85,
+      distinctiveMarks: ['white patch on chest', 'small scar above right eye'],
+      estimatedAge: '2-4 years',
       furLength: 'long',
       furPattern: 'solid'
     };
@@ -57,43 +56,50 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       let score = 0;
       const maxScore = 100;
 
-      // Only match same pet types (critical)
+      // Only match same pet types
       if (report.type.toLowerCase() !== analysis.petType.toLowerCase()) {
         return { report, score: 0 };
       }
 
       // Breed matching (30 points)
-      if (report.breed) {
-        const breedScore = analysis.breed.some(breed => 
-          report.breed?.toLowerCase().includes(breed.toLowerCase())
-        ) ? 30 : 0;
-        score += breedScore;
-      }
+      const breedScore = analysis.breed.some(breed => 
+        report.breed?.toLowerCase().includes(breed.toLowerCase())
+      ) ? 30 : 0;
+      score += breedScore;
 
-      // Color matching (25 points)
+      // Color matching (20 points)
       const reportColors = report.color.toLowerCase().split(/[,\s]+/);
       const colorMatches = analysis.color.filter(c => 
         reportColors.some(rc => rc.includes(c.toLowerCase()))
       );
-      score += (colorMatches.length / analysis.color.length) * 25;
+      score += (colorMatches.length / analysis.color.length) * 20;
 
       // Size matching (15 points)
       if (report.size.toLowerCase() === analysis.size.toLowerCase()) {
         score += 15;
       }
 
-      // Feature matching (20 points)
-      const descriptionLower = report.description.toLowerCase();
-      const featureMatches = analysis.features.filter(f => 
-        descriptionLower.includes(f.toLowerCase())
-      );
-      score += (featureMatches.length / analysis.features.length) * 20;
+      // Age matching (10 points)
+      if (report.age && analysis.estimatedAge) {
+        const ageMatch = compareAgeRanges(report.age, analysis.estimatedAge);
+        score += ageMatch * 10;
+      }
 
-      // Distinctive marks matching (10 points)
-      const markMatches = analysis.distinctiveMarks.filter(mark =>
-        descriptionLower.includes(mark.toLowerCase())
-      );
-      score += (markMatches.length / analysis.distinctiveMarks.length) * 10;
+      // Feature matching (15 points)
+      const descriptionLower = report.description.toLowerCase();
+      const featureMatches = [
+        ...analysis.features,
+        ...analysis.distinctiveMarks
+      ].filter(f => descriptionLower.includes(f.toLowerCase()));
+      score += (featureMatches.length / (analysis.features.length + analysis.distinctiveMarks.length)) * 15;
+
+      // Additional characteristics (10 points)
+      if (analysis.furLength && descriptionLower.includes(analysis.furLength)) {
+        score += 5;
+      }
+      if (analysis.furPattern && descriptionLower.includes(analysis.furPattern)) {
+        score += 5;
+      }
 
       // Apply confidence factor
       score *= analysis.confidence;
@@ -101,12 +107,32 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       return { report, score };
     });
 
-    // Return top matches with score > 70%
+    // Return top matches with score > 50%
     return matches
       .sort((a, b) => b.score - a.score)
-      .filter(m => m.score > 70)
+      .filter(m => m.score > 50)
       .map(m => m.report)
       .slice(0, 3);
+  };
+
+  const compareAgeRanges = (reportAge: string, analysisAge: string): number => {
+    const normalizeAge = (age: string): [number, number] => {
+      const numbers = age.match(/\d+/g)?.map(Number) || [];
+      if (numbers.length === 1) return [numbers[0], numbers[0]];
+      if (numbers.length === 2) return [numbers[0], numbers[1]];
+      return [0, 0];
+    };
+
+    const [reportMin, reportMax] = normalizeAge(reportAge);
+    const [analysisMin, analysisMax] = normalizeAge(analysisAge);
+
+    const overlap = !(reportMax < analysisMin || reportMin > analysisMax);
+    if (overlap) {
+      const overlapAmount = Math.min(reportMax, analysisMax) - Math.max(reportMin, analysisMin);
+      const totalRange = Math.max(reportMax, analysisMax) - Math.min(reportMin, analysisMin);
+      return overlapAmount / totalRange;
+    }
+    return 0;
   };
 
   const scanImage = async () => {
@@ -121,11 +147,18 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       });
 
       const analysis = await analyzeImage(photo.uri);
-      const matchedPets = findMatches(analysis);
+      const matches = findMatches(analysis);
 
-      onCapture(photo.uri, matchedPets, analysis);
+      if (matches.length === 0) {
+        onError('No matching pets found. Try scanning from a different angle.');
+        setScanning(false);
+        return;
+      }
+
+      onCapture(photo.uri, matches, analysis);
     } catch (error) {
-      onError("Connection error. Please check your network.");
+      console.error('Scan error:', error);
+      onError('Failed to process image. Please try again.');
     } finally {
       setScanning(false);
     }
@@ -163,10 +196,9 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
   return (
     <View style={styles.container}>
       <CameraView 
-        ref={cameraRef}
         style={styles.camera} 
         type={type}
-        ratio="16:9"
+        ref={cameraRef}
       >
         <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
           <X size={24} color={colors.white} />
@@ -181,7 +213,7 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
           </View>
           
           <Text style={styles.instructions}>
-            {scanning ? 'Analyzing image...' : 'Position the pet in the frame and tap Scan'}
+            {scanning ? 'Analyzing image...' : 'Position the pet in the frame'}
           </Text>
         </View>
         

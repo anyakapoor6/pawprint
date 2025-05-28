@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Camera } from 'expo-camera';
-import { X, Camera as CameraIcon, RefreshCw } from 'lucide-react-native';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { X, Camera, RefreshCw } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 
 interface CameraComponentProps {
@@ -10,8 +10,8 @@ interface CameraComponentProps {
 }
 
 export default function CameraComponent({ onCapture, onCancel }: CameraComponentProps) {
-  const [type, setType] = useState(Camera.Constants.Type.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [type, setType] = useState<CameraType>('back');
+  const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
 
   if (!permission) {
@@ -39,11 +39,7 @@ export default function CameraComponent({ onCapture, onCancel }: CameraComponent
   }
 
   const toggleCameraType = () => {
-    setType(current => (
-      current === Camera.Constants.Type.back
-        ? Camera.Constants.Type.front
-        : Camera.Constants.Type.back
-    ));
+    setType(current => (current === 'back' ? 'front' : 'back'));
   };
 
   const takePicture = async () => {
@@ -59,7 +55,7 @@ export default function CameraComponent({ onCapture, onCancel }: CameraComponent
 
   return (
     <View style={styles.container}>
-      <Camera 
+      <CameraView 
         style={styles.camera} 
         type={type}
         ref={cameraRef}
@@ -79,7 +75,7 @@ export default function CameraComponent({ onCapture, onCancel }: CameraComponent
           
           <View style={styles.emptySpace} />
         </View>
-      </Camera>
+      </CameraView>
     </View>
   );
 }

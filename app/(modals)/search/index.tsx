@@ -1,13 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ArrowLeft } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
-import { PetReport, ReportType, PetType, PetSize } from '@/types/pet';
+import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
-import * as Location from 'expo-location';
-import { getDistance } from 'geolib';
 
 interface SearchScreenProps {
   onClose?: () => void;
@@ -16,9 +13,9 @@ interface SearchScreenProps {
 type FilterState = {
   reportType: ReportType | 'all';
   petType: PetType | 'all';
-  size: PetSize | 'all';
   breed: string;
   color: string;
+  size: 'small' | 'medium' | 'large' | 'all';
   distance: number;
   location: {
     latitude: number;
@@ -30,131 +27,69 @@ type FilterState = {
 };
 
 export default function SearchScreen({ onClose }: SearchScreenProps) {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     reportType: 'all',
     petType: 'all',
-    size: 'all',
     breed: '',
     color: '',
+    size: 'all',
     distance: 5,
     location: null,
     typedLocation: '',
     dateRange: 'all',
   });
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationError('Permission to access location was denied');
-      }
-    })();
-  }, []);
-
-  const searchLocation = async (address: string) => {
-    try {
-      setIsSearchingLocation(true);
-      setLocationError(null);
-      
-      const locations = await Location.geocodeAsync(address);
-      
-      if (locations.length > 0) {
-        const { latitude, longitude } = locations[0];
-        setFilters(prev => ({
-          ...prev,
-          location: {
-            latitude,
-            longitude,
-            address,
-          },
-        }));
-        applyFilters(searchTerm, {
-          ...filters,
-          location: {
-            latitude,
-            longitude,
-            address,
-          },
-        });
-      } else {
-        setLocationError('Location not found');
-      }
-    } catch (error) {
-      setLocationError('Error searching location');
-      console.error('Geocoding error:', error);
-    } finally {
-      setIsSearchingLocation(false);
-    }
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    return getDistance(
-      { latitude: lat1, longitude: lon1 },
-      { latitude: lat2, longitude: lon2 }
-    ) / 1000; // Convert to kilometers
-  };
-
   const applyFilters = useCallback((text: string, activeFilters: FilterState) => {
     let filtered = [...mockReports];
-    
-    // Filter by report type
-    if (activeFilters.reportType !== 'all') {
-      filtered = filtered.filter(r => r.reportType === activeFilters.reportType);
-    }
-    
-    // Filter by pet type
+
     if (activeFilters.petType !== 'all') {
-      filtered = filtered.filter(r => r.type === activeFilters.petType);
+      filtered = filtered.filter(report => report.type === activeFilters.petType);
     }
 
-    // Filter by size
-    if (activeFilters.size !== 'all') {
-      filtered = filtered.filter(r => r.size === activeFilters.size);
+    if (activeFilters.reportType !== 'all') {
+      filtered = filtered.filter(report => report.reportType === activeFilters.reportType);
     }
 
-    // Filter by breed
-    if (activeFilters.breed.trim()) {
-      const breedTerms = activeFilters.breed.toLowerCase().split(/\s+/);
-      filtered = filtered.filter(report =>
-        report.breed && breedTerms.every(term => 
-          report.breed!.toLowerCase().includes(term)
-        )
-      );
-    }
-
-    // Filter by color
-    if (activeFilters.color.trim()) {
-      const colorTerms = activeFilters.color.toLowerCase().split(/\s+/);
-      filtered = filtered.filter(report =>
-        colorTerms.every(term => 
-          report.color.toLowerCase().includes(term)
-        )
-      );
-    }
-
-    // Filter by location and distance
-    if (activeFilters.location) {
+    // Search term
+    if (text.length > 2) {
+      const searchTerms = text.toLowerCase().split(/\s+/);
       filtered = filtered.filter(report => {
-        if (!report.lastSeenLocation) return false;
+        const searchableText = [
+          report.name,
+          report.breed,
+          report.color,
+          report.description,
+          report.lastSeenLocation?.address
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
 
-        const distance = calculateDistance(
-          activeFilters.location!.latitude,
-          activeFilters.location!.longitude,
-          report.lastSeenLocation.latitude,
-          report.lastSeenLocation.longitude
-        );
-
-        return distance <= activeFilters.distance;
+        return searchTerms.every(term => searchableText.includes(term));
       });
     }
 
-    // Filter by date range
+    if (activeFilters.breed) {
+      const breedTerms = activeFilters.breed.toLowerCase().split(/\s+/);
+      filtered = filtered.filter(report =>
+        breedTerms.every(term => (report.breed || '').toLowerCase().includes(term))
+      );
+    }
+
+    if (activeFilters.color) {
+      const colorTerms = activeFilters.color.toLowerCase().split(/\s+/);
+      filtered = filtered.filter(report =>
+        colorTerms.every(term => report.color.toLowerCase().includes(term))
+      );
+    }
+
+    if (activeFilters.size !== 'all') {
+      filtered = filtered.filter(report => report.size === activeFilters.size);
+    }
+
     if (activeFilters.dateRange !== 'all') {
       const now = new Date();
       const getDateLimit = () => {
@@ -176,28 +111,25 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       }
     }
 
-    // Search term filtering
-    if (text.length > 2) {
-      const searchTerms = text.toLowerCase().split(/\s+/);
+    if (activeFilters.location) {
       filtered = filtered.filter(report => {
-        const searchableText = [
-          report.name,
-          report.breed,
-          report.color,
-          report.description,
-          report.lastSeenLocation?.address
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
+        if (!report.lastSeenLocation) return false;
 
-        return searchTerms.every(term => searchableText.includes(term));
+        const distance = calculateDistance(
+          activeFilters.location!.latitude,
+          activeFilters.location!.longitude,
+          report.lastSeenLocation.latitude,
+          report.lastSeenLocation.longitude
+        );
+
+        return distance <= activeFilters.distance;
       });
     }
 
     setResults(filtered);
   }, []);
 
+  // Debounced search handler
   const handleSearch = useCallback((text: string) => {
     setSearchTerm(text);
     applyFilters(text, filters);
@@ -214,43 +146,32 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     applyFilters(searchTerm, updated);
   };
 
-  const handleLocationChange = (text: string) => {
-    setFilters(prev => ({ ...prev, typedLocation: text }));
-    setLocationError(null);
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
-  const handleLocationSearch = () => {
-    if (filters.typedLocation.trim()) {
-      searchLocation(filters.typedLocation.trim());
-    }
-  };
-
-  const clearLocation = () => {
-    setFilters(prev => ({
-      ...prev,
-      location: null,
-      typedLocation: '',
-    }));
-    setLocationError(null);
-    applyFilters(searchTerm, {
-      ...filters,
-      location: null,
-      typedLocation: '',
-    });
-  };
+  const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
   const resetFilters = () => {
     const defaultFilters = {
-      reportType: 'all' as const,
-      petType: 'all' as const,
-      size: 'all' as const,
+      reportType: 'all',
+      petType: 'all',
       breed: '',
       color: '',
+      size: 'all',
       distance: 5,
       location: null,
       typedLocation: '',
-      dateRange: 'all' as const,
-    };
+      dateRange: 'all',
+    } as FilterState;
     setFilters(defaultFilters);
     applyFilters(searchTerm, defaultFilters);
   };
@@ -261,6 +182,9 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     if (filters.petType !== 'all') {
       parts.push(filters.petType + 's');
     }
+    if (filters.reportType !== 'all') {
+      parts.push(filters.reportType);
+    }
     if (filters.size !== 'all') {
       parts.push(filters.size + ' size');
     }
@@ -270,11 +194,8 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     if (filters.color) {
       parts.push(`color: ${filters.color}`);
     }
-    if (filters.reportType !== 'all') {
-      parts.push(filters.reportType);
-    }
     if (filters.location) {
-      parts.push(`within ${filters.distance}km of ${filters.location.address}`);
+      parts.push(`within ${filters.distance}km`);
     }
     if (filters.dateRange !== 'all') {
       parts.push(`from ${filters.dateRange}`);
@@ -283,20 +204,12 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     return parts.length > 0 ? `Filters: ${parts.join(', ')}` : '';
   };
 
-  const handleBack = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      router.back();
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onClose}
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -319,7 +232,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
           </TouchableOpacity>
         )}
         <TouchableOpacity 
-          style={[styles.filterButton, showFilters && styles.filterButtonActive]}
+          style={[styles.filterButton, showFilters && styles.filterButtonActive]} 
           onPress={() => setShowFilters(!showFilters)}
         >
           <Filter size={20} color={showFilters ? colors.white : colors.primary} />
@@ -329,29 +242,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       {showFilters && (
         <ScrollView style={styles.filtersContainer}>
           <Text style={styles.filterTitle}>Filters</Text>
-          
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Report Type</Text>
-            <View style={styles.filterOptions}>
-              {(['all', 'lost', 'found'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterOption,
-                    filters.reportType === type && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('reportType', type)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.reportType === type && styles.filterOptionTextActive
-                  ]}>
-                    {type === 'all' ? 'All' : type === 'lost' ? 'Lost' : 'Found'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
           
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Pet Type</Text>
@@ -368,6 +258,29 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
                   <Text style={[
                     styles.filterOptionText,
                     filters.petType === type && styles.filterOptionTextActive
+                  ]}>
+                    {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.filterSection}>
+            <Text style={styles.filterLabel}>Report Type</Text>
+            <View style={styles.filterOptions}>
+              {(['all', 'lost', 'found'] as const).map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.filterOption,
+                    filters.reportType === type && styles.filterOptionActive
+                  ]}
+                  onPress={() => updateFilter('reportType', type)}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    filters.reportType === type && styles.filterOptionTextActive
                   ]}>
                     {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
                   </Text>
@@ -422,70 +335,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
           </View>
 
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Location</Text>
-            <View style={styles.locationInputContainer}>
-              <TextInput
-                style={styles.locationInput}
-                value={filters.typedLocation}
-                onChangeText={handleLocationChange}
-                placeholder="Enter location to search nearby"
-                placeholderTextColor={colors.textTertiary}
-              />
-              {filters.typedLocation ? (
-                <TouchableOpacity
-                  style={styles.locationButton}
-                  onPress={handleLocationSearch}
-                  disabled={isSearchingLocation}
-                >
-                  <MapPin size={20} color={colors.white} />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            {locationError && (
-              <Text style={styles.errorText}>{locationError}</Text>
-            )}
-            {filters.location && (
-              <View style={styles.activeLocation}>
-                <Text style={styles.activeLocationText}>
-                  Searching near: {filters.location.address}
-                </Text>
-                <TouchableOpacity
-                  style={styles.clearLocationButton}
-                  onPress={clearLocation}
-                >
-                  <X size={16} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-
-          {filters.location && (
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Search Radius</Text>
-              <View style={styles.filterOptions}>
-                {[5, 10, 25, 50].map((distance) => (
-                  <TouchableOpacity
-                    key={distance}
-                    style={[
-                      styles.filterOption,
-                      filters.distance === distance && styles.filterOptionActive
-                    ]}
-                    onPress={() => updateFilter('distance', distance)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      filters.distance === distance && styles.filterOptionTextActive
-                    ]}>
-                      {distance}km
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Date Range</Text>
+            <Text style={styles.filterLabel}>Date Reported</Text>
             <View style={styles.filterOptions}>
               {([
                 { value: 'all', label: 'All Time' },
@@ -512,21 +362,13 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
               ))}
             </View>
           </View>
-          
-          <View style={styles.filterButtons}>
-            <TouchableOpacity 
-              style={styles.resetButton}
-              onPress={resetFilters}
-            >
-              <Text style={styles.resetButtonText}>Reset</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.applyButton}
-              onPress={() => setShowFilters(false)}
-            >
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
-            </TouchableOpacity>
-          </View>
+
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={resetFilters}
+          >
+            <Text style={styles.resetButtonText}>Reset Filters</Text>
+          </TouchableOpacity>
         </ScrollView>
       )}
 
@@ -567,8 +409,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 16,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
@@ -576,14 +419,11 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    marginRight: 8,
   },
   headerTitle: {
-    flex: 1,
     fontSize: 20,
     fontWeight: '600',
     color: colors.text,
-    textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -603,15 +443,13 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 8,
+    marginLeft: 8,
   },
   filterButton: {
-    marginLeft: 12,
-    width: 48,
-    height: 48,
+    padding: 8,
+    marginLeft: 8,
     borderRadius: 8,
     backgroundColor: colors.gray[100],
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   filterButtonActive: {
     backgroundColor: colors.primary,
@@ -621,6 +459,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    maxHeight: 400,
   },
   filterTitle: {
     fontSize: 18,
@@ -640,14 +479,14 @@ const styles = StyleSheet.create({
   filterOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginHorizontal: -4,
   },
   filterOption: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: colors.gray[100],
-    marginRight: 8,
-    marginBottom: 8,
+    margin: 4,
   },
   filterOptionActive: {
     backgroundColor: colors.primary,
@@ -667,77 +506,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  locationInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  locationInput: {
-    flex: 1,
-    backgroundColor: colors.gray[100],
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.text,
-    marginRight: 8,
-  },
-  locationButton: {
-    backgroundColor: colors.primary,
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  activeLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.gray[100],
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 8,
-  },
-  activeLocationText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  clearLocationButton: {
-    padding: 4,
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
   resetButton: {
-    flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.gray[100],
     borderRadius: 8,
-    marginRight: 8,
+    marginTop: 8,
   },
   resetButtonText: {
     color: colors.textSecondary,
+    fontSize: 16,
     fontWeight: '500',
-  },
-  applyButton: {
-    flex: 2,
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  applyButtonText: {
-    color: colors.white,
-    fontWeight: '600',
   },
   resultsContainer: {
     flex: 1,
