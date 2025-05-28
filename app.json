@@ -1,4 +1,7 @@
 {
   "name": "pawprint",
-  "displayName": "PawPrint"
+  "displayName": "PawPrint",
+  "plugins": [
+    "expo-router"
+  ]
 }
