@@ -1,38 +1,40 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { MapPin, Calendar, Award, Heart } from 'lucide-react-native';
+import { MapPin, Calendar, Award, Heart, Check } from 'lucide-react-native';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
 
 interface PetCardProps {
   report: PetReport;
-  onNavigate?: () => void;
+  onPress?: () => void;
   showSaveButton?: boolean;
+  showResolveButton?: boolean;
+  onResolve?: () => void;
 }
 
-export default function PetCard({ report, onNavigate, showSaveButton = true }: PetCardProps) {
-  const router = useRouter();
+export default function PetCard({ 
+  report, 
+  onPress, 
+  showSaveButton = true,
+  showResolveButton = false,
+  onResolve
+}: PetCardProps) {
   const { toggleSavedPet, isPetSaved } = useSavedPets();
   const formattedDate = new Date(report.dateReported).toLocaleDateString();
   const isSaved = isPetSaved(report.id);
   
-  const handlePress = () => {
-    if (onNavigate) {
-      onNavigate();
-    }
-    setTimeout(() => {
-      router.push(`/pet/${report.id}`);
-    }, 0);
-  };
-
   const handleSave = (e: any) => {
     e.stopPropagation();
     toggleSavedPet(report.id, report);
   };
   
+  const handleResolve = (e: any) => {
+    e.stopPropagation();
+    onResolve?.();
+  };
+  
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
         <Image 
           source={{ uri: report.photos[0] }} 
@@ -90,6 +92,16 @@ export default function PetCard({ report, onNavigate, showSaveButton = true }: P
               ${report.reward.amount} Reward
             </Text>
           </View>
+        )}
+
+        {showResolveButton && (
+          <TouchableOpacity 
+            style={styles.resolveButton}
+            onPress={handleResolve}
+          >
+            <Check size={14} color={colors.white} />
+            <Text style={styles.resolveButtonText}>Mark as Found</Text>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
@@ -195,6 +207,20 @@ const styles = StyleSheet.create({
   savedButton: {
     backgroundColor: colors.white,
   },
+  resolveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.success,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginTop: 8,
+  },
+  resolveButtonText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
 });
-
-export { PetCard }

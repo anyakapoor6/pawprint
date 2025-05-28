@@ -1,22 +1,58 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
-import { mockReports } from '@/data/mockData';
+import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
 
 export default function MyReportsScreen() {
   const router = useRouter();
+  const { getReportsByStatus, updatePetStatus } = usePets();
   const [activeTab, setActiveTab] = useState<'active' | 'resolved'>('active');
   
-  const userReports = mockReports.filter(report => 
-    activeTab === 'active' ? report.status === 'active' : report.status === 'resolved'
-  );
+  const userReports = getReportsByStatus(activeTab === 'active' ? 'active' : 'resolved');
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleResolvePet = (report: PetReport) => {
+    Alert.alert(
+      'Resolve Pet Report',
+      `Has ${report.name || 'this pet'} been found?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Yes, Mark as Found',
+          onPress: () => {
+            updatePetStatus(report.id, 'resolved');
+            Alert.alert(
+              'Report Resolved',
+              'Would you like to share your success story?',
+              [
+                {
+                  text: 'Not Now',
+                  style: 'cancel'
+                },
+                {
+                  text: 'Share Story',
+                  onPress: () => router.push('/story/create')
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -24,7 +60,7 @@ export default function MyReportsScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -54,13 +90,14 @@ export default function MyReportsScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.reportsGrid}>
           {userReports.map((report) => (
-            <TouchableOpacity
-              key={report.id}
-              style={styles.reportItem}
-              onPress={() => handlePetPress(report.id)}
-            >
-              <PetCard report={report} />
-            </TouchableOpacity>
+            <View key={report.id} style={styles.reportItem}>
+              <PetCard 
+                report={report} 
+                onPress={() => handlePetPress(report.id)}
+                showResolveButton={activeTab === 'active' && report.reportType === 'lost'}
+                onResolve={() => handleResolvePet(report)}
+              />
+            </View>
           ))}
         </View>
         
