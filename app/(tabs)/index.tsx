@@ -8,7 +8,6 @@ import { mockReports, mockStories } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
 import ImpactStats from '@/components/ImpactStats';
-import { useNotifications } from '@/store/notifications';
 
 export default function HomeScreen() {
   const [urgentReports, setUrgentReports] = useState<PetReport[]>([]);
@@ -16,18 +15,16 @@ export default function HomeScreen() {
   const [stories, setStories] = useState<Story[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const { getUnreadCount } = useNotifications();
-  const unreadCount = getUnreadCount();
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = () => {
-    // Ensure we're working with arrays even if mockReports/mockStories are undefined
-    const urgent = (mockReports || []).filter(report => report.isUrgent).slice(0, 5);
-    const recent = (mockReports || []).slice(0, 5);
-    const latestStories = (mockStories || []).slice(0, 3);
+    // In a real app, these would be API calls
+    const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
+    const recent = mockReports.slice(0, 5);
+    const latestStories = mockStories.slice(0, 3);
     
     setUrgentReports(urgent);
     setRecentReports(recent);
@@ -68,11 +65,9 @@ export default function HomeScreen() {
               onPress={() => router.push('/(modals)/notifications')}
             >
               <Bell size={24} color={colors.text} />
-              {unreadCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationText}>{unreadCount}</Text>
-                </View>
-              )}
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationText}>3</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
