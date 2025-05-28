@@ -1,15 +1,19 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { usePets } from '@/store/pets';
 import { mockStories } from '@/data/mockData';
 import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { getReportsByStatus } = usePets();
   const router = useRouter();
+  
+  const activeReports = getReportsByStatus('active');
+  const resolvedReports = getReportsByStatus('resolved');
   const userStories = mockStories.filter(story => story.userId === user?.id);
 
   const handleSignOut = async () => {
@@ -41,12 +45,12 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statNumber}>{activeReports.length}</Text>
             <Text style={styles.statLabel}>Active Reports</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
+            <Text style={styles.statNumber}>{resolvedReports.length}</Text>
             <Text style={styles.statLabel}>Resolved</Text>
           </View>
           <View style={styles.statDivider} />
