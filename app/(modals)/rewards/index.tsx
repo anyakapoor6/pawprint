@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Award, Gift, Wallet } from 'lucide-react-native';
@@ -37,12 +36,12 @@ const mockRewards: Reward[] = [
   },
 ];
 
-interface RewardsScreenProps {
-  onClose?: () => void;
-}
-
-export default function RewardsScreen({ onClose }: RewardsScreenProps) {
+export default function RewardsScreen() {
   const router = useRouter();
+
+  const handleBack = () => {
+    router.back();
+  };
 
   const renderRewardCard = (reward: Reward) => {
     const statusColor = {
@@ -85,7 +84,7 @@ export default function RewardsScreen({ onClose }: RewardsScreenProps) {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={onClose}
+          onPress={handleBack}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
