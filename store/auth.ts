@@ -5,6 +5,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   photo?: string;
 }
 
@@ -15,6 +16,7 @@ interface AuthState {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   restoreSession: () => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 // Mock user data - in a real app, this would come from your backend
@@ -24,6 +26,7 @@ const MOCK_USERS = [
     email: 'john@example.com',
     password: 'password123',
     name: 'John Doe',
+    phone: '555-0123',
     photo: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
   },
   {
@@ -31,6 +34,7 @@ const MOCK_USERS = [
     email: 'sarah@example.com',
     password: 'password123',
     name: 'Sarah Johnson',
+    phone: '555-0124',
     photo: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
   },
 ];
@@ -79,6 +83,21 @@ export const useAuth = create<AuthState>((set) => ({
       console.error('Failed to restore session:', error);
     } finally {
       set({ isLoading: false });
+    }
+  },
+  updateProfile: async (updates: Partial<User>) => {
+    try {
+      const currentUser = await SecureStore.getItemAsync('user');
+      if (!currentUser) throw new Error('No user found');
+
+      const user = JSON.parse(currentUser);
+      const updatedUser = { ...user, ...updates };
+      
+      await SecureStore.setItemAsync('user', JSON.stringify(updatedUser));
+      set({ user: updatedUser });
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      throw error;
     }
   },
 }));

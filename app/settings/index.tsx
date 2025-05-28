@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
@@ -111,6 +111,25 @@ export default function SettingsScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Profile</Text>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/profile/edit')}
+          >
+            <View style={styles.menuItemContent}>
+              <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <User size={20} color={colors.primary} />
+              </View>
+              <View style={styles.menuItemTextContainer}>
+                <Text style={styles.menuItemTitle}>Edit Profile</Text>
+                <Text style={styles.menuItemSubtitle}>Update your personal information</Text>
+              </View>
+            </View>
+            <ChevronRight size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           <View style={styles.settingItem}>
             <View style={styles.settingContent}>
@@ -212,7 +231,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.version}>Version 1.0.0</Text>
+          <Text style={styles.appVersion}>Version 1.0.0</Text>
           <Text style={styles.email}>{user?.email}</Text>
         </View>
       </ScrollView>
@@ -272,7 +291,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 16,
   },
   iconContainer: {
     width: 40,
@@ -302,15 +320,38 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  menuIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
   menuItemTextContainer: {
     flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  menuItemSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
   footer: {
     alignItems: 'center',
     paddingVertical: 24,
     paddingHorizontal: 16,
   },
-  version: {
+  appVersion: {
     fontSize: 14,
     color: colors.textTertiary,
     marginBottom: 8,
