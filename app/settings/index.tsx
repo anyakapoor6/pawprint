@@ -5,7 +5,6 @@ import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail 
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
-import * as Notifications from 'expo-notifications';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -80,13 +79,11 @@ export default function SettingsScreen() {
   };
 
   const handlePrivacyPolicy = () => {
-    // In a real app, this would open the privacy policy page
-    Alert.alert('Privacy Policy', 'Opens privacy policy page');
+    router.push('/privacy-policy');
   };
 
   const handleTerms = () => {
-    // In a real app, this would open the terms of service page
-    Alert.alert('Terms of Service', 'Opens terms of service page');
+    router.push('/terms-of-service');
   };
 
   const handleSupport = () => {
@@ -201,16 +198,13 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity 
-            style={[styles.settingItem, styles.dangerItem]}
-            onPress={handleDeleteAccount}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={handleDeleteAccount}>
             <View style={styles.settingContent}>
               <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
                 <Trash2 size={20} color={colors.error} />
               </View>
-              <View>
-                <Text style={[styles.settingTitle, styles.dangerText]}>Delete Account</Text>
+              <View style={styles.menuItemTextContainer}>
+                <Text style={[styles.settingTitle, { color: colors.error }]}>Delete Account</Text>
                 <Text style={styles.settingDescription}>Permanently delete your account</Text>
               </View>
             </View>
@@ -298,11 +292,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  dangerItem: {
-    borderBottomWidth: 0,
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  dangerText: {
-    color: colors.error,
+  menuItemTextContainer: {
+    flex: 1,
   },
   footer: {
     alignItems: 'center',
