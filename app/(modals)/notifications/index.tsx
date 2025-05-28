@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
@@ -50,8 +51,13 @@ const mockNotifications: Notification[] = [
   },
 ];
 
-export default function NotificationsScreen() {
+interface NotificationsScreenProps {
+  onClose?: () => void;
+}
+
+export default function NotificationsScreen({ onClose }: NotificationsScreenProps) {
   const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -80,29 +86,54 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleMarkAllRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({
+        ...notification,
+        read: true
+      }))
+    );
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  };
+
+  const hasUnreadNotifications = notifications.some(notification => !notification.read);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={onClose}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity>
-          <Text style={styles.markAllRead}>Mark all read</Text>
-        </TouchableOpacity>
+        {hasUnreadNotifications && (
+          <TouchableOpacity onPress={handleMarkAllRead}>
+            <Text style={styles.markAllRead}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
+        {!hasUnreadNotifications && <View style={{ width: 80 }} />}
       </View>
 
       <ScrollView style={styles.content}>
-        {mockNotifications.map((notification) => (
+        {notifications.map((notification) => (
           <TouchableOpacity 
             key={notification.id}
             style={[
               styles.notificationCard,
               !notification.read && styles.unreadCard
             ]}
+            onPress={() => handleMarkAsRead(notification.id)}
           >
             <View style={styles.notificationIcon}>
               {getNotificationIcon(notification.type)}
@@ -131,6 +162,15 @@ export default function NotificationsScreen() {
             )}
           </TouchableOpacity>
         ))}
+
+        {notifications.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No notifications</Text>
+            <Text style={styles.emptyStateMessage}>
+              You'll receive notifications about matches, updates, and important alerts here
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -226,5 +266,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateMessage: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
