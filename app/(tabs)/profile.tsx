@@ -3,10 +3,21 @@ import { Link, useRouter } from 'expo-router';
 import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, CreditCard as Edit } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { usePets } from '@/store/pets';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { getReportsByStatus } = usePets();
   const router = useRouter();
+  
+  // Get actual counts from the pets store
+  const activeReports = getReportsByStatus('active');
+  const resolvedReports = getReportsByStatus('resolved');
+
+  // Calculate total rewards given (in a real app, this would come from a rewards store)
+  const totalRewardsGiven = activeReports.reduce((total, report) => {
+    return total + (report.reward?.amount || 0);
+  }, 0);
 
   const handleSignOut = async () => {
     await signOut();
@@ -51,17 +62,17 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statNumber}>{activeReports.length}</Text>
             <Text style={styles.statLabel}>Active Reports</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
+            <Text style={styles.statNumber}>{resolvedReports.length}</Text>
             <Text style={styles.statLabel}>Resolved</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>$50</Text>
+            <Text style={styles.statNumber}>${totalRewardsGiven}</Text>
             <Text style={styles.statLabel}>Rewards Given</Text>
           </View>
         </View>
