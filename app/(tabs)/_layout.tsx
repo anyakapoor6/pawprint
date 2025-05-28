@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import { Chrome as Home, Map, Camera, CirclePlus as Report, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useNotifications } from '@/store/notifications';
