@@ -1,14 +1,11 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ArrowLeft } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
-
-interface SearchScreenProps {
-  onClose?: () => void;
-}
 
 type FilterState = {
   reportType: ReportType | 'all';
@@ -26,7 +23,8 @@ type FilterState = {
   dateRange: '24h' | '3days' | 'week' | 'month' | 'all';
 };
 
-export default function SearchScreen({ onClose }: SearchScreenProps) {
+export default function SearchScreen() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -129,7 +127,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     setResults(filtered);
   }, []);
 
-  // Debounced search handler
   const handleSearch = useCallback((text: string) => {
     setSearchTerm(text);
     applyFilters(text, filters);
@@ -204,12 +201,16 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     return parts.length > 0 ? `Filters: ${parts.join(', ')}` : '';
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={onClose}
+          onPress={handleBack}
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
