@@ -14,6 +14,14 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
   const { getSavedPets } = useSavedPets();
   const savedPets = getSavedPets();
 
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      router.back();
+    }
+  };
+
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
   };
@@ -23,7 +31,7 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={onClose}
+          onPress={handleBack}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
