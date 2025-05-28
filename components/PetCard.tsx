@@ -1,17 +1,21 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MapPin, Calendar, Award } from 'lucide-react-native';
+import { MapPin, Calendar, Award, Heart } from 'lucide-react-native';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
+import { useSavedPets } from '@/store/savedPets';
 
 interface PetCardProps {
   report: PetReport;
   onNavigate?: () => void;
+  showSaveButton?: boolean;
 }
 
-export default function PetCard({ report, onNavigate }: PetCardProps) {
+export default function PetCard({ report, onNavigate, showSaveButton = true }: PetCardProps) {
   const router = useRouter();
+  const { toggleSavedPet, isPetSaved } = useSavedPets();
   const formattedDate = new Date(report.dateReported).toLocaleDateString();
+  const isSaved = isPetSaved(report.id);
   
   const handlePress = () => {
     if (onNavigate) {
@@ -20,6 +24,11 @@ export default function PetCard({ report, onNavigate }: PetCardProps) {
     setTimeout(() => {
       router.push(`/pet/${report.id}`);
     }, 0);
+  };
+
+  const handleSave = (e: any) => {
+    e.stopPropagation();
+    toggleSavedPet(report.id, report);
   };
   
   return (
@@ -43,6 +52,18 @@ export default function PetCard({ report, onNavigate }: PetCardProps) {
             {report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>
+        {showSaveButton && (
+          <TouchableOpacity 
+            style={[styles.saveButton, isSaved && styles.savedButton]} 
+            onPress={handleSave}
+          >
+            <Heart 
+              size={16} 
+              color={isSaved ? colors.error : colors.white}
+              fill={isSaved ? colors.error : 'transparent'}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       
       <View style={styles.content}>
@@ -159,5 +180,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  savedButton: {
+    backgroundColor: colors.white,
   },
 });

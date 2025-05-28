@@ -2,12 +2,17 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { mockReports } from '@/data/mockData';
+import { useSavedPets } from '@/store/savedPets';
 import PetCard from '@/components/PetCard';
 
-export default function SavedPetsScreen() {
+interface SavedPetsScreenProps {
+  onClose?: () => void;
+}
+
+export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
   const router = useRouter();
-  const savedPets = mockReports.slice(0, 4);
+  const { getSavedPets } = useSavedPets();
+  const savedPets = getSavedPets();
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
@@ -18,7 +23,7 @@ export default function SavedPetsScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={onClose}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -34,7 +39,7 @@ export default function SavedPetsScreen() {
               style={styles.petItem}
               onPress={() => handlePetPress(pet.id)}
             >
-              <PetCard report={pet} />
+              <PetCard report={pet} showSaveButton={true} />
             </TouchableOpacity>
           ))}
         </View>
@@ -43,7 +48,7 @@ export default function SavedPetsScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No saved pets</Text>
             <Text style={styles.emptyStateText}>
-              Save pets to keep track of them and receive updates
+              Save pets to keep track of them and receive updates about their status
             </Text>
           </View>
         )}
