@@ -24,10 +24,10 @@ export default function HomeScreen() {
   }, []);
 
   const loadData = () => {
-    // In a real app, these would be API calls
-    const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
-    const recent = mockReports.slice(0, 5);
-    const latestStories = mockStories.slice(0, 3);
+    // Ensure we're working with arrays even if mockReports/mockStories are undefined
+    const urgent = (mockReports || []).filter(report => report.isUrgent).slice(0, 5);
+    const recent = (mockReports || []).slice(0, 5);
+    const latestStories = (mockStories || []).slice(0, 3);
     
     setUrgentReports(urgent);
     setRecentReports(recent);
