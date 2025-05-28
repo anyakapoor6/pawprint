@@ -1,16 +1,64 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { useSettings } from '@/store/settings';
+import * as Notifications from 'expo-notifications';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [emailEnabled, setEmailEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { 
+    pushNotifications, 
+    emailNotifications, 
+    darkMode,
+    togglePushNotifications,
+    toggleEmailNotifications,
+    toggleDarkMode
+  } = useSettings();
+
+  const handlePushToggle = async () => {
+    if (!pushNotifications) {
+      // Request permission when enabling notifications
+      if (Platform.OS !== 'web') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'Please enable notifications in your device settings to receive updates about lost pets.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+      }
+    }
+    togglePushNotifications();
+  };
+
+  const handleEmailToggle = () => {
+    if (!emailNotifications) {
+      Alert.alert(
+        'Enable Email Notifications',
+        'You will receive important updates and matches via email.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Enable', 
+            onPress: toggleEmailNotifications 
+          }
+        ]
+      );
+    } else {
+      toggleEmailNotifications();
+    }
+  };
+
+  const handleDarkModeToggle = () => {
+    toggleDarkMode();
+    // In a real app, you would update the app's theme here
+  };
 
   const handleBack = () => {
     router.back();
@@ -80,8 +128,8 @@ export default function SettingsScreen() {
               </View>
             </View>
             <Switch
-              value={pushEnabled}
-              onValueChange={setPushEnabled}
+              value={pushNotifications}
+              onValueChange={handlePushToggle}
               trackColor={{ false: colors.gray[200], true: colors.primary }}
             />
           </View>
@@ -96,8 +144,8 @@ export default function SettingsScreen() {
               </View>
             </View>
             <Switch
-              value={emailEnabled}
-              onValueChange={setEmailEnabled}
+              value={emailNotifications}
+              onValueChange={handleEmailToggle}
               trackColor={{ false: colors.gray[200], true: colors.primary }}
             />
           </View>
@@ -117,7 +165,7 @@ export default function SettingsScreen() {
             </View>
             <Switch
               value={darkMode}
-              onValueChange={setDarkMode}
+              onValueChange={handleDarkModeToggle}
               trackColor={{ false: colors.gray[200], true: colors.primary }}
             />
           </View>
