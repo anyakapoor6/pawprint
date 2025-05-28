@@ -1,31 +1,37 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Trash2, CircleHelp as HelpCircle, Mail, User, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail, ChevronRight } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
+import * as Notifications from 'expo-notifications';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { 
     pushNotifications, 
-    emailNotifications,
+    emailNotifications, 
+    darkMode,
     togglePushNotifications,
     toggleEmailNotifications,
+    toggleDarkMode
   } = useSettings();
 
   const handlePushToggle = async () => {
     if (!pushNotifications) {
       // Request permission when enabling notifications
       if (Platform.OS !== 'web') {
-        Alert.alert(
-          'Permission Required',
-          'Please enable notifications in your device settings to receive updates about lost pets.',
-          [{ text: 'OK' }]
-        );
-        return;
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'Please enable notifications in your device settings to receive updates about lost pets.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
       }
     }
     togglePushNotifications();
@@ -47,6 +53,11 @@ export default function SettingsScreen() {
     } else {
       toggleEmailNotifications();
     }
+  };
+
+  const handleDarkModeToggle = () => {
+    toggleDarkMode();
+    // In a real app, you would update the app's theme here
   };
 
   const handleBack = () => {
@@ -86,10 +97,8 @@ export default function SettingsScreen() {
   const handleSupport = () => {
     Alert.alert(
       'Contact Support',
-      'Send us an email at pawprintapp6@gmail.com and we\'ll get back to you as soon as possible.',
-      [
-        { text: 'OK' }
-      ]
+      'Please email us at pawprintapp6@gmail.com for assistance.',
+      [{ text: 'OK' }]
     );
   };
 
@@ -107,25 +116,6 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => router.push('/profile/edit')}
-          >
-            <View style={styles.menuItemContent}>
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
-                <User size={20} color={colors.primary} />
-              </View>
-              <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemTitle}>Edit Profile</Text>
-                <Text style={styles.menuItemSubtitle}>Update your personal information</Text>
-              </View>
-            </View>
-            <ChevronRight size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           <View style={styles.settingItem}>
@@ -165,31 +155,31 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Privacy & Security</Text>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={styles.settingItem}
             onPress={handlePrivacyPolicy}
           >
-            <View style={styles.menuItemContent}>
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary + '20' }]}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
                 <Lock size={20} color={colors.secondary} />
               </View>
-              <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemTitle}>Privacy Policy</Text>
-                <Text style={styles.menuItemSubtitle}>Read our privacy policy</Text>
+              <View>
+                <Text style={styles.settingTitle}>Privacy Policy</Text>
+                <Text style={styles.settingDescription}>Read our privacy policy</Text>
               </View>
             </View>
             <ChevronRight size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={styles.settingItem}
             onPress={handleTerms}
           >
-            <View style={styles.menuItemContent}>
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.gray[200] }]}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
                 <Globe size={20} color={colors.gray[600]} />
               </View>
-              <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemTitle}>Terms of Service</Text>
-                <Text style={styles.menuItemSubtitle}>Read our terms of service</Text>
+              <View>
+                <Text style={styles.settingTitle}>Terms of Service</Text>
+                <Text style={styles.settingDescription}>Read our terms of service</Text>
               </View>
             </View>
             <ChevronRight size={20} color={colors.textSecondary} />
@@ -199,16 +189,16 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={styles.settingItem}
             onPress={handleSupport}
           >
-            <View style={styles.menuItemContent}>
-              <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
                 <HelpCircle size={20} color={colors.primary} />
               </View>
-              <View style={styles.menuItemTextContainer}>
-                <Text style={styles.menuItemTitle}>Help & Support</Text>
-                <Text style={styles.menuItemSubtitle}>Contact our support team</Text>
+              <View>
+                <Text style={styles.settingTitle}>Help & Support</Text>
+                <Text style={styles.settingDescription}>Get help with your account</Text>
               </View>
             </View>
             <ChevronRight size={20} color={colors.textSecondary} />
@@ -217,13 +207,16 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity style={styles.menuItem} onPress={handleDeleteAccount}>
+          <TouchableOpacity 
+            style={[styles.settingItem, styles.dangerItem]}
+            onPress={handleDeleteAccount}
+          >
             <View style={styles.settingContent}>
               <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
                 <Trash2 size={20} color={colors.error} />
               </View>
-              <View style={styles.menuItemTextContainer}>
-                <Text style={[styles.settingTitle, { color: colors.error }]}>Delete Account</Text>
+              <View>
+                <Text style={[styles.settingTitle, styles.dangerText]}>Delete Account</Text>
                 <Text style={styles.settingDescription}>Permanently delete your account</Text>
               </View>
             </View>
@@ -231,7 +224,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.appVersion}>Version 1.0.0</Text>
+          <Text style={styles.version}>Version 1.0.0</Text>
           <Text style={styles.email}>{user?.email}</Text>
         </View>
       </ScrollView>
@@ -273,9 +266,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+    paddingHorizontal: 16,
     marginTop: 24,
     marginBottom: 8,
-    paddingHorizontal: 16,
   },
   settingItem: {
     flexDirection: 'row',
@@ -291,6 +284,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    marginRight: 16,
   },
   iconContainer: {
     width: 40,
@@ -304,54 +298,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: colors.text,
+    marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginTop: 4,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  dangerItem: {
+    borderBottomWidth: 0,
   },
-  menuItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  menuItemTextContainer: {
-    flex: 1,
-  },
-  menuItemTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-  },
-  menuItemSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 4,
+  dangerText: {
+    color: colors.error,
   },
   footer: {
     alignItems: 'center',
     paddingVertical: 24,
     paddingHorizontal: 16,
   },
-  appVersion: {
+  version: {
     fontSize: 14,
     color: colors.textTertiary,
     marginBottom: 8,
