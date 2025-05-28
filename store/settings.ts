@@ -5,8 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface SettingsState {
   pushNotifications: boolean;
   emailNotifications: boolean;
+  darkMode: boolean;
   togglePushNotifications: () => void;
   toggleEmailNotifications: () => void;
+  toggleDarkMode: () => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -14,12 +16,16 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       pushNotifications: true,
       emailNotifications: true,
+      darkMode: false,
       
       togglePushNotifications: () => 
         set((state) => ({ pushNotifications: !state.pushNotifications })),
       
       toggleEmailNotifications: () => 
         set((state) => ({ emailNotifications: !state.emailNotifications })),
+      
+      toggleDarkMode: () => 
+        set((state) => ({ darkMode: !state.darkMode })),
     }),
     {
       name: 'settings-storage',
