@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, HelpCircle, Mail } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 
