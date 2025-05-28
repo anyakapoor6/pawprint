@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Platform, Image, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail, Monitor } from 'lucide-react-native';
+import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, CircleHelp as HelpCircle, Mail, Monitor, Camera, User, Phone } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useSettings } from '@/store/settings';
@@ -10,8 +10,13 @@ import { useTheme } from '@/hooks/useTheme';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, updateProfile, updateProfilePhoto } = useAuth();
   const { colors } = useTheme();
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  
   const { 
     pushNotifications, 
     emailNotifications, 
@@ -62,6 +67,28 @@ export default function SettingsScreen() {
     router.back();
   };
 
+  const handleUpdatePhoto = async () => {
+    try {
+      await updateProfilePhoto();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({
+        name,
+        phone,
+        bio,
+      });
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
+  };
+
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
@@ -93,10 +120,82 @@ export default function SettingsScreen() {
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
-        <View style={{ width: 24 }} />
+        {isEditing ? (
+          <TouchableOpacity onPress={handleSaveProfile}>
+            <Text style={[styles.saveButton, { color: colors.primary }]}>Save</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => setIsEditing(true)}>
+            <Text style={[styles.editButton, { color: colors.primary }]}>Edit</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.content}>
+        <View style={[styles.profileSection, { backgroundColor: colors.card }]}>
+          <TouchableOpacity 
+            style={styles.photoContainer}
+            onPress={handleUpdatePhoto}
+          >
+            <Image 
+              source={{ uri: user?.photo }} 
+              style={styles.profilePhoto}
+            />
+            <View style={styles.cameraButton}>
+              <Camera size={16} color={colors.white} />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.profileInfo}>
+            {isEditing ? (
+              <>
+                <View style={styles.inputGroup}>
+                  <User size={16} color={colors.textSecondary} />
+                  <TextInput
+                    style={[styles.input, { color: colors.text }]}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Your name"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Phone size={16} color={colors.textSecondary} />
+                  <TextInput
+                    style={[styles.input, { color: colors.text }]}
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="Phone number"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <TextInput
+                  style={[styles.bioInput, { color: colors.text }]}
+                  value={bio}
+                  onChangeText={setBio}
+                  placeholder="Write a short bio..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                  numberOfLines={3}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}</Text>
+                {user?.phone && (
+                  <Text style={[styles.profilePhone, { color: colors.textSecondary }]}>{user.phone}</Text>
+                )}
+                {user?.bio && (
+                  <Text style={[styles.profileBio, { color: colors.textSecondary }]}>{user.bio}</Text>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Notifications</Text>
           <View style={[styles.settingItem, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
@@ -219,8 +318,86 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
+  editButton: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveButton: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   content: {
     flex: 1,
+  },
+  profileSection: {
+    padding: 24,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  photoContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  profilePhoto: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  profileInfo: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  profileName: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  profilePhone: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  profileBio: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  inputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray[100],
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    width: '100%',
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    fontSize: 16,
+  },
+  bioInput: {
+    width: '100%',
+    backgroundColor: colors.gray[100],
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 80,
   },
   section: {
     marginBottom: 24,
