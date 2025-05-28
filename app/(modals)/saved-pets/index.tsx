@@ -5,21 +5,13 @@ import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
 import PetCard from '@/components/PetCard';
 
-interface SavedPetsScreenProps {
-  onClose?: () => void;
-}
-
-export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
+export default function SavedPetsScreen() {
   const router = useRouter();
   const { getSavedPets } = useSavedPets();
   const savedPets = getSavedPets();
 
   const handleBack = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      router.back();
-    }
+    router.back();
   };
 
   const handlePetPress = (id: string) => {
@@ -42,13 +34,12 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
       <ScrollView style={styles.content}>
         <View style={styles.petsGrid}>
           {savedPets.map((pet) => (
-            <TouchableOpacity
-              key={pet.id}
-              style={styles.petItem}
-              onPress={() => handlePetPress(pet.id)}
-            >
-              <PetCard report={pet} showSaveButton={true} />
-            </TouchableOpacity>
+            <View key={pet.id} style={styles.petItem}>
+              <PetCard 
+                report={pet}
+                onPress={() => handlePetPress(pet.id)}
+              />
+            </View>
           ))}
         </View>
         
@@ -56,7 +47,7 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No saved pets</Text>
             <Text style={styles.emptyStateText}>
-              Save pets to keep track of them and receive updates about their status
+              Save pets to keep track of them and receive updates
             </Text>
           </View>
         )}
