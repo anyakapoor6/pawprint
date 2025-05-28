@@ -90,8 +90,13 @@ export default function SettingsScreen() {
   };
 
   const handleSupport = () => {
-    // In a real app, this would open the support page or chat
-    Alert.alert('Support', 'Opens support page or chat');
+    Alert.alert(
+      'Contact Support',
+      'Send us an email at pawprintapp6@gmail.com and we\'ll get back to you as soon as possible.',
+      [
+        { text: 'OK' }
+      ]
+    );
   };
 
   return (
@@ -188,7 +193,7 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={styles.settingTitle}>Help & Support</Text>
-                <Text style={styles.settingDescription}>Get help with your account</Text>
+                <Text style={styles.settingDescription}>Contact our support team</Text>
               </View>
             </View>
           </TouchableOpacity>
