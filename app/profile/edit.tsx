@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Camera } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 
@@ -11,7 +12,45 @@ export default function EditProfileScreen() {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [photo, setPhoto] = useState(user?.photo || '');
   const [loading, setLoading] = useState(false);
+
+  const handlePickImage = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        
+        const promise = new Promise((resolve) => {
+          input.onchange = (e: any) => {
+            resolve(e.target.files[0]);
+          };
+        });
+        
+        input.click();
+        
+        const file = await promise;
+        if (file) {
+          const url = URL.createObjectURL(file as Blob);
+          setPhoto(url);
+        }
+      } else {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 1,
+        });
+
+        if (!result.canceled && result.assets[0]) {
+          setPhoto(result.assets[0].uri);
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim() || !email.trim()) {
@@ -30,6 +69,7 @@ export default function EditProfileScreen() {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        photo,
       });
       Alert.alert('Success', 'Profile updated successfully');
       router.back();
@@ -63,13 +103,18 @@ export default function EditProfileScreen() {
 
       <View style={styles.content}>
         <View style={styles.photoSection}>
-          <Image 
-            source={{ uri: user?.photo }} 
-            style={styles.profilePhoto}
-          />
-          <TouchableOpacity style={styles.changePhotoButton}>
-            <Text style={styles.changePhotoText}>Change Photo</Text>
+          <TouchableOpacity onPress={handlePickImage}>
+            <View style={styles.photoContainer}>
+              <Image 
+                source={{ uri: photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
+                style={styles.profilePhoto}
+              />
+              <View style={styles.cameraIconContainer}>
+                <Camera size={20} color={colors.white} />
+              </View>
+            </View>
           </TouchableOpacity>
+          <Text style={styles.changePhotoText}>Tap to change photo</Text>
         </View>
 
         <View style={styles.form}>
@@ -160,21 +205,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  profilePhoto: {
+  photoContainer: {
+    position: 'relative',
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  changePhotoButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: colors.gray[100],
+  profilePhoto: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+  },
+  cameraIconContainer: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: colors.white,
   },
   changePhotoText: {
-    color: colors.primary,
     fontSize: 14,
+    color: colors.primary,
     fontWeight: '500',
   },
   form: {
