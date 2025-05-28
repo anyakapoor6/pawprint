@@ -2,56 +2,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-
-interface Notification {
-  id: string;
-  type: 'match' | 'update' | 'reward' | 'system';
-  title: string;
-  message: string;
-  timestamp: string;
-  image?: string;
-  read: boolean;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'match',
-    title: 'Potential Match Found',
-    message: 'A pet matching your lost dog Max has been reported near Central Park.',
-    timestamp: '2024-03-15T10:30:00Z',
-    image: 'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'update',
-    title: 'Report Update',
-    message: 'Your report for Luna has been viewed 50 times in the last 24 hours.',
-    timestamp: '2024-03-14T15:45:00Z',
-    image: 'https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    read: true,
-  },
-  {
-    id: '3',
-    type: 'reward',
-    title: 'Reward Claimed',
-    message: 'The reward for finding Charlie has been claimed by Sarah Johnson.',
-    timestamp: '2024-03-13T09:20:00Z',
-    read: true,
-  },
-  {
-    id: '4',
-    type: 'system',
-    title: 'Welcome to PawPrint',
-    message: 'Thank you for joining our community! Start by creating your first report or browsing nearby pets.',
-    timestamp: '2024-03-12T14:15:00Z',
-    read: true,
-  },
-];
+import { useNotifications } from '@/store/notifications';
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { notifications, markAllAsRead, markAsRead } = useNotifications();
+  const hasUnreadNotifications = notifications.some(n => !n.read);
 
   const handleBack = () => {
     router.back();
@@ -71,7 +27,7 @@ export default function NotificationsScreen() {
     return `${minutes}m ago`;
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case 'match':
         return <Heart size={24} color={colors.accent} />;
@@ -94,19 +50,23 @@ export default function NotificationsScreen() {
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity>
-          <Text style={styles.markAllRead}>Mark all read</Text>
-        </TouchableOpacity>
+        {hasUnreadNotifications && (
+          <TouchableOpacity onPress={markAllAsRead}>
+            <Text style={styles.markAllRead}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
+        {!hasUnreadNotifications && <View style={{ width: 80 }} />}
       </View>
 
       <ScrollView style={styles.content}>
-        {mockNotifications.map((notification) => (
+        {notifications.map((notification) => (
           <TouchableOpacity 
             key={notification.id}
             style={[
               styles.notificationCard,
               !notification.read && styles.unreadCard
             ]}
+            onPress={() => markAsRead(notification.id)}
           >
             <View style={styles.notificationIcon}>
               {getNotificationIcon(notification.type)}
@@ -135,6 +95,15 @@ export default function NotificationsScreen() {
             )}
           </TouchableOpacity>
         ))}
+
+        {notifications.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No notifications</Text>
+            <Text style={styles.emptyStateMessage}>
+              You'll receive notifications about matches, updates, and important alerts here
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -230,5 +199,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateMessage: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
