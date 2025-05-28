@@ -18,13 +18,22 @@ export default function EditProfileScreen() {
   const handlePickImage = async () => {
     try {
       if (Platform.OS === 'web') {
+        // Web implementation
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
         
         const promise = new Promise((resolve) => {
           input.onchange = (e: any) => {
-            resolve(e.target.files[0]);
+            const file = e.target.files?.[0];
+            if (file) {
+              // Check file size (limit to 5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                Alert.alert('Error', 'Image size must be less than 5MB');
+                return;
+              }
+              resolve(file);
+            }
           };
         });
         
@@ -36,19 +45,53 @@ export default function EditProfileScreen() {
           setPhoto(url);
         }
       } else {
+        // Mobile implementation
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'Please allow access to your photo library to change your profile picture.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { 
+                text: 'Settings',
+                onPress: () => {
+                  // This would open app settings on a real device
+                }
+              }
+            ]
+          );
+          return;
+        }
+
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [1, 1],
-          quality: 1,
+          quality: 0.8,
+          allowsMultipleSelection: false,
         });
 
         if (!result.canceled && result.assets[0]) {
-          setPhoto(result.assets[0].uri);
+          // Check file size (approximate using dimensions and quality)
+          const asset = result.assets[0];
+          const approximateSize = (asset.width * asset.height * 4) / (1024 * 1024); // Rough MB size
+          
+          if (approximateSize > 5) {
+            Alert.alert('Error', 'Please choose a smaller image (less than 5MB)');
+            return;
+          }
+          
+          setPhoto(asset.uri);
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      console.error('Error picking image:', error);
+      Alert.alert(
+        'Error',
+        'Failed to pick image. Please try again or choose a different image.'
+      );
     }
   };
 
@@ -74,7 +117,8 @@ export default function EditProfileScreen() {
       Alert.alert('Success', 'Profile updated successfully');
       router.back();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile');
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -103,7 +147,10 @@ export default function EditProfileScreen() {
 
       <View style={styles.content}>
         <View style={styles.photoSection}>
-          <TouchableOpacity onPress={handlePickImage}>
+          <TouchableOpacity 
+            onPress={handlePickImage}
+            style={styles.photoButton}
+          >
             <View style={styles.photoContainer}>
               <Image 
                 source={{ uri: photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
@@ -205,12 +252,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
+  photoButton: {
+    marginBottom: 8,
+  },
   photoContainer: {
     position: 'relative',
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 12,
+    backgroundColor: colors.gray[100],
+    overflow: 'hidden',
   },
   profilePhoto: {
     width: '100%',
