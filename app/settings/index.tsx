@@ -1,0 +1,295 @@
+import { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ChevronLeft, Bell, Lock, Globe, Moon, Trash2, HelpCircle, Mail } from 'lucide-react-native';
+import { colors } from '@/constants/colors';
+import { useAuth } from '@/store/auth';
+
+export default function SettingsScreen() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            // In a real app, this would call an API to delete the account
+            Alert.alert('Account Deleted', 'Your account has been successfully deleted.');
+            router.replace('/sign-in');
+          },
+        },
+      ]
+    );
+  };
+
+  const handlePrivacyPolicy = () => {
+    // In a real app, this would open the privacy policy page
+    Alert.alert('Privacy Policy', 'Opens privacy policy page');
+  };
+
+  const handleTerms = () => {
+    // In a real app, this would open the terms of service page
+    Alert.alert('Terms of Service', 'Opens terms of service page');
+  };
+
+  const handleSupport = () => {
+    // In a real app, this would open the support page or chat
+    Alert.alert('Support', 'Opens support page or chat');
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleBack}
+        >
+          <ChevronLeft size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <View style={styles.settingItem}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <Bell size={20} color={colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Push Notifications</Text>
+                <Text style={styles.settingDescription}>Get notified about matches and updates</Text>
+              </View>
+            </View>
+            <Switch
+              value={pushEnabled}
+              onValueChange={setPushEnabled}
+              trackColor={{ false: colors.gray[200], true: colors.primary }}
+            />
+          </View>
+          <View style={styles.settingItem}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
+                <Mail size={20} color={colors.accent} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Email Notifications</Text>
+                <Text style={styles.settingDescription}>Receive email updates and alerts</Text>
+              </View>
+            </View>
+            <Switch
+              value={emailEnabled}
+              onValueChange={setEmailEnabled}
+              trackColor={{ false: colors.gray[200], true: colors.primary }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Appearance</Text>
+          <View style={styles.settingItem}>
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
+                <Moon size={20} color={colors.gray[600]} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Dark Mode</Text>
+                <Text style={styles.settingDescription}>Switch between light and dark themes</Text>
+              </View>
+            </View>
+            <Switch
+              value={darkMode}
+              onValueChange={setDarkMode}
+              trackColor={{ false: colors.gray[200], true: colors.primary }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Privacy & Security</Text>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={handlePrivacyPolicy}
+          >
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
+                <Lock size={20} color={colors.secondary} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Privacy Policy</Text>
+                <Text style={styles.settingDescription}>Read our privacy policy</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={handleTerms}
+          >
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.gray[200] }]}>
+                <Globe size={20} color={colors.gray[600]} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Terms of Service</Text>
+                <Text style={styles.settingDescription}>Read our terms of service</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Support</Text>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={handleSupport}
+          >
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <HelpCircle size={20} color={colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Help & Support</Text>
+                <Text style={styles.settingDescription}>Get help with your account</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <TouchableOpacity 
+            style={[styles.settingItem, styles.dangerItem]}
+            onPress={handleDeleteAccount}
+          >
+            <View style={styles.settingContent}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
+                <Trash2 size={20} color={colors.error} />
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, styles.dangerText]}>Delete Account</Text>
+                <Text style={styles.settingDescription}>Permanently delete your account</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.version}>Version 1.0.0</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    paddingHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  settingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 16,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  dangerItem: {
+    borderBottomWidth: 0,
+  },
+  dangerText: {
+    color: colors.error,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
+  version: {
+    fontSize: 14,
+    color: colors.textTertiary,
+    marginBottom: 8,
+  },
+  email: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+});
