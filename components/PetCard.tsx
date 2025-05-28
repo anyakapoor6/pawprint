@@ -41,17 +41,19 @@ export default function PetCard({
           style={styles.image} 
           resizeMode="cover"
         />
-        {report.isUrgent && (
+        {report.isUrgent && report.status === 'active' && (
           <View style={styles.urgentBadge}>
             <Text style={styles.urgentText}>URGENT</Text>
           </View>
         )}
         <View style={[
           styles.typeBadge, 
+          report.status === 'resolved' ? styles.resolvedBadge : 
           report.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
         ]}>
           <Text style={styles.typeText}>
-            {report.reportType === 'lost' ? 'LOST' : 'FOUND'}
+            {report.status === 'resolved' ? 'FOUND' :
+             report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>
         {showSaveButton && (
@@ -85,7 +87,7 @@ export default function PetCard({
           <Text style={styles.infoText}>{formattedDate}</Text>
         </View>
 
-        {report.reward && (
+        {report.reward && report.status === 'active' && (
           <View style={styles.rewardContainer}>
             <Award size={14} color={colors.accent} />
             <Text style={styles.rewardText}>
@@ -94,7 +96,7 @@ export default function PetCard({
           </View>
         )}
 
-        {showResolveButton && (
+        {showResolveButton && report.status === 'active' && (
           <TouchableOpacity 
             style={styles.resolveButton}
             onPress={handleResolve}
@@ -156,6 +158,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 107, 107, 0.85)',
   },
   foundBadge: {
+    backgroundColor: 'rgba(80, 200, 120, 0.85)',
+  },
+  resolvedBadge: {
     backgroundColor: 'rgba(80, 200, 120, 0.85)',
   },
   typeText: {
@@ -225,4 +230,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { PetCard }
+export { PetCard };
