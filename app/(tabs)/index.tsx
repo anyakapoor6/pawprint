@@ -8,6 +8,7 @@ import { mockReports, mockStories } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
 import ImpactStats from '@/components/ImpactStats';
+import { useNotifications } from '@/store/notifications';
 
 export default function HomeScreen() {
   const [urgentReports, setUrgentReports] = useState<PetReport[]>([]);
@@ -15,6 +16,8 @@ export default function HomeScreen() {
   const [stories, setStories] = useState<Story[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const { getUnreadCount } = useNotifications();
+  const unreadCount = getUnreadCount();
 
   useEffect(() => {
     loadData();
@@ -65,9 +68,11 @@ export default function HomeScreen() {
               onPress={() => router.push('/(modals)/notifications')}
             >
               <Bell size={24} color={colors.text} />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationText}>3</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationText}>{unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>

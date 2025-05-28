@@ -2,11 +2,9 @@ import { Tabs } from 'expo-router';
 import { View, StyleSheet, Platform, Text } from 'react-native';
 import { Chrome as Home, Map, Camera, CirclePlus as Report, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { useNotifications } from '@/store/notifications';
 
 export default function TabLayout() {
   const bottomInset = Platform.OS === 'ios' ? 34 : 0;
-  const unreadCount = useNotifications(state => state.getUnreadCount());
 
   return (
     <Tabs
@@ -28,14 +26,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <View style={styles.iconContainer}>
-              <Home size={size} color={color} />
-              {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount}</Text>
-                </View>
-              )}
-            </View>
+            <Home size={size} color={color} />
           ),
         }}
       />
@@ -136,25 +127,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
-  },
-  iconContainer: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    backgroundColor: colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '600',
   },
 });
