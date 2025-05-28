@@ -1,8 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -13,52 +11,36 @@ type FilterState = {
   petType: PetType | 'all';
   breed: string;
   color: string;
-  size: 'small' | 'medium' | 'large' | 'all';
   distance: number;
-  location: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  } | null;
-  typedLocation: string;
-  dateRange: '24h' | '3days' | 'week' | 'month' | 'all';
+  dateRange: 'recent' | 'week' | 'month' | 'all';
 };
 
+const COMMON_BREEDS = {
+  dog: ['Labrador', 'German Shepherd', 'Golden Retriever', 'Husky', 'Corgi'],
+  cat: ['Siamese', 'Persian', 'Maine Coon', 'Ragdoll', 'British Shorthair'],
+};
+
+const COMMON_COLORS = ['Black', 'White', 'Brown', 'Grey', 'Golden', 'Cream', 'Mixed'];
+
 export default function SearchScreen() {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     reportType: 'all',
     petType: 'all',
     breed: '',
     color: '',
-    size: 'all',
-    distance: 5,
-    location: null,
-    typedLocation: '',
+    distance: 25,
     dateRange: 'all',
   });
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  const handleSearch = (text: string) => {
+    setSearchTerm(text);
+    applyFilters(text, filters);
   };
 
-  const deg2rad = (deg: number) => {
-    return deg * (Math.PI / 180);
-  };
-
-  const applyFilters = useCallback((text: string, activeFilters: FilterState) => {
+  const applyFilters = (text: string, activeFilters: FilterState) => {
     let filtered = [...mockReports];
 
     // Search term filter
@@ -92,39 +74,16 @@ export default function SearchScreen() {
 
     // Breed filter
     if (activeFilters.breed) {
-      const breedTerms = activeFilters.breed.toLowerCase().split(/\s+/);
-      filtered = filtered.filter(report =>
-        breedTerms.every(term => (report.breed || '').toLowerCase().includes(term))
+      filtered = filtered.filter(report => 
+        report.breed?.toLowerCase().includes(activeFilters.breed.toLowerCase())
       );
     }
 
     // Color filter
     if (activeFilters.color) {
-      const colorTerms = activeFilters.color.toLowerCase().split(/\s+/);
-      filtered = filtered.filter(report =>
-        colorTerms.every(term => report.color.toLowerCase().includes(term))
+      filtered = filtered.filter(report => 
+        report.color.toLowerCase().includes(activeFilters.color.toLowerCase())
       );
-    }
-
-    // Size filter
-    if (activeFilters.size !== 'all') {
-      filtered = filtered.filter(report => report.size === activeFilters.size);
-    }
-
-    // Location and distance filter
-    if (activeFilters.location) {
-      filtered = filtered.filter(report => {
-        if (!report.lastSeenLocation) return false;
-
-        const distance = calculateDistance(
-          activeFilters.location!.latitude,
-          activeFilters.location!.longitude,
-          report.lastSeenLocation.latitude,
-          report.lastSeenLocation.longitude
-        );
-
-        return distance <= activeFilters.distance;
-      });
     }
 
     // Date range filter
@@ -132,8 +91,7 @@ export default function SearchScreen() {
       const now = new Date();
       const getDateLimit = () => {
         switch (activeFilters.dateRange) {
-          case '24h': return new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          case '3days': return new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+          case 'recent': return new Date(now.getTime() - 24 * 60 * 60 * 1000);
           case 'week': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           case 'month': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
           default: return null;
@@ -150,20 +108,11 @@ export default function SearchScreen() {
     }
 
     setResults(filtered);
-  }, []);
-
-  const handleSearch = useCallback((text: string) => {
-    setSearchTerm(text);
-    applyFilters(text, filters);
-  }, [filters, applyFilters]);
+  };
 
   const clearSearch = () => {
     setSearchTerm('');
     setResults([]);
-  };
-
-  const handleBack = () => {
-    router.back();
   };
 
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
@@ -172,65 +121,17 @@ export default function SearchScreen() {
     applyFilters(searchTerm, updated);
   };
 
-  const getCurrentLocation = async () => {
-    try {
-      setLocationError(null);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      
-      if (status !== 'granted') {
-        setLocationError('Permission to access location was denied');
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      });
-
-      const locationString = address[0] ? 
-        `${address[0].street || ''} ${address[0].city || ''} ${address[0].region || ''}`.trim() :
-        'Current Location';
-
-      updateFilter('location', {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        address: locationString
-      });
-      updateFilter('typedLocation', locationString);
-    } catch (error) {
-      setLocationError('Error getting location');
-      console.error('Error:', error);
-    }
-  };
-
-  const handleLocationSearch = async (text: string) => {
-    updateFilter('typedLocation', text);
-    
-    if (!text) {
-      updateFilter('location', null);
-      return;
-    }
-
-    try {
-      const results = await Location.geocodeAsync(text);
-      if (results.length > 0) {
-        const { latitude, longitude } = results[0];
-        const address = await Location.reverseGeocodeAsync({ latitude, longitude });
-        
-        const locationString = address[0] ? 
-          `${address[0].street || ''} ${address[0].city || ''} ${address[0].region || ''}`.trim() :
-          text;
-
-        updateFilter('location', {
-          latitude,
-          longitude,
-          address: locationString
-        });
-      }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-    }
+  const resetFilters = () => {
+    const defaultFilters = {
+      reportType: 'all',
+      petType: 'all',
+      breed: '',
+      color: '',
+      distance: 25,
+      dateRange: 'all',
+    };
+    setFilters(defaultFilters);
+    applyFilters(searchTerm, defaultFilters);
   };
 
   return (
@@ -238,7 +139,7 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={() => router.back()}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -274,56 +175,6 @@ export default function SearchScreen() {
           <Text style={styles.filterTitle}>Filters</Text>
           
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Location</Text>
-            <View style={styles.locationContainer}>
-              <View style={styles.locationInputContainer}>
-                <MapPin size={20} color={colors.textSecondary} />
-                <TextInput
-                  style={styles.locationInput}
-                  value={filters.typedLocation}
-                  onChangeText={handleLocationSearch}
-                  placeholder="Enter location"
-                  placeholderTextColor={colors.textTertiary}
-                />
-              </View>
-              <TouchableOpacity 
-                style={styles.currentLocationButton}
-                onPress={getCurrentLocation}
-              >
-                <MapPin size={20} color={colors.white} />
-              </TouchableOpacity>
-            </View>
-            {locationError && (
-              <Text style={styles.locationError}>{locationError}</Text>
-            )}
-            
-            <View style={styles.distanceContainer}>
-              <Text style={styles.distanceLabel}>
-                Search within {filters.distance} km
-              </Text>
-              <View style={styles.distanceOptions}>
-                {[5, 10, 25, 50].map((distance) => (
-                  <TouchableOpacity
-                    key={distance}
-                    style={[
-                      styles.distanceOption,
-                      filters.distance === distance && styles.distanceOptionActive
-                    ]}
-                    onPress={() => updateFilter('distance', distance)}
-                  >
-                    <Text style={[
-                      styles.distanceOptionText,
-                      filters.distance === distance && styles.distanceOptionTextActive
-                    ]}>
-                      {distance} km
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Report Type</Text>
             <View style={styles.filterOptions}>
               {(['all', 'lost', 'found'] as const).map((type) => (
@@ -339,13 +190,13 @@ export default function SearchScreen() {
                     styles.filterOptionText,
                     filters.reportType === type && styles.filterOptionTextActive
                   ]}>
-                    {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+                    {type === 'all' ? 'All' : type === 'lost' ? 'Lost' : 'Found'}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
-
+          
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Pet Type</Text>
             <View style={styles.filterOptions}>
@@ -356,7 +207,10 @@ export default function SearchScreen() {
                     styles.filterOption,
                     filters.petType === type && styles.filterOptionActive
                   ]}
-                  onPress={() => updateFilter('petType', type)}
+                  onPress={() => {
+                    updateFilter('petType', type);
+                    updateFilter('breed', ''); // Reset breed when changing pet type
+                  }}
                 >
                   <Text style={[
                     styles.filterOptionText,
@@ -369,27 +223,66 @@ export default function SearchScreen() {
             </View>
           </View>
 
+          {filters.petType !== 'all' && (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Breed</Text>
+              <View style={styles.filterOptions}>
+                {COMMON_BREEDS[filters.petType].map((breed) => (
+                  <TouchableOpacity
+                    key={breed}
+                    style={[
+                      styles.filterOption,
+                      filters.breed === breed && styles.filterOptionActive
+                    ]}
+                    onPress={() => updateFilter('breed', breed)}
+                  >
+                    <Text style={[
+                      styles.filterOptionText,
+                      filters.breed === breed && styles.filterOptionTextActive
+                    ]}>
+                      {breed}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={styles.customInput}
+                value={filters.breed}
+                onChangeText={(text) => updateFilter('breed', text)}
+                placeholder="Or enter custom breed..."
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
+          )}
+
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Size</Text>
+            <Text style={styles.filterLabel}>Color</Text>
             <View style={styles.filterOptions}>
-              {(['all', 'small', 'medium', 'large'] as const).map((size) => (
+              {COMMON_COLORS.map((color) => (
                 <TouchableOpacity
-                  key={size}
+                  key={color}
                   style={[
                     styles.filterOption,
-                    filters.size === size && styles.filterOptionActive
+                    filters.color === color && styles.filterOptionActive
                   ]}
-                  onPress={() => updateFilter('size', size)}
+                  onPress={() => updateFilter('color', color)}
                 >
                   <Text style={[
                     styles.filterOptionText,
-                    filters.size === size && styles.filterOptionTextActive
+                    filters.color === color && styles.filterOptionTextActive
                   ]}>
-                    {size === 'all' ? 'All' : size.charAt(0).toUpperCase() + size.slice(1)}
+                    {color}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
+            <TextInput
+              style={styles.customInput}
+              value={filters.color}
+              onChangeText={(text) => updateFilter('color', text)}
+              placeholder="Or enter custom color..."
+              placeholderTextColor={colors.textTertiary}
+            />
           </View>
 
           <View style={styles.filterSection}>
@@ -397,8 +290,7 @@ export default function SearchScreen() {
             <View style={styles.filterOptions}>
               {([
                 { value: 'all', label: 'All Time' },
-                { value: '24h', label: 'Last 24h' },
-                { value: '3days', label: 'Last 3 Days' },
+                { value: 'recent', label: 'Last 24h' },
                 { value: 'week', label: 'Last Week' },
                 { value: 'month', label: 'Last Month' },
               ] as const).map((option) => (
@@ -423,30 +315,7 @@ export default function SearchScreen() {
 
           <TouchableOpacity
             style={styles.resetButton}
-            onPress={() => {
-              setFilters({
-                reportType: 'all',
-                petType: 'all',
-                breed: '',
-                color: '',
-                size: 'all',
-                distance: 5,
-                location: null,
-                typedLocation: '',
-                dateRange: 'all',
-              });
-              applyFilters(searchTerm, {
-                reportType: 'all',
-                petType: 'all',
-                breed: '',
-                color: '',
-                size: 'all',
-                distance: 5,
-                location: null,
-                typedLocation: '',
-                dateRange: 'all',
-              });
-            }}
+            onPress={resetFilters}
           >
             <Text style={styles.resetButtonText}>Reset Filters</Text>
           </TouchableOpacity>
@@ -454,15 +323,6 @@ export default function SearchScreen() {
       )}
 
       <ScrollView style={styles.resultsContainer}>
-        {filters.location && (
-          <View style={styles.activeFilters}>
-            <MapPin size={16} color={colors.primary} />
-            <Text style={styles.activeFiltersText}>
-              Within {filters.distance}km of {filters.location.address}
-            </Text>
-          </View>
-        )}
-        
         {searchTerm.length > 0 && results.length === 0 ? (
           <View style={styles.noResults}>
             <Text style={styles.noResultsText}>No pets found matching your criteria</Text>
@@ -557,72 +417,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
   },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  locationInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.gray[100],
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  locationInput: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-    marginLeft: 8,
-  },
-  currentLocationButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  locationError: {
-    color: colors.error,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  distanceContainer: {
-    marginTop: 12,
-  },
-  distanceLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  distanceOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  distanceOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: colors.gray[100],
-    borderRadius: 16,
-  },
-  distanceOptionActive: {
-    backgroundColor: colors.primary,
-  },
-  distanceOptionText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  distanceOptionTextActive: {
-    color: colors.white,
-  },
   filterOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 8,
   },
   filterOption: {
     paddingHorizontal: 12,
@@ -640,6 +439,15 @@ const styles = StyleSheet.create({
   filterOptionTextActive: {
     color: colors.white,
   },
+  customInput: {
+    backgroundColor: colors.gray[100],
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: colors.text,
+    marginTop: 8,
+  },
   resetButton: {
     backgroundColor: colors.gray[100],
     paddingVertical: 12,
@@ -655,19 +463,6 @@ const styles = StyleSheet.create({
   resultsContainer: {
     flex: 1,
     padding: 16,
-  },
-  activeFilters: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.gray[100],
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  activeFiltersText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginLeft: 8,
   },
   resultCount: {
     fontSize: 14,
