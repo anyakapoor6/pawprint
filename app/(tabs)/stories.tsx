@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Heart } from 'lucide-react-native';
+import { PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockStories } from '@/data/mockData';
 import StoryCard from '@/components/StoryCard';
@@ -11,11 +11,11 @@ export default function StoriesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Success Stories</Text>
+        <Text style={styles.headerTitle}>Stories</Text>
         <View style={styles.headerInfo}>
-          <Heart size={16} color={colors.accent} />
+          <PenSquare size={16} color={colors.primary} />
           <Text style={styles.headerSubtitle}>
-            Heartwarming reunions and happy endings
+            Share your journey and connect with others
           </Text>
         </View>
       </View>
