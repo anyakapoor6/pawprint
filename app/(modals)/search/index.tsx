@@ -2,26 +2,25 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
 
-type FilterState = {
+interface FilterState {
   reportType: ReportType | 'all';
   petType: PetType | 'all';
   breed: string;
   color: string;
   distance: number;
   dateRange: 'recent' | 'week' | 'month' | 'all';
-};
-
-const COMMON_BREEDS = {
-  dog: ['Labrador', 'German Shepherd', 'Golden Retriever', 'Husky', 'Corgi'],
-  cat: ['Siamese', 'Persian', 'Maine Coon', 'Ragdoll', 'British Shorthair'],
-};
-
-const COMMON_COLORS = ['Black', 'White', 'Brown', 'Grey', 'Golden', 'Cream', 'Mixed'];
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+}
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -34,12 +33,25 @@ export default function SearchScreen() {
     breed: '',
     color: '',
     distance: 25,
-    dateRange: 'all',
+    dateRange: 'all'
   });
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
     applyFilters(text, filters);
+  };
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
   };
 
   const applyFilters = (text: string, activeFilters: FilterState) => {
@@ -88,6 +100,22 @@ export default function SearchScreen() {
       );
     }
 
+    // Location and distance filter
+    if (activeFilters.location && activeFilters.distance) {
+      filtered = filtered.filter(report => {
+        if (!report.lastSeenLocation) return false;
+        
+        const distance = calculateDistance(
+          activeFilters.location!.latitude,
+          activeFilters.location!.longitude,
+          report.lastSeenLocation.latitude,
+          report.lastSeenLocation.longitude
+        );
+        
+        return distance <= activeFilters.distance;
+      });
+    }
+
     // Date range filter
     if (activeFilters.dateRange !== 'all') {
       const now = new Date();
@@ -123,6 +151,35 @@ export default function SearchScreen() {
     applyFilters(searchTerm, updated);
   };
 
+  const handleLocationSelect = async () => {
+    try {
+      setLocationError(null);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== 'granted') {
+        setLocationError('Permission to access location was denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      const locationData = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address: address[0] ? `${address[0].city}, ${address[0].region}` : 'Current Location'
+      };
+
+      updateFilter('location', locationData);
+    } catch (error) {
+      setLocationError('Error getting location');
+      console.error('Error:', error);
+    }
+  };
+
   const resetFilters = () => {
     const defaultFilters = {
       reportType: 'all',
@@ -136,6 +193,10 @@ export default function SearchScreen() {
     applyFilters(searchTerm, defaultFilters);
   };
 
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -147,10 +208,10 @@ export default function SearchScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Search</Text>
         <TouchableOpacity
-          style={styles.filterButton}
+          style={[styles.filterButton, showFilters && styles.filterButtonActive]}
           onPress={() => setShowFilters(!showFilters)}
         >
-          <Filter size={20} color={colors.primary} />
+          <Filter size={20} color={showFilters ? colors.white : colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -209,10 +270,7 @@ export default function SearchScreen() {
                     styles.filterOption,
                     filters.petType === type && styles.filterOptionActive
                   ]}
-                  onPress={() => {
-                    updateFilter('petType', type);
-                    updateFilter('breed', ''); // Reset breed when changing pet type
-                  }}
+                  onPress={() => updateFilter('petType', type)}
                 >
                   <Text style={[
                     styles.filterOptionText,
@@ -225,102 +283,62 @@ export default function SearchScreen() {
             </View>
           </View>
 
-          {filters.petType !== 'all' && (
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Breed</Text>
-              <View style={styles.filterOptions}>
-                {COMMON_BREEDS[filters.petType].map((breed) => (
-                  <TouchableOpacity
-                    key={breed}
-                    style={[
-                      styles.filterOption,
-                      filters.breed === breed && styles.filterOptionActive
-                    ]}
-                    onPress={() => updateFilter('breed', breed)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      filters.breed === breed && styles.filterOptionTextActive
-                    ]}>
-                      {breed}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+          <View style={styles.filterSection}>
+            <Text style={styles.filterLabel}>Location</Text>
+            <TouchableOpacity
+              style={styles.locationButton}
+              onPress={handleLocationSelect}
+            >
+              <MapPin size={20} color={colors.primary} />
+              <Text style={styles.locationButtonText}>
+                {filters.location ? filters.location.address : 'Use Current Location'}
+              </Text>
+            </TouchableOpacity>
+            {locationError && (
+              <Text style={styles.errorText}>{locationError}</Text>
+            )}
+            {filters.location && (
+              <View style={styles.distanceContainer}>
+                <Text style={styles.distanceLabel}>
+                  Search within {filters.distance} km
+                </Text>
+                <View style={styles.distanceOptions}>
+                  {[5, 10, 25, 50, 100].map((distance) => (
+                    <TouchableOpacity
+                      key={distance}
+                      style={[
+                        styles.distanceOption,
+                        filters.distance === distance && styles.distanceOptionActive
+                      ]}
+                      onPress={() => updateFilter('distance', distance)}
+                    >
+                      <Text style={[
+                        styles.distanceOptionText,
+                        filters.distance === distance && styles.distanceOptionTextActive
+                      ]}>
+                        {distance}km
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-              <TextInput
-                style={styles.customInput}
-                value={filters.breed}
-                onChangeText={(text) => updateFilter('breed', text)}
-                placeholder="Or enter custom breed..."
-                placeholderTextColor={colors.textTertiary}
-              />
-            </View>
-          )}
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Color</Text>
-            <View style={styles.filterOptions}>
-              {COMMON_COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.filterOption,
-                    filters.color === color && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('color', color)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.color === color && styles.filterOptionTextActive
-                  ]}>
-                    {color}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TextInput
-              style={styles.customInput}
-              value={filters.color}
-              onChangeText={(text) => updateFilter('color', text)}
-              placeholder="Or enter custom color..."
-              placeholderTextColor={colors.textTertiary}
-            />
+            )}
           </View>
 
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Date Posted</Text>
-            <View style={styles.filterOptions}>
-              {([
-                { value: 'all', label: 'All Time' },
-                { value: 'recent', label: 'Last 24h' },
-                { value: 'week', label: 'Last Week' },
-                { value: 'month', label: 'Last Month' },
-              ] as const).map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.filterOption,
-                    filters.dateRange === option.value && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('dateRange', option.value)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.dateRange === option.value && styles.filterOptionTextActive
-                  ]}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+          <View style={styles.filterButtons}>
+            <TouchableOpacity 
+              style={styles.resetButton}
+              onPress={resetFilters}
+            >
+              <Text style={styles.resetButtonText}>Reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.applyButton}
+              onPress={() => setShowFilters(false)}
+            >
+              <Text style={styles.applyButtonText}>Apply Filters</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={resetFilters}
-          >
-            <Text style={styles.resetButtonText}>Reset Filters</Text>
-          </TouchableOpacity>
         </ScrollView>
       )}
 
@@ -338,7 +356,10 @@ export default function SearchScreen() {
             <View style={styles.resultsGrid}>
               {results.map((report) => (
                 <View key={report.id} style={styles.resultItem}>
-                  <PetCard report={report} />
+                  <PetCard 
+                    report={report}
+                    onPress={() => handlePetPress(report.id)}
+                  />
                 </View>
               ))}
             </View>
@@ -374,7 +395,15 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   filterButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.gray[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
   },
   searchContainer: {
     padding: 16,
@@ -395,6 +424,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     marginLeft: 8,
+    paddingVertical: 4,
   },
   clearButton: {
     padding: 4,
@@ -423,7 +453,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 8,
   },
   filterOption: {
     paddingHorizontal: 12,
@@ -441,24 +470,79 @@ const styles = StyleSheet.create({
   filterOptionTextActive: {
     color: colors.white,
   },
-  customInput: {
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.gray[100],
+    padding: 12,
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  locationButtonText: {
+    marginLeft: 8,
     fontSize: 14,
     color: colors.text,
-    marginTop: 8,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 14,
+    marginTop: 4,
+  },
+  distanceContainer: {
+    marginTop: 12,
+  },
+  distanceLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  distanceOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  distanceOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: colors.gray[100],
+    borderRadius: 16,
+  },
+  distanceOptionActive: {
+    backgroundColor: colors.primary,
+  },
+  distanceOptionText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  distanceOptionTextActive: {
+    color: colors.white,
+  },
+  filterButtons: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 12,
   },
   resetButton: {
-    backgroundColor: colors.gray[100],
-    paddingVertical: 12,
+    flex: 1,
+    padding: 12,
     borderRadius: 8,
+    backgroundColor: colors.gray[100],
     alignItems: 'center',
-    marginTop: 16,
   },
   resetButtonText: {
     color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  applyButton: {
+    flex: 2,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
