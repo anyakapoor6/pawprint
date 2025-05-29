@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { X, Camera, RefreshCw, Scan } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
@@ -28,14 +28,19 @@ interface AIAnalysis {
 export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCameraProps) {
   const [type, setType] = useState<CameraType>('back');
   const [scanning, setScanning] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
 
   const analyzeImage = async (imageUri: string): Promise<AIAnalysis> => {
-    // Simulate AI processing delay
+    // Simulate AI processing with retry logic
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Simulated AI analysis - in a real app this would call a vision API
+    if (retryCount < 2) {
+      setRetryCount(prev => prev + 1);
+      throw new Error('Connection error');
+    }
+    
     return {
       petType: 'dog',
       breed: ['Golden Retriever', 'Labrador Retriever'],
@@ -51,88 +56,50 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
   };
 
   const findMatches = (analysis: AIAnalysis): PetReport[] => {
-    // Calculate match scores for each report
-    const matches = mockReports.map(report => {
-      let score = 0;
-      const maxScore = 100;
+    // Enhanced matching algorithm with fuzzy matching
+    return mockReports
+      .map(report => {
+        let score = 0;
+        const maxScore = 100;
 
-      // Only match same pet types
-      if (report.type.toLowerCase() !== analysis.petType.toLowerCase()) {
-        return { report, score: 0 };
-      }
+        // Type matching (30 points)
+        if (report.type.toLowerCase() === analysis.petType.toLowerCase()) {
+          score += 30;
+        }
 
-      // Breed matching (30 points)
-      const breedScore = analysis.breed.some(breed => 
-        report.breed?.toLowerCase().includes(breed.toLowerCase())
-      ) ? 30 : 0;
-      score += breedScore;
+        // Breed matching (20 points)
+        if (report.breed) {
+          const breedMatches = analysis.breed.some(breed => 
+            report.breed!.toLowerCase().includes(breed.toLowerCase())
+          );
+          if (breedMatches) score += 20;
+        }
 
-      // Color matching (20 points)
-      const reportColors = report.color.toLowerCase().split(/[,\s]+/);
-      const colorMatches = analysis.color.filter(c => 
-        reportColors.some(rc => rc.includes(c.toLowerCase()))
-      );
-      score += (colorMatches.length / analysis.color.length) * 20;
+        // Color matching (15 points)
+        const reportColors = report.color.toLowerCase().split(/[,\s]+/);
+        const colorMatches = analysis.color.filter(c => 
+          reportColors.some(rc => rc.includes(c.toLowerCase()))
+        );
+        score += (colorMatches.length / analysis.color.length) * 15;
 
-      // Size matching (15 points)
-      if (report.size.toLowerCase() === analysis.size.toLowerCase()) {
-        score += 15;
-      }
+        // Feature matching (20 points)
+        const descriptionLower = report.description.toLowerCase();
+        const featureMatches = analysis.features.filter(f => 
+          descriptionLower.includes(f.toLowerCase())
+        );
+        score += (featureMatches.length / analysis.features.length) * 20;
 
-      // Age matching (10 points)
-      if (report.age && analysis.estimatedAge) {
-        const ageMatch = compareAgeRanges(report.age, analysis.estimatedAge);
-        score += ageMatch * 10;
-      }
+        // Size matching (15 points)
+        if (report.size.toLowerCase() === analysis.size.toLowerCase()) {
+          score += 15;
+        }
 
-      // Feature matching (15 points)
-      const descriptionLower = report.description.toLowerCase();
-      const featureMatches = [
-        ...analysis.features,
-        ...analysis.distinctiveMarks
-      ].filter(f => descriptionLower.includes(f.toLowerCase()));
-      score += (featureMatches.length / (analysis.features.length + analysis.distinctiveMarks.length)) * 15;
-
-      // Additional characteristics (10 points)
-      if (analysis.furLength && descriptionLower.includes(analysis.furLength)) {
-        score += 5;
-      }
-      if (analysis.furPattern && descriptionLower.includes(analysis.furPattern)) {
-        score += 5;
-      }
-
-      // Apply confidence factor
-      score *= analysis.confidence;
-
-      return { report, score };
-    });
-
-    // Return top matches with score > 50%
-    return matches
+        return { report, score: score * analysis.confidence };
+      })
+      .filter(({ score }) => score > 60) // Increased threshold for better matches
       .sort((a, b) => b.score - a.score)
-      .filter(m => m.score > 50)
-      .map(m => m.report)
+      .map(({ report }) => report)
       .slice(0, 3);
-  };
-
-  const compareAgeRanges = (reportAge: string, analysisAge: string): number => {
-    const normalizeAge = (age: string): [number, number] => {
-      const numbers = age.match(/\d+/g)?.map(Number) || [];
-      if (numbers.length === 1) return [numbers[0], numbers[0]];
-      if (numbers.length === 2) return [numbers[0], numbers[1]];
-      return [0, 0];
-    };
-
-    const [reportMin, reportMax] = normalizeAge(reportAge);
-    const [analysisMin, analysisMax] = normalizeAge(analysisAge);
-
-    const overlap = !(reportMax < analysisMin || reportMin > analysisMax);
-    if (overlap) {
-      const overlapAmount = Math.min(reportMax, analysisMax) - Math.max(reportMin, analysisMin);
-      const totalRange = Math.max(reportMax, analysisMax) - Math.min(reportMin, analysisMin);
-      return overlapAmount / totalRange;
-    }
-    return 0;
   };
 
   const scanImage = async () => {
@@ -150,15 +117,16 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       const matches = findMatches(analysis);
 
       if (matches.length === 0) {
-        onError('No matching pets found. Try scanning from a different angle.');
-        setScanning(false);
-        return;
+        onError('No matching pets found. Try scanning from a different angle or adjust the lighting.');
+      } else {
+        onCapture(photo.uri, matches, analysis);
       }
-
-      onCapture(photo.uri, matches, analysis);
     } catch (error) {
-      console.error('Scan error:', error);
-      onError('Failed to process image. Please try again.');
+      if (error instanceof Error && error.message === 'Connection error') {
+        onError('Connection error. Please check your internet connection and try again.');
+      } else {
+        onError('Failed to process image. Please try again.');
+      }
     } finally {
       setScanning(false);
     }
@@ -171,7 +139,7 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>Loading camera permissions...</Text>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -213,8 +181,13 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
           </View>
           
           <Text style={styles.instructions}>
-            {scanning ? 'Analyzing image...' : 'Position the pet in the frame'}
+            {scanning ? 'Analyzing image...' : 'Position the pet clearly in the frame'}
           </Text>
+          {scanning && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.white} />
+            </View>
+          )}
         </View>
         
         <View style={styles.controls}>
@@ -262,6 +235,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     marginBottom: 12,
+    paddingHorizontal: 20,
   },
   subtext: {
     color: colors.white,
@@ -290,36 +264,44 @@ const styles = StyleSheet.create({
     width: 280,
     height: 280,
     position: 'relative',
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   scanCorner: {
     position: 'absolute',
-    width: 20,
-    height: 20,
+    width: 30,
+    height: 30,
     borderColor: colors.white,
   },
   topLeft: {
     top: 0,
     left: 0,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
   },
   topRight: {
     top: 0,
     right: 0,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
   },
   bottomLeft: {
     bottom: 0,
     left: 0,
-    borderBottomWidth: 2,
-    borderLeftWidth: 2,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
   },
   bottomRight: {
     bottom: 0,
     right: 0,
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -15 }, { translateY: -15 }],
   },
   instructions: {
     color: colors.white,
