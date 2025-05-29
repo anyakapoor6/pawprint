@@ -13,7 +13,6 @@ import { useNotifications } from '@/store/notifications';
 export default function HomeScreen() {
   const [urgentReports, setUrgentReports] = useState<PetReport[]>([]);
   const [recentReports, setRecentReports] = useState<PetReport[]>([]);
-  const [foundPets, setFoundPets] = useState<PetReport[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -25,25 +24,13 @@ export default function HomeScreen() {
   }, []);
 
   const loadData = () => {
-    // Get urgent reports
+    // In a real app, these would be API calls
     const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
-    
-    // Get recent reports
-    const recent = [...mockReports]
-      .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
-      .slice(0, 5);
-    
-    // Get found pets
-    const found = mockReports
-      .filter(report => report.reportType === 'found' && report.status === 'active')
-      .slice(0, 5);
-    
-    // Get latest stories
+    const recent = mockReports.slice(0, 5);
     const latestStories = mockStories.slice(0, 3);
     
     setUrgentReports(urgent);
     setRecentReports(recent);
-    setFoundPets(found);
     setStories(latestStories);
   };
 
@@ -153,28 +140,6 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {recentReports.map(report => (
-              <PetCard key={report.id} report={report} />
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Award size={20} color={colors.secondary} />
-            <Text style={styles.sectionHeaderText}>Found Pets</Text>
-            <Link href="/found" asChild>
-              <TouchableOpacity style={styles.seeAllButton}>
-                <Text style={styles.seeAllText}>See All</Text>
-                <ChevronRight size={16} color={colors.primary} />
-              </TouchableOpacity>
-            </Link>
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScrollContent}
-          >
-            {foundPets.map(report => (
               <PetCard key={report.id} report={report} />
             ))}
           </ScrollView>
