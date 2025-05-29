@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Camera, ImagePlus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { useStories } from '@/store/stories';
 
 export default function CreateStoryScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { addStory } = useStories();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -58,20 +60,36 @@ export default function CreateStoryScreen() {
   };
 
   const handlePublish = async () => {
-    if (!title.trim() || !content.trim()) {
-      // Show error
+    if (!title.trim() || !content.trim() || photos.length === 0) {
+      Alert.alert('Error', 'Please fill in all fields and add at least one photo');
       return;
     }
 
     setLoading(true);
 
     try {
-      // In a real app, this would upload photos and create the story
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      router.back();
+      const newStory = {
+        id: Date.now().toString(),
+        userId: user?.id || '',
+        title: title.trim(),
+        content: content.trim(),
+        petReportId: 'story-' + Date.now(),
+        petName: '',
+        petPhoto: photos[0],
+        userPhoto: user?.photo,
+        userName: user?.name || 'Anonymous',
+        date: new Date().toISOString(),
+        likes: 0,
+        comments: 0,
+        photos,
+      };
+
+      await addStory(newStory);
+      Alert.alert('Success', 'Your story has been published!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error) {
-      console.error('Error publishing story:', error);
+      Alert.alert('Error', 'Failed to publish story. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -88,9 +106,9 @@ export default function CreateStoryScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Story</Text>
         <TouchableOpacity
-          style={[styles.publishButton, (!title.trim() || !content.trim()) && styles.publishButtonDisabled]}
+          style={[styles.publishButton, (!title.trim() || !content.trim() || photos.length === 0 || loading) && styles.publishButtonDisabled]}
           onPress={handlePublish}
-          disabled={!title.trim() || !content.trim() || loading}
+          disabled={!title.trim() || !content.trim() || photos.length === 0 || loading}
         >
           <Text style={styles.publishButtonText}>
             {loading ? 'Publishing...' : 'Publish'}
@@ -117,7 +135,7 @@ export default function CreateStoryScreen() {
         />
 
         <View style={styles.photoSection}>
-          <Text style={styles.sectionTitle}>Photos (Optional)</Text>
+          <Text style={styles.sectionTitle}>Photos (Required)</Text>
           <Text style={styles.photoHelper}>
             Add photos to make your story more engaging
           </Text>
