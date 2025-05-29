@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { MapPin, Calendar, Award, Heart, Check, Edit } from 'lucide-react-native';
+import { MapPin, Calendar, Award, Heart, Check, CreditCard as Edit } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
