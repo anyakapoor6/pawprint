@@ -1,6 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
-import { Heart, MessageCircle, Calendar, Gift } from 'lucide-react-native';
+import { Heart, MessageCircle, Calendar } from 'lucide-react-native';
 import { Story } from '@/types/pet';
 import { colors } from '@/constants/colors';
 
@@ -55,12 +55,6 @@ export default function StoryCard({ story }: StoryCardProps) {
             <MessageCircle size={16} color={colors.textSecondary} />
             <Text style={styles.statText}>{story.comments}</Text>
           </View>
-          {story.totalDonations > 0 && (
-            <View style={styles.statContainer}>
-              <Gift size={16} color={colors.primary} />
-              <Text style={styles.statText}>${story.totalDonations}</Text>
-            </View>
-          )}
           <View style={styles.readMoreContainer}>
             <Text style={styles.readMoreText}>Read full story</Text>
           </View>

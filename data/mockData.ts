@@ -1,4 +1,4 @@
-import { PetReport, Story } from '@/types/pet';
+import { PetReport, Story, ReportType, PetType, PetSize, ReportStatus } from '@/types/pet';
 
 export const mockReports: PetReport[] = [
   {
@@ -207,20 +207,6 @@ export const mockStories: Story[] = [
     photos: [
       'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-    ],
-    donations: [
-      {
-        id: 'donation1',
-        userId: 'user2',
-        userName: 'Sarah Johnson',
-        userPhoto: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        amount: 50,
-        message: 'So happy Bailey is home safe! ❤️',
-        timestamp: '2024-03-02T10:30:00Z'
-      }
-    ],
-    totalDonations: 50
+    ]
   }
 ];
-
-export { mockReports }

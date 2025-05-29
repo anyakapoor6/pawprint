@@ -1,5 +1,3 @@
-import { User } from './user';
-
 export type PetType = 'dog' | 'cat' | 'bird' | 'rabbit' | 'other';
 export type ReportType = 'lost' | 'found';
 export type PetSize = 'small' | 'medium' | 'large';
@@ -45,16 +43,6 @@ export interface PetReport {
   tags: string[];
 }
 
-export interface Donation {
-  id: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
-  amount: number;
-  message?: string;
-  timestamp: string;
-}
-
 export interface Story {
   id: string;
   userId: string;
@@ -69,6 +57,4 @@ export interface Story {
   likes: number;
   comments: number;
   photos: string[];
-  donations: Donation[];
-  totalDonations: number;
 }
