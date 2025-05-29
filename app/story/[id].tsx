@@ -4,13 +4,14 @@ import { useLocalSearchParams, Link, useRouter } from 'expo-router';
 import { ArrowLeft, Heart, MessageCircle, Share as ShareIcon, Send, CornerDownRight, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { Story, Comment } from '@/types/pet';
-import { mockStories } from '@/data/mockData';
+import { useStories } from '@/store/stories';
 import { useAuth } from '@/store/auth';
 import { useLikes } from '@/store/likes';
 
 export default function StoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { stories } = useStories();
   const { user } = useAuth();
   const { 
     toggleStoryLike, 
@@ -53,8 +54,7 @@ export default function StoryDetailScreen() {
   ]);
   const scrollViewRef = useRef<ScrollView>(null);
   
-  // In a real app, this would fetch from an API
-  const story = mockStories.find(s => s.id === id);
+  const story = stories.find(s => s.id === id);
   
   if (!story) {
     return (
