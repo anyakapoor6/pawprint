@@ -47,6 +47,10 @@ export default function HomeScreen() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -123,7 +127,12 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {urgentReports.map(report => (
-              <PetCard key={report.id} report={report} />
+              <TouchableOpacity 
+                key={report.id}
+                onPress={() => handlePetPress(report.id)}
+              >
+                <PetCard report={report} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -143,7 +152,12 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {recentReports.map(report => (
-              <PetCard key={report.id} report={report} />
+              <TouchableOpacity 
+                key={report.id}
+                onPress={() => handlePetPress(report.id)}
+              >
+                <PetCard report={report} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -163,7 +177,12 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {foundPets.map(report => (
-              <PetCard key={report.id} report={report} />
+              <TouchableOpacity 
+                key={report.id}
+                onPress={() => handlePetPress(report.id)}
+              >
+                <PetCard report={report} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
