@@ -101,7 +101,7 @@ export default function ReportScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.images,
         allowsMultipleSelection: true,
         quality: 1,
       });

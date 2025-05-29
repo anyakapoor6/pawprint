@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -23,6 +24,7 @@ const COMMON_BREEDS = {
 const COMMON_COLORS = ['Black', 'White', 'Brown', 'Grey', 'Golden', 'Cream', 'Mixed'];
 
 export default function SearchScreen() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
