@@ -94,7 +94,7 @@ export default function EditProfileScreen() {
       Alert.alert('Success', 'Profile updated successfully');
       router.back();
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Failed to update profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);

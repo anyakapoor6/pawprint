@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 
@@ -30,11 +30,14 @@ export default function ProfileScreen() {
           </Link>
         </View>
         
-        <View style={styles.profileHeader}>
+        <TouchableOpacity 
+          style={styles.profileHeader}
+          onPress={() => router.push('/profile/edit')}
+        >
           <Image source={{ uri: user?.photo }} style={styles.profileImage} />
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-        </View>
+        </TouchableOpacity>
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
