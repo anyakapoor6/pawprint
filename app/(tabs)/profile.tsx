@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen, Edit2 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { usePets } from '@/store/pets';
@@ -32,6 +32,10 @@ export default function ProfileScreen() {
     router.replace('/sign-in');
   };
 
+  const handleEditProfile = () => {
+    router.push('/profile/edit');
+  };
+
   const handleNavigate = (route: string) => {
     router.push(route);
   };
@@ -48,11 +52,20 @@ export default function ProfileScreen() {
           </Link>
         </View>
         
-        <View style={styles.profileHeader}>
-          <Image source={{ uri: user?.photo }} style={styles.profileImage} />
+        <TouchableOpacity 
+          style={styles.profileHeader}
+          onPress={handleEditProfile}
+        >
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: user?.photo }} style={styles.profileImage} />
+            <View style={styles.editIconContainer}>
+              <Edit2 size={16} color={colors.white} />
+            </View>
+          </View>
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-        </View>
+          <Text style={styles.editProfileText}>Edit Profile</Text>
+        </TouchableOpacity>
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
@@ -106,21 +119,23 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-
-        <Text style={styles.sectionTitle}>Your Stories</Text>
-        {userStories.length > 0 ? (
-          userStories.map(story => (
-            <StoryCard key={story.id} story={story} />
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>No stories yet</Text>
-            <Text style={styles.emptyStateText}>
-              Share your first success story with the community
-            </Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(modals)/rewards')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary + '20' }]}>
+              <Award size={20} color={colors.secondary} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>Rewards</Text>
+              <Text style={styles.menuItemSubtitle}>Manage and track rewards you've offered</Text>
+            </View>
           </View>
-        )}
-
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+        
         <Text style={styles.sectionTitle}>Account</Text>
         
         <TouchableOpacity 
@@ -211,11 +226,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 16,
+  },
+  editIconContainer: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   profileName: {
     fontSize: 24,
@@ -226,6 +257,12 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  editProfileText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -297,24 +334,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
-  },
-  emptyState: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
   footer: {
     marginTop: 24,
