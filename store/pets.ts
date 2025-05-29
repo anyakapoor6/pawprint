@@ -6,8 +6,10 @@ interface PetsState {
   reports: PetReport[];
   updatePetStatus: (petId: string, status: ReportStatus) => void;
   updateReport: (updatedReport: PetReport) => Promise<void>;
+  addReport: (report: PetReport) => Promise<void>;
   getReportsByStatus: (status: ReportStatus) => PetReport[];
   getReportById: (id: string) => PetReport | undefined;
+  getAllReports: () => PetReport[];
 }
 
 export const usePets = create<PetsState>((set, get) => ({
@@ -33,21 +35,26 @@ export const usePets = create<PetsState>((set, get) => ({
       )
     }));
   },
+
+  addReport: async (report: PetReport) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    set(state => ({
+      reports: [report, ...state.reports]
+    }));
+  },
   
   getReportsByStatus: (status: ReportStatus) => {
     const reports = get().reports;
-    return reports.filter(report => {
-      if (status === 'resolved') {
-        // Show both resolved reports and found reports in resolved section
-        return report.status === 'resolved' || report.reportType === 'found';
-      } else {
-        // Only show active lost reports in active section
-        return report.status === status && report.reportType === 'lost';
-      }
-    });
+    return reports.filter(report => report.status === status);
   },
 
   getReportById: (id: string) => {
     return get().reports.find(report => report.id === id);
+  },
+
+  getAllReports: () => {
+    return get().reports;
   },
 }));
