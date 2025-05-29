@@ -1,18 +1,30 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, SquarePen as PenSquare } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { usePets } from '@/store/pets';
 import { useStories } from '@/store/stories';
-import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
-  const { getUserStories } = useStories();
   const router = useRouter();
+  const { getReportsByStatus } = usePets();
+  const { getUserStories } = useStories();
+
+  // Get user's reports
+  const activeReports = getReportsByStatus('active');
+  const resolvedReports = getReportsByStatus('resolved');
+  const totalReports = activeReports.length + resolvedReports.length;
   
+  // Get user's stories
   const userStories = getUserStories(user?.id || '');
+  
+  // For this example, we'll calculate rewards given based on resolved reports with rewards
+  const rewardsGiven = resolvedReports.reduce((total, report) => {
+    return total + (report.reward?.amount || 0);
+  }, 0);
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,49 +55,23 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{totalReports}</Text>
+            <Text style={styles.statLabel}>Reports</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userStories.length}</Text>
             <Text style={styles.statLabel}>Stories</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Resolved</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>$50</Text>
+            <Text style={styles.statNumber}>${rewardsGiven}</Text>
             <Text style={styles.statLabel}>Rewards Given</Text>
           </View>
         </View>
       </View>
       
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Stories</Text>
-            <TouchableOpacity 
-              style={styles.createStoryButton}
-              onPress={() => router.push('/story/create')}
-            >
-              <PenSquare size={20} color={colors.primary} />
-              <Text style={styles.createStoryText}>Create Story</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {userStories.length > 0 ? (
-            userStories.map(story => (
-              <StoryCard key={story.id} story={story} />
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateTitle}>No stories yet</Text>
-              <Text style={styles.emptyStateText}>
-                Share your success stories with the community
-              </Text>
-            </View>
-          )}
-        </View>
-
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
         <TouchableOpacity 
@@ -131,6 +117,40 @@ export default function ProfileScreen() {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>Rewards</Text>
               <Text style={styles.menuItemSubtitle}>Manage and track rewards you've offered</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+        
+        <Text style={styles.sectionTitle}>Account</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(modals)/notifications')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.gray[200] }]}>
+              <Bell size={20} color={colors.gray[600]} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>Notifications</Text>
+              <Text style={styles.menuItemSubtitle}>Manage your notification preferences</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(modals)/search')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.gray[200] }]}>
+              <SearchIcon size={20} color={colors.gray[600]} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>Search</Text>
+              <Text style={styles.menuItemSubtitle}>Search for lost and found pets</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
@@ -235,51 +255,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  section: {
-    marginTop: 24,
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  createStoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary + '10',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  createStoryText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  emptyState: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyStateTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
   menuItem: {
     flexDirection: 'row',
