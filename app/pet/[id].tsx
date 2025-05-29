@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
 import { useLocalSearchParams, Link, useRouter } from 'expo-router';
-import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award, Camera, MessageCircle } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -33,27 +33,6 @@ export default function PetDetailScreen() {
     } catch (error) {
       Alert.alert('Error sharing');
     }
-  };
-  
-  const handleContact = () => {
-    // In a real app, this would open a chat or contact screen
-    Alert.alert(
-      'Contact Owner',
-      `Contact ${pet.contactInfo.name} about this ${pet.type}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Contact', onPress: () => console.log('Contact initiated') }
-      ]
-    );
-  };
-  
-  const handleScan = () => {
-    // In a real app, this would open the camera for scanning
-    Alert.alert(
-      'Scan Feature',
-      'This would open the camera to scan and compare with this pet',
-      [{ text: 'OK' }]
-    );
   };
   
   const formatDate = (dateString: string) => {
@@ -217,24 +196,6 @@ export default function PetDetailScreen() {
           </View>
         </View>
       </ScrollView>
-      
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.footerButton, styles.scanButton]}
-          onPress={handleScan}
-        >
-          <Camera size={20} color={colors.white} />
-          <Text style={styles.scanButtonText}>Scan to Match</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.footerButton, styles.contactButton]}
-          onPress={handleContact}
-        >
-          <MessageCircle size={20} color={colors.white} />
-          <Text style={styles.contactButtonText}>Contact</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -245,7 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: 80, // Space for footer
+    paddingBottom: 24,
   },
   notFoundContainer: {
     flex: 1,
@@ -479,43 +440,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 4,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  footerButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanButton: {
-    backgroundColor: colors.secondary,
-    marginRight: 8,
-  },
-  scanButtonText: {
-    color: colors.white,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  contactButton: {
-    backgroundColor: colors.primary,
-    marginLeft: 8,
-  },
-  contactButtonText: {
-    color: colors.white,
-    fontWeight: '600',
-    marginLeft: 8,
   },
 });
