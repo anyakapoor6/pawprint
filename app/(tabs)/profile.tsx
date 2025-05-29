@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
@@ -5,13 +6,14 @@ import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { usePets } from '@/store/pets';
 import { useStories } from '@/store/stories';
+import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { getReportsByStatus } = usePets();
   const { getUserStories } = useStories();
-
+  
   // Get user's reports
   const activeReports = getReportsByStatus('active');
   const resolvedReports = getReportsByStatus('resolved');
@@ -71,6 +73,8 @@ export default function ProfileScreen() {
       </View>
       
       <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Your Reports</Text>
+        
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/my-reports')}
@@ -103,37 +107,19 @@ export default function ProfileScreen() {
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleNavigate('/(tabs)/stories')}
-        >
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <BookOpen size={20} color={colors.primary} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>My Stories</Text>
-              <Text style={styles.menuItemSubtitle}>View and manage your success stories</Text>
-            </View>
+        <Text style={styles.sectionTitle}>Your Stories</Text>
+        {userStories.length > 0 ? (
+          userStories.map(story => (
+            <StoryCard key={story.id} story={story} />
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No stories yet</Text>
+            <Text style={styles.emptyStateText}>
+              Share your first success story with the community
+            </Text>
           </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleNavigate('/(modals)/rewards')}
-        >
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary + '20' }]}>
-              <Award size={20} color={colors.secondary} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>Rewards</Text>
-              <Text style={styles.menuItemSubtitle}>Manage and track rewards you've offered</Text>
-            </View>
-          </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
+        )}
 
         <Text style={styles.sectionTitle}>Account</Text>
         
@@ -311,6 +297,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  emptyState: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   footer: {
     marginTop: 24,
