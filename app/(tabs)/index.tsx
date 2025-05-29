@@ -13,7 +13,6 @@ import { useNotifications } from '@/store/notifications';
 export default function HomeScreen() {
   const [urgentReports, setUrgentReports] = useState<PetReport[]>([]);
   const [recentReports, setRecentReports] = useState<PetReport[]>([]);
-  const [foundPets, setFoundPets] = useState<PetReport[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -25,18 +24,13 @@ export default function HomeScreen() {
   }, []);
 
   const loadData = () => {
+    // In a real app, these would be API calls
     const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
-    const recent = [...mockReports]
-      .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
-      .slice(0, 5);
-    const found = mockReports
-      .filter(report => report.reportType === 'found' && report.status === 'active')
-      .slice(0, 5);
+    const recent = mockReports.slice(0, 5);
     const latestStories = mockStories.slice(0, 3);
     
     setUrgentReports(urgent);
     setRecentReports(recent);
-    setFoundPets(found);
     setStories(latestStories);
   };
 
@@ -44,10 +38,6 @@ export default function HomeScreen() {
     setRefreshing(true);
     loadData();
     setTimeout(() => setRefreshing(false), 1000);
-  };
-
-  const handlePetPress = (id: string) => {
-    router.push(`/pet/${id}`);
   };
 
   return (
@@ -104,7 +94,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
-
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -116,13 +105,12 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <Clock size={20} color={colors.urgent} />
             <Text style={styles.sectionHeaderText}>Urgent Cases</Text>
-            <TouchableOpacity 
-              style={styles.seeAllButton}
-              onPress={() => router.push('/(tabs)/urgent')}
-            >
-              <Text style={styles.seeAllText}>See All</Text>
-              <ChevronRight size={16} color={colors.primary} />
-            </TouchableOpacity>
+            <Link href="/urgent" asChild>
+              <TouchableOpacity style={styles.seeAllButton}>
+                <Text style={styles.seeAllText}>See All</Text>
+                <ChevronRight size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </Link>
           </View>
           <ScrollView 
             horizontal 
@@ -130,12 +118,7 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {urgentReports.map(report => (
-              <TouchableOpacity 
-                key={report.id}
-                onPress={() => handlePetPress(report.id)}
-              >
-                <PetCard report={report} />
-              </TouchableOpacity>
+              <PetCard key={report.id} report={report} />
             ))}
           </ScrollView>
         </View>
@@ -144,13 +127,12 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <MapPin size={20} color={colors.primary} />
             <Text style={styles.sectionHeaderText}>Recently Reported</Text>
-            <TouchableOpacity 
-              style={styles.seeAllButton}
-              onPress={() => router.push('/(tabs)/recent')}
-            >
-              <Text style={styles.seeAllText}>See All</Text>
-              <ChevronRight size={16} color={colors.primary} />
-            </TouchableOpacity>
+            <Link href="/recent" asChild>
+              <TouchableOpacity style={styles.seeAllButton}>
+                <Text style={styles.seeAllText}>See All</Text>
+                <ChevronRight size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </Link>
           </View>
           <ScrollView 
             horizontal 
@@ -158,40 +140,7 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalScrollContent}
           >
             {recentReports.map(report => (
-              <TouchableOpacity 
-                key={report.id}
-                onPress={() => handlePetPress(report.id)}
-              >
-                <PetCard report={report} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Award size={20} color={colors.secondary} />
-            <Text style={styles.sectionHeaderText}>Found Pets</Text>
-            <TouchableOpacity 
-              style={styles.seeAllButton}
-              onPress={() => router.push('/(tabs)/found')}
-            >
-              <Text style={styles.seeAllText}>See All</Text>
-              <ChevronRight size={16} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScrollContent}
-          >
-            {foundPets.map(report => (
-              <TouchableOpacity 
-                key={report.id}
-                onPress={() => handlePetPress(report.id)}
-              >
-                <PetCard report={report} />
-              </TouchableOpacity>
+              <PetCard key={report.id} report={report} />
             ))}
           </ScrollView>
         </View>
