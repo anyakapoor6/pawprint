@@ -68,3 +68,5 @@ export const usePets = create<PetsState>((set, get) => ({
     return get().reports;
   },
 }));
+
+export { usePets }

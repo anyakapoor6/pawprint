@@ -4,7 +4,7 @@ import { useLocalSearchParams, Link, useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award, Send, MessageCircle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport, PetComment } from '@/types/pet';
-import { mockReports } from '@/data/mockData';
+import { usePets } from '@/store/pets';
 import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
 
@@ -12,11 +12,11 @@ export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { getReportById } = usePets();
   const { toggleLike, isLiked, getLikeCount, getComments, addComment } = usePetInteractions();
   const [comment, setComment] = useState('');
   
-  // In a real app, this would fetch from an API
-  const pet = mockReports.find(p => p.id === id);
+  const pet = getReportById(id);
   const likeCount = getLikeCount(id);
   const comments = getComments(id);
   
