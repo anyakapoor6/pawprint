@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { PenSquare } from 'lucide-react-native';
+import { SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
