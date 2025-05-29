@@ -1,18 +1,24 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Alert, TextInput } from 'react-native';
 import { useLocalSearchParams, Link, useRouter } from 'expo-router';
-import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award, Send, MessageCircle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { PetReport } from '@/types/pet';
+import { PetReport, PetComment } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
+import { usePetInteractions } from '@/store/petInteractions';
+import { useAuth } from '@/store/auth';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const { toggleLike, isLiked, getLikeCount, getComments, addComment } = usePetInteractions();
+  const [comment, setComment] = useState('');
   
   // In a real app, this would fetch from an API
   const pet = mockReports.find(p => p.id === id);
+  const likeCount = getLikeCount(id);
+  const comments = getComments(id);
   
   if (!pet) {
     return (
@@ -43,6 +49,38 @@ export default function PetDetailScreen() {
     });
   };
 
+  const formatCommentTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
+  };
+
+  const handleComment = () => {
+    if (!comment.trim()) return;
+
+    const newComment: PetComment = {
+      id: Date.now().toString(),
+      userId: user?.id || 'anonymous',
+      userName: user?.name || 'Anonymous',
+      userPhoto: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      content: comment.trim(),
+      timestamp: new Date().toISOString(),
+      likes: 0,
+    };
+
+    addComment(id, newComment);
+    setComment('');
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -58,12 +96,12 @@ export default function PetDetailScreen() {
           <View style={styles.imageActions}>
             <TouchableOpacity 
               style={styles.actionButton}
-              onPress={() => setIsLiked(!isLiked)}
+              onPress={() => toggleLike(id)}
             >
               <Heart 
                 size={20} 
-                color={isLiked ? colors.error : colors.white} 
-                fill={isLiked ? colors.error : 'transparent'} 
+                color={isLiked(id) ? colors.error : colors.white}
+                fill={isLiked(id) ? colors.error : 'transparent'}
               />
             </TouchableOpacity>
             <TouchableOpacity 
@@ -193,6 +231,83 @@ export default function PetDetailScreen() {
               <Text style={styles.contactDetail}>{pet.contactInfo.phone}</Text>
             )}
             <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
+          </View>
+
+          <View style={styles.interactionStats}>
+            <View style={styles.statItem}>
+              <Heart 
+                size={16} 
+                color={isLiked(id) ? colors.error : colors.textSecondary}
+                fill={isLiked(id) ? colors.error : 'transparent'}
+              />
+              <Text style={styles.statText}>{likeCount}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <MessageCircle size={16} color={colors.textSecondary} />
+              <Text style={styles.statText}>{comments.length}</Text>
+            </View>
+          </View>
+
+          <View style={styles.commentsSection}>
+            <Text style={styles.sectionTitle}>Comments</Text>
+            
+            <View style={styles.commentInput}>
+              <Image 
+                source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+                style={styles.commentUserPhoto}
+              />
+              <View style={styles.commentInputContainer}>
+                <TextInput
+                  style={styles.commentTextInput}
+                  value={comment}
+                  onChangeText={setComment}
+                  placeholder="Write a comment..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                />
+                <TouchableOpacity 
+                  style={[styles.sendButton, !comment.trim() && styles.sendButtonDisabled]}
+                  onPress={handleComment}
+                  disabled={!comment.trim()}
+                >
+                  <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {comments.map((comment) => (
+              <View key={comment.id} style={styles.commentItem}>
+                <Image 
+                  source={{ uri: comment.userPhoto }}
+                  style={styles.commentUserPhoto}
+                />
+                <View style={styles.commentContent}>
+                  <View style={styles.commentHeader}>
+                    <Text style={styles.commentUserName}>{comment.userName}</Text>
+                    <Text style={styles.commentTime}>
+                      {formatCommentTime(comment.timestamp)}
+                    </Text>
+                  </View>
+                  <Text style={styles.commentText}>{comment.content}</Text>
+                  <TouchableOpacity 
+                    style={styles.commentLikeButton}
+                    onPress={() => toggleLike(comment.id)}
+                  >
+                    <Heart 
+                      size={14} 
+                      color={isLiked(comment.id) ? colors.error : colors.textSecondary}
+                      fill={isLiked(comment.id) ? colors.error : 'transparent'}
+                    />
+                    <Text style={[
+                      styles.commentLikeCount,
+                      isLiked(comment.id) && styles.commentLikeCountActive
+                    ]}>
+                      {comment.likes}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -440,5 +555,105 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 4,
+  },
+  interactionStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 24,
+  },
+  statText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginLeft: 6,
+  },
+  commentsSection: {
+    marginTop: 16,
+  },
+  commentInput: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  commentUserPhoto: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+  },
+  commentInputContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  commentTextInput: {
+    backgroundColor: colors.gray[100],
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingRight: 40,
+    fontSize: 14,
+    color: colors.text,
+    minHeight: 36,
+    maxHeight: 100,
+  },
+  sendButton: {
+    position: 'absolute',
+    right: 8,
+    bottom: 6,
+    padding: 4,
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
+  },
+  commentItem: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  commentContent: {
+    flex: 1,
+    backgroundColor: colors.gray[50],
+    borderRadius: 12,
+    padding: 12,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  commentUserName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  commentTime: {
+    fontSize: 12,
+    color: colors.textTertiary,
+  },
+  commentText: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  commentLikeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  commentLikeCount: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 4,
+  },
+  commentLikeCountActive: {
+    color: colors.error,
   },
 });
