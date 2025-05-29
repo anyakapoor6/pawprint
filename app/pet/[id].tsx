@@ -1,55 +1,17 @@
-import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, TextInput } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Send, CornerDownRight, X } from 'lucide-react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
+import { useLocalSearchParams, Link, useRouter } from 'expo-router';
+import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
-import { useAuth } from '@/store/auth';
-import { useLikes } from '@/store/likes';
-
-interface Comment {
-  id: string;
-  userId: string;
-  userName: string;
-  userPhoto: string;
-  content: string;
-  timestamp: string;
-  likes: number;
-  replies?: Comment[];
-}
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
-  const { togglePetLike, isPetLiked } = useLikes();
-  const [comment, setComment] = useState('');
-  const [replyTo, setReplyTo] = useState<{ id: string; userName: string } | null>(null);
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: '1',
-      userId: 'user1',
-      userName: 'Sarah Johnson',
-      userPhoto: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: 'I think I saw this pet near Central Park yesterday!',
-      timestamp: '2024-03-15T10:30:00Z',
-      likes: 5,
-      replies: [
-        {
-          id: '1-1',
-          userId: 'user3',
-          userName: 'David Wilson',
-          userPhoto: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-          content: 'Could you provide more details about the exact location?',
-          timestamp: '2024-03-15T11:00:00Z',
-          likes: 2,
-        }
-      ]
-    }
-  ]);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [isLiked, setIsLiked] = useState(false);
   
+  // In a real app, this would fetch from an API
   const pet = mockReports.find(p => p.id === id);
   
   if (!pet) {
@@ -62,79 +24,15 @@ export default function PetDetailScreen() {
       </View>
     );
   }
-
+  
   const handleShare = async () => {
     try {
-      const message = `Help ${pet.reportType === 'lost' ? 'find' : 'identify'} this ${pet.type}!\n\n` +
-        `${pet.name ? pet.name + ' is a ' : 'A '}${pet.breed || ''} ${pet.type} that was ${pet.reportType} near ${pet.lastSeenLocation?.address || 'unknown location'}.\n\n` +
-        `Description: ${pet.description}\n\n` +
-        `View details and contact information at: https://pawprint.app/pet/${pet.id}`;
-
       await Share.share({
-        message,
-        title: `${pet.reportType === 'lost' ? 'Lost' : 'Found'} ${pet.type} - PawPrint`,
+        message: `Help ${pet.reportType === 'lost' ? 'find' : 'identify'} this ${pet.type}! View details on PawPrint: https://pawprint.app/pet/${pet.id}`,
       });
     } catch (error) {
-      console.error('Error sharing:', error);
+      Alert.alert('Error sharing');
     }
-  };
-
-  const handleComment = () => {
-    if (!comment.trim()) return;
-
-    const newComment: Comment = {
-      id: String(Date.now()),
-      userId: user?.id || 'anonymous',
-      userName: user?.name || 'Anonymous',
-      userPhoto: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: comment.trim(),
-      timestamp: new Date().toISOString(),
-      likes: 0,
-    };
-
-    if (replyTo) {
-      setComments(prev => prev.map(c => {
-        if (c.id === replyTo.id) {
-          return {
-            ...c,
-            replies: [...(c.replies || []), newComment]
-          };
-        }
-        return c;
-      }));
-    } else {
-      setComments(prev => [newComment, ...prev]);
-    }
-
-    setComment('');
-    setReplyTo(null);
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-    }, 100);
-  };
-
-  const handleLike = () => {
-    togglePetLike(pet.id);
-  };
-
-  const handleLikeComment = (commentId: string) => {
-    setComments(prev => prev.map(c => {
-      if (c.id === commentId) {
-        return { ...c, likes: c.likes + 1 };
-      }
-      return c;
-    }));
-  };
-
-  const handleReply = (commentId: string, userName: string) => {
-    setReplyTo({ id: commentId, userName });
-    setComment(`@${userName} `);
-  };
-
-  const cancelReply = () => {
-    setReplyTo(null);
-    setComment('');
   };
   
   const formatDate = (dateString: string) => {
@@ -145,62 +43,9 @@ export default function PetDetailScreen() {
     });
   };
 
-  const formatCommentTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return 'Just now';
-  };
-
-  const renderComment = (comment: Comment, isReply = false) => (
-    <View key={comment.id} style={[styles.commentItem, isReply && styles.replyItem]}>
-      <Image 
-        source={{ uri: comment.userPhoto }} 
-        style={styles.commentUserPhoto} 
-      />
-      <View style={styles.commentContent}>
-        <View style={styles.commentHeader}>
-          <Text style={styles.commentUserName}>{comment.userName}</Text>
-          <Text style={styles.commentTime}>
-            {formatCommentTime(comment.timestamp)}
-          </Text>
-        </View>
-        <Text style={styles.commentText}>{comment.content}</Text>
-        <View style={styles.commentActions}>
-          <TouchableOpacity 
-            style={styles.commentAction}
-            onPress={() => handleLikeComment(comment.id)}
-          >
-            <Heart size={16} color={colors.textSecondary} />
-            <Text style={styles.commentActionText}>{comment.likes}</Text>
-          </TouchableOpacity>
-          {!isReply && (
-            <TouchableOpacity 
-              style={styles.commentAction}
-              onPress={() => handleReply(comment.id, comment.userName)}
-            >
-              <Text style={styles.commentActionText}>Reply</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
-      <ScrollView 
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageContainer}>
           <Image source={{ uri: pet.photos[0] }} style={styles.image} />
           <TouchableOpacity 
@@ -210,18 +55,35 @@ export default function PetDetailScreen() {
             <ChevronLeft size={24} color={colors.white} />
           </TouchableOpacity>
           
+          <View style={styles.imageActions}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => setIsLiked(!isLiked)}
+            >
+              <Heart 
+                size={20} 
+                color={isLiked ? colors.error : colors.white} 
+                fill={isLiked ? colors.error : 'transparent'} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleShare}
+            >
+              <ShareIcon size={20} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+          
           <View style={[
             styles.statusBadge,
-            pet.status === 'resolved' ? styles.resolvedBadge : 
             pet.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
           ]}>
             <Text style={styles.statusText}>
-              {pet.status === 'resolved' ? 'FOUND' :
-               pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
+              {pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
             </Text>
           </View>
           
-          {pet.isUrgent && pet.status === 'active' && (
+          {pet.isUrgent && (
             <View style={styles.urgentBadge}>
               <Text style={styles.urgentText}>URGENT</Text>
             </View>
@@ -233,8 +95,9 @@ export default function PetDetailScreen() {
             {pet.name || `${pet.type.charAt(0).toUpperCase() + pet.type.slice(1)} (${pet.color})`}
           </Text>
           
-          {pet.reward && pet.status === 'active' && (
+          {pet.reward && (
             <View style={styles.rewardBanner}>
+              <Award size={16} color={colors.white} />
               <Text style={styles.rewardText}>
                 ${pet.reward.amount} Reward
               </Text>
@@ -263,6 +126,19 @@ export default function PetDetailScreen() {
                 <Text style={styles.infoValue}>{pet.size.charAt(0).toUpperCase() + pet.size.slice(1)}</Text>
               </View>
             </View>
+            
+            <View style={styles.infoRow}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Gender</Text>
+                <Text style={styles.infoValue}>
+                  {pet.gender ? (pet.gender.charAt(0).toUpperCase() + pet.gender.slice(1)) : 'Unknown'}
+                </Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Age</Text>
+                <Text style={styles.infoValue}>{pet.age || 'Unknown'}</Text>
+              </View>
+            </View>
           </View>
           
           <View style={styles.section}>
@@ -284,84 +160,42 @@ export default function PetDetailScreen() {
                 {formatDate(pet.lastSeenDate || pet.dateReported)}
               </Text>
             </View>
-          </View>
-
-          <View style={styles.commentsSection}>
-            <Text style={styles.commentsTitle}>Comments ({comments.length})</Text>
-            
-            <View style={styles.commentInput}>
-              {replyTo && (
-                <View style={styles.replyingTo}>
-                  <CornerDownRight size={16} color={colors.textSecondary} />
-                  <Text style={styles.replyingToText}>
-                    Replying to {replyTo.userName}
-                  </Text>
-                  <TouchableOpacity 
-                    style={styles.cancelReplyButton}
-                    onPress={cancelReply}
-                  >
-                    <X size={16} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-              )}
-              <View style={styles.commentInputRow}>
-                <Image 
-                  source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-                  style={styles.commentUserPhoto} 
-                />
-                <TextInput
-                  style={styles.commentTextInput}
-                  value={comment}
-                  onChangeText={setComment}
-                  placeholder={replyTo ? "Write a reply..." : "Write a comment..."}
-                  placeholderTextColor={colors.textTertiary}
-                  multiline
-                />
-                <TouchableOpacity 
-                  style={[
-                    styles.sendButton,
-                    !comment.trim() && styles.sendButtonDisabled
-                  ]}
-                  onPress={handleComment}
-                  disabled={!comment.trim()}
-                >
-                  <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
+            <View style={styles.mapPreview}>
+              <Image 
+                source={{ uri: 'https://images.pexels.com/photos/6195286/pexels-photo-6195286.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
+                style={styles.mapImage} 
+              />
+              <Link href={`/map?pet=${pet.id}`} asChild>
+                <TouchableOpacity style={styles.viewMapButton}>
+                  <Text style={styles.viewMapButtonText}>View on Map</Text>
                 </TouchableOpacity>
-              </View>
+              </Link>
             </View>
-
-            {comments.map((comment) => (
-              <View key={comment.id}>
-                {renderComment(comment)}
-                {comment.replies?.map(reply => (
-                  renderComment(reply, true)
+          </View>
+          
+          {pet.tags.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tags</Text>
+              <View style={styles.tagsContainer}>
+                {pet.tags.map((tag, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
                 ))}
               </View>
-            ))}
+            </View>
+          )}
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Contact Information</Text>
+            <Text style={styles.contactName}>{pet.contactInfo.name}</Text>
+            {pet.contactInfo.phone && (
+              <Text style={styles.contactDetail}>{pet.contactInfo.phone}</Text>
+            )}
+            <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
           </View>
         </View>
       </ScrollView>
-      
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.footerButton}
-          onPress={handleLike}
-        >
-          <Heart 
-            size={24} 
-            color={isPetLiked(pet.id) ? colors.error : colors.textSecondary}
-            fill={isPetLiked(pet.id) ? colors.error : 'transparent'}
-          />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.shareButton}
-          onPress={handleShare}
-        >
-          <ShareIcon size={20} color={colors.white} />
-          <Text style={styles.shareButtonText}>Share</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -372,7 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 24,
   },
   notFoundContainer: {
     flex: 1,
@@ -384,6 +218,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 20,
+  },
+  backButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: colors.white,
+    fontWeight: '600',
   },
   imageContainer: {
     position: 'relative',
@@ -403,6 +247,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
+  },
+  imageActions: {
+    position: 'absolute',
+    top: 48,
+    right: 16,
+    flexDirection: 'row',
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
   statusBadge: {
     position: 'absolute',
@@ -419,9 +279,6 @@ const styles = StyleSheet.create({
   foundBadge: {
     backgroundColor: 'rgba(80, 200, 120, 0.85)',
   },
-  resolvedBadge: {
-    backgroundColor: 'rgba(80, 200, 120, 0.85)',
-  },
   statusText: {
     color: colors.white,
     fontSize: 16,
@@ -431,7 +288,7 @@ const styles = StyleSheet.create({
   urgentBadge: {
     position: 'absolute',
     top: 48,
-    right: 16,
+    right: 120,
     backgroundColor: colors.urgent,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -452,6 +309,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   rewardBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.accent,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -462,12 +321,18 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
   },
   infoCard: {
     backgroundColor: colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   infoRow: {
     flexDirection: 'row',
@@ -513,154 +378,67 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
   },
   dateText: {
     fontSize: 14,
     color: colors.textSecondary,
     marginLeft: 8,
   },
-  commentsSection: {
-    marginTop: 24,
+  mapPreview: {
+    height: 180,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  commentsTitle: {
-    fontSize: 18,
+  mapImage: {
+    width: '100%',
+    height: '100%',
+  },
+  viewMapButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: colors.white,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  viewMapButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  tag: {
+    backgroundColor: colors.gray[100],
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  contactName: {
+    fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 16,
-  },
-  commentInput: {
-    marginBottom: 24,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
-  },
-  replyingTo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: colors.gray[100],
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  replyingToText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginLeft: 8,
-  },
-  cancelReplyButton: {
-    padding: 4,
-  },
-  commentInputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  commentUserPhoto: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
-  },
-  commentTextInput: {
-    flex: 1,
-    minHeight: 36,
-    maxHeight: 100,
-    backgroundColor: colors.gray[100],
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    paddingRight: 40,
-    fontSize: 14,
-    color: colors.text,
-  },
-  sendButton: {
-    position: 'absolute',
-    right: 12,
-    bottom: 8,
-    padding: 8,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  commentItem: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
-  },
-  replyItem: {
-    marginLeft: 48,
-    marginBottom: 8,
-    backgroundColor: colors.gray[50],
-  },
-  commentContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 4,
   },
-  commentUserName: {
+  contactDetail: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  commentTime: {
-    fontSize: 12,
-    color: colors.textTertiary,
-  },
-  commentText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-  },
-  commentActions: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  commentAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  commentActionText: {
-    fontSize: 12,
     color: colors.textSecondary,
-    marginLeft: 4,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  footerButton: {
-    padding: 8,
-  },
-  shareButton: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginLeft: 'auto',
-  },
-  shareButtonText: {
-    color: colors.white,
-    fontWeight: '600',
-    marginLeft: 8,
+    marginBottom: 4,
   },
 });
