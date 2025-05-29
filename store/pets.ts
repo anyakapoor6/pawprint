@@ -47,7 +47,17 @@ export const usePets = create<PetsState>((set, get) => ({
   
   getReportsByStatus: (status: ReportStatus) => {
     const reports = get().reports;
-    return reports.filter(report => report.status === status);
+    if (status === 'resolved') {
+      // Show both resolved reports and found reports in resolved section
+      return reports.filter(report => 
+        report.status === 'resolved' || report.reportType === 'found'
+      );
+    } else {
+      // Only show active lost reports in active section
+      return reports.filter(report => 
+        report.status === status && report.reportType === 'lost'
+      );
+    }
   },
 
   getReportById: (id: string) => {
