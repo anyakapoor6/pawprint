@@ -75,7 +75,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>My Stories</Text>
-              <Text style={styles.menuItemSubtitle}>View and share your pet stories</Text>
+              <Text style={styles.menuItemSubtitle}>Share your pet journey</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
