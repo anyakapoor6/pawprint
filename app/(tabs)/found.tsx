@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Award } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
 
-export default function UrgentCasesScreen() {
+export default function FoundPetsScreen() {
   const router = useRouter();
-  const urgentCases = mockReports.filter(report => report.isUrgent);
+  const foundPets = mockReports.filter(report => 
+    report.reportType === 'found' && report.status === 'active'
+  );
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
@@ -16,18 +18,18 @@ export default function UrgentCasesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Urgent Cases</Text>
+        <Text style={styles.headerTitle}>Found Pets</Text>
         <View style={styles.headerInfo}>
-          <AlertTriangle size={16} color={colors.urgent} />
+          <Award size={16} color={colors.secondary} />
           <Text style={styles.headerSubtitle}>
-            These pets need immediate attention
+            Help these pets find their way home
           </Text>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.grid}>
-          {urgentCases.map(report => (
+          {foundPets.map(report => (
             <TouchableOpacity
               key={report.id}
               style={styles.gridItem}

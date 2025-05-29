@@ -25,7 +25,6 @@ export default function HomeScreen() {
   }, []);
 
   const loadData = () => {
-    // In a real app, these would be API calls
     const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
     const recent = [...mockReports]
       .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
@@ -105,6 +104,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -116,7 +116,10 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <Clock size={20} color={colors.urgent} />
             <Text style={styles.sectionHeaderText}>Urgent Cases</Text>
-            <TouchableOpacity style={styles.seeAllButton}>
+            <TouchableOpacity 
+              style={styles.seeAllButton}
+              onPress={() => router.push('/(tabs)/urgent')}
+            >
               <Text style={styles.seeAllText}>See All</Text>
               <ChevronRight size={16} color={colors.primary} />
             </TouchableOpacity>
@@ -141,7 +144,10 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <MapPin size={20} color={colors.primary} />
             <Text style={styles.sectionHeaderText}>Recently Reported</Text>
-            <TouchableOpacity style={styles.seeAllButton}>
+            <TouchableOpacity 
+              style={styles.seeAllButton}
+              onPress={() => router.push('/(tabs)/recent')}
+            >
               <Text style={styles.seeAllText}>See All</Text>
               <ChevronRight size={16} color={colors.primary} />
             </TouchableOpacity>
@@ -166,7 +172,10 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <Award size={20} color={colors.secondary} />
             <Text style={styles.sectionHeaderText}>Found Pets</Text>
-            <TouchableOpacity style={styles.seeAllButton}>
+            <TouchableOpacity 
+              style={styles.seeAllButton}
+              onPress={() => router.push('/(tabs)/found')}
+            >
               <Text style={styles.seeAllText}>See All</Text>
               <ChevronRight size={16} color={colors.primary} />
             </TouchableOpacity>
