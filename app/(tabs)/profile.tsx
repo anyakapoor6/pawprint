@@ -67,7 +67,7 @@ export default function ProfileScreen() {
         
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => handleNavigate('/(tabs)/stories')}
+          onPress={() => handleNavigate('/stories')}
         >
           <View style={styles.menuItemContent}>
             <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
@@ -81,13 +81,9 @@ export default function ProfileScreen() {
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        {userStories.length > 0 && (
-          <View style={styles.storiesSection}>
-            {userStories.map(story => (
-              <StoryCard key={story.id} story={story} />
-            ))}
-          </View>
-        )}
+        {userStories.map(story => (
+          <StoryCard key={story.id} story={story} />
+        ))}
 
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
@@ -321,10 +317,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
-  },
-  storiesSection: {
-    marginTop: 8,
-    marginBottom: 24,
   },
   footer: {
     marginTop: 24,
