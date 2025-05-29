@@ -1,9 +1,10 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { MapPin, Calendar, Award, Heart, Check, CreditCard as Edit } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { MapPin, Calendar, Award, Heart, Check, CreditCard as Edit, MessageCircle } from 'lucide-react-native';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
+import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
 
 interface PetCardProps {
@@ -22,15 +23,28 @@ export default function PetCard({
   onResolve
 }: PetCardProps) {
   const { toggleSavedPet, isPetSaved } = useSavedPets();
+  const { toggleLike, isLiked, getLikeCount, getComments } = usePetInteractions();
   const { user } = useAuth();
   const router = useRouter();
   const formattedDate = new Date(report.dateReported).toLocaleDateString();
   const isSaved = isPetSaved(report.id);
   const isOwner = user?.id === report.userId;
+  const likeCount = getLikeCount(report.id);
+  const commentCount = getComments(report.id).length;
   
   const handleSave = (e: any) => {
     e.stopPropagation();
     toggleSavedPet(report.id, report);
+  };
+  
+  const handleLike = (e: any) => {
+    e.stopPropagation();
+    toggleLike(report.id);
+  };
+  
+  const handleComments = (e: any) => {
+    e.stopPropagation();
+    router.push(`/pet/${report.id}?showComments=true`);
   };
   
   const handleResolve = (e: any) => {
@@ -113,6 +127,33 @@ export default function PetCard({
             </Text>
           </View>
         )}
+
+        <View style={styles.interactionBar}>
+          <TouchableOpacity 
+            style={styles.interactionButton}
+            onPress={handleLike}
+          >
+            <Heart 
+              size={16} 
+              color={isLiked(report.id) ? colors.error : colors.textSecondary}
+              fill={isLiked(report.id) ? colors.error : 'transparent'}
+            />
+            <Text style={[
+              styles.interactionText,
+              isLiked(report.id) && styles.interactionTextActive
+            ]}>
+              {likeCount}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.interactionButton}
+            onPress={handleComments}
+          >
+            <MessageCircle size={16} color={colors.textSecondary} />
+            <Text style={styles.interactionText}>{commentCount}</Text>
+          </TouchableOpacity>
+        </View>
 
         {showResolveButton && report.status === 'active' && (
           <TouchableOpacity 
@@ -215,6 +256,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  interactionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  interactionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  interactionText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 4,
+  },
+  interactionTextActive: {
+    color: colors.error,
   },
   saveButton: {
     position: 'absolute',

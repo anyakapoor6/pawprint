@@ -20,6 +20,17 @@ export interface Reward {
   description?: string;
 }
 
+export interface PetComment {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhoto: string;
+  content: string;
+  timestamp: string;
+  likes: number;
+  replies?: PetComment[];
+}
+
 export interface PetReport {
   id: string;
   userId: string;
@@ -57,4 +68,12 @@ export interface Story {
   likes: number;
   comments: number;
   photos: string[];
+}
+
+export interface PremiumFeature {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  type: string;
 }
