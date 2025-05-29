@@ -4,11 +4,15 @@ import { Link, useRouter } from 'expo-router';
 import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { useStories } from '@/store/stories';
+import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-
+  const { getUserStories } = useStories();
+  const userStories = getUserStories(user?.id || '');
+  
   const handleSignOut = async () => {
     await signOut();
     router.replace('/sign-in');
@@ -42,13 +46,13 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Active Reports</Text>
+            <Text style={styles.statNumber}>{userStories.length}</Text>
+            <Text style={styles.statLabel}>Stories</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Resolved</Text>
+            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statLabel}>Active Reports</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -59,6 +63,24 @@ export default function ProfileScreen() {
       </View>
       
       <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Your Stories</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(tabs)/stories')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
+              <BookOpen size={20} color={colors.accent} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>My Stories</Text>
+              <Text style={styles.menuItemSubtitle}>Share your success stories</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
         <TouchableOpacity 
