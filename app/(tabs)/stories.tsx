@@ -3,39 +3,34 @@ import { useRouter } from 'expo-router';
 import { SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useStories } from '@/store/stories';
-import { useAuth } from '@/store/auth';
 import StoryCard from '@/components/StoryCard';
 
 export default function StoriesScreen() {
   const router = useRouter();
   const { stories } = useStories();
-  const { user } = useAuth();
-
-  // Filter stories to only show current user's stories
-  const userStories = stories.filter(story => story.userId === user?.id);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Stories</Text>
+        <Text style={styles.headerTitle}>Success Stories</Text>
         <View style={styles.headerInfo}>
           <PenSquare size={16} color={colors.primary} />
           <Text style={styles.headerSubtitle}>
-            Share your journey and connect with others
+            Heartwarming reunion stories from our community
           </Text>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
-        {userStories.length > 0 ? (
-          userStories.map(story => (
+        {stories.length > 0 ? (
+          stories.map(story => (
             <StoryCard key={story.id} story={story} />
           ))
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No stories yet</Text>
             <Text style={styles.emptyStateText}>
-              Share your first success story with the community
+              Be the first to share a success story with the community
             </Text>
           </View>
         )}
