@@ -8,6 +8,8 @@ import { PetType, ReportType } from '@/types/pet';
 import CameraComponent from '@/components/CameraComponent';
 import PremiumFeatureModal from '@/components/PremiumFeatureModal';
 import { usePremium } from '@/store/premium';
+import { usePets } from '@/store/pets';
+import { useAuth } from '@/store/auth';
 
 export default function ReportScreen() {
   const { type = 'lost' } = useLocalSearchParams<{ type: ReportType }>();
@@ -25,7 +27,10 @@ export default function ReportScreen() {
   const [reward, setReward] = useState('');
   const [showCamera, setShowCamera] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { features } = usePremium();
+  const { addReport } = usePets();
+  const { user } = useAuth();
 
   const handleTypeSelection = (type: ReportType) => {
     setReportType(type);
@@ -135,22 +140,70 @@ export default function ReportScreen() {
     }
   };
 
-  const handleSubmit = () => {
-    Alert.alert(
-      "Report Submitted",
-      "Your report has been submitted successfully. Would you like to share your story to help others?",
-      [
-        { 
-          text: "Not Now",
-          style: "cancel",
-          onPress: () => router.replace('/(tabs)')
+  const handleSubmit = async () => {
+    if (!petType || !petColor || !petSize || !description || !location || photos.length === 0) {
+      Alert.alert('Error', 'Please fill in all required fields and add at least one photo');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const newReport = {
+        id: Date.now().toString(),
+        userId: user?.id || 'anonymous',
+        name: petName,
+        type: petType,
+        breed: petBreed,
+        color: petColor,
+        size: petSize,
+        gender: petGender || 'unknown',
+        description,
+        photos,
+        reportType,
+        status: 'active',
+        isUrgent,
+        dateReported: new Date().toISOString(),
+        lastSeenDate: new Date().toISOString(),
+        lastSeenLocation: {
+          latitude: 0, // You would get this from a location picker
+          longitude: 0,
+          address: location,
         },
-        {
-          text: "Share Story",
-          onPress: () => router.push('/story/create')
-        }
-      ]
-    );
+        reward: reward ? {
+          amount: parseInt(reward, 10),
+          description: 'Reward for safe return'
+        } : undefined,
+        contactInfo: {
+          name: user?.name || 'Anonymous',
+          email: user?.email || 'anonymous@example.com',
+          phone: user?.phone,
+        },
+        tags: [],
+      };
+
+      await addReport(newReport);
+
+      Alert.alert(
+        "Report Submitted",
+        "Your report has been submitted successfully. Would you like to share your story to help others?",
+        [
+          { 
+            text: "Not Now",
+            style: "cancel",
+            onPress: () => router.replace('/(tabs)')
+          },
+          {
+            text: "Share Story",
+            onPress: () => router.push('/story/create')
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (showCamera) {
@@ -396,11 +449,12 @@ export default function ReportScreen() {
         )}
 
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
+          disabled={loading}
         >
           <Text style={styles.submitButtonText}>
-            Submit Report
+            {loading ? 'Submitting...' : 'Submit Report'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -699,6 +753,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     color: colors.white,
