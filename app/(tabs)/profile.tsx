@@ -67,7 +67,7 @@ export default function ProfileScreen() {
         
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => handleNavigate('/stories')}
+          onPress={() => handleNavigate('/profile/my-stories')}
         >
           <View style={styles.menuItemContent}>
             <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
@@ -75,15 +75,11 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>My Stories</Text>
-              <Text style={styles.menuItemSubtitle}>Share your pet journey</Text>
+              <Text style={styles.menuItemSubtitle}>View your personal stories</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-
-        {userStories.map(story => (
-          <StoryCard key={story.id} story={story} />
-        ))}
 
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
