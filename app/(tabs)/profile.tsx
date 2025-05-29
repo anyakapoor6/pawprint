@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, Bell, BookOpen } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { usePets } from '@/store/pets';
@@ -71,6 +71,22 @@ export default function ProfileScreen() {
       </View>
       
       <ScrollView style={styles.content}>
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(modals)/my-reports')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
+              <Bell size={20} color={colors.primary} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>My Reports</Text>
+              <Text style={styles.menuItemSubtitle}>Manage your lost and found reports</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+        
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/saved-pets')}
