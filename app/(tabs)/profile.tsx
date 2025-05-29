@@ -63,6 +63,32 @@ export default function ProfileScreen() {
       </View>
       
       <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Your Stories</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(tabs)/stories')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
+              <BookOpen size={20} color={colors.accent} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>My Stories</Text>
+              <Text style={styles.menuItemSubtitle}>Share your success stories</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {userStories.length > 0 && (
+          <View style={styles.storiesSection}>
+            {userStories.map(story => (
+              <StoryCard key={story.id} story={story} />
+            ))}
+          </View>
+        )}
+
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
         <TouchableOpacity 
@@ -96,30 +122,6 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleNavigate('/(tabs)/stories')}
-        >
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary + '20' }]}>
-              <BookOpen size={20} color={colors.secondary} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>My Stories</Text>
-              <Text style={styles.menuItemSubtitle}>View and manage your published stories</Text>
-            </View>
-          </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-
-        {userStories.length > 0 && (
-          <View style={styles.storiesSection}>
-            {userStories.map(story => (
-              <StoryCard key={story.id} story={story} />
-            ))}
-          </View>
-        )}
         
         <TouchableOpacity 
           style={styles.menuItem}
