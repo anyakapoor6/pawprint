@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon } from 'lucide-react-native';
+import { Settings, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, Bell, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { usePets } from '@/store/pets';
@@ -21,7 +20,7 @@ export default function ProfileScreen() {
   // Get user's stories
   const userStories = getUserStories(user?.id || '');
   
-  // For this example, we'll calculate rewards given based on resolved reports with rewards
+  // Calculate rewards given based on resolved reports with rewards
   const rewardsGiven = resolvedReports.reduce((total, report) => {
     return total + (report.reward?.amount || 0);
   }, 0);
@@ -72,24 +71,6 @@ export default function ProfileScreen() {
       </View>
       
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Your Reports</Text>
-        
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleNavigate('/(modals)/my-reports')}
-        >
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Bell size={20} color={colors.primary} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>My Reports</Text>
-              <Text style={styles.menuItemSubtitle}>Manage your lost and found reports</Text>
-            </View>
-          </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-        
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/saved-pets')}
@@ -101,6 +82,22 @@ export default function ProfileScreen() {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>Saved Pets</Text>
               <Text style={styles.menuItemSubtitle}>Pets you've bookmarked</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(tabs)/stories')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
+              <BookOpen size={20} color={colors.primary} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>My Stories</Text>
+              <Text style={styles.menuItemSubtitle}>View and manage your success stories</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
@@ -121,7 +118,7 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.sectionTitle}>Account</Text>
         
         <TouchableOpacity 
