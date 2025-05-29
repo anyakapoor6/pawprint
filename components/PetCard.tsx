@@ -1,8 +1,10 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { MapPin, Calendar, Award, Heart, Check } from 'lucide-react-native';
+import { MapPin, Calendar, Award, Heart, Check, Edit } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
+import { useAuth } from '@/store/auth';
 
 interface PetCardProps {
   report: PetReport;
@@ -20,8 +22,11 @@ export default function PetCard({
   onResolve
 }: PetCardProps) {
   const { toggleSavedPet, isPetSaved } = useSavedPets();
+  const { user } = useAuth();
+  const router = useRouter();
   const formattedDate = new Date(report.dateReported).toLocaleDateString();
   const isSaved = isPetSaved(report.id);
+  const isOwner = user?.id === report.userId;
   
   const handleSave = (e: any) => {
     e.stopPropagation();
@@ -31,6 +36,11 @@ export default function PetCard({
   const handleResolve = (e: any) => {
     e.stopPropagation();
     onResolve?.();
+  };
+
+  const handleEdit = (e: any) => {
+    e.stopPropagation();
+    router.push(`/report/edit/${report.id}`);
   };
   
   return (
@@ -56,7 +66,7 @@ export default function PetCard({
              report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>
-        {showSaveButton && (
+        {showSaveButton && !isOwner && (
           <TouchableOpacity 
             style={[styles.saveButton, isSaved && styles.savedButton]} 
             onPress={handleSave}
@@ -66,6 +76,14 @@ export default function PetCard({
               color={isSaved ? colors.error : colors.white}
               fill={isSaved ? colors.error : 'transparent'}
             />
+          </TouchableOpacity>
+        )}
+        {isOwner && (
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={handleEdit}
+          >
+            <Edit size={16} color={colors.white} />
           </TouchableOpacity>
         )}
       </View>
@@ -211,6 +229,17 @@ const styles = StyleSheet.create({
   },
   savedButton: {
     backgroundColor: colors.white,
+  },
+  editButton: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   resolveButton: {
     flexDirection: 'row',

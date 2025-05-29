@@ -5,6 +5,7 @@ import { mockReports } from '@/data/mockData';
 interface PetsState {
   reports: PetReport[];
   updatePetStatus: (petId: string, status: ReportStatus) => void;
+  updateReport: (updatedReport: PetReport) => Promise<void>;
   getReportsByStatus: (status: ReportStatus) => PetReport[];
   getReportById: (id: string) => PetReport | undefined;
 }
@@ -18,6 +19,17 @@ export const usePets = create<PetsState>((set, get) => ({
         report.id === petId 
           ? { ...report, status }
           : report
+      )
+    }));
+  },
+
+  updateReport: async (updatedReport: PetReport) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    set(state => ({
+      reports: state.reports.map(report =>
+        report.id === updatedReport.id ? updatedReport : report
       )
     }));
   },
