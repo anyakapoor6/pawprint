@@ -28,18 +28,12 @@ interface AIAnalysis {
 export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCameraProps) {
   const [type, setType] = useState<CameraType>('back');
   const [scanning, setScanning] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
 
   const analyzeImage = async (imageUri: string): Promise<AIAnalysis> => {
-    // Simulate AI processing with retry logic
+    // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    if (retryCount < 2) {
-      setRetryCount(prev => prev + 1);
-      throw new Error('Connection error');
-    }
     
     return {
       petType: 'dog',
@@ -96,7 +90,7 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
 
         return { report, score: score * analysis.confidence };
       })
-      .filter(({ score }) => score > 60) // Increased threshold for better matches
+      .filter(({ score }) => score > 50)
       .sort((a, b) => b.score - a.score)
       .map(({ report }) => report)
       .slice(0, 3);
@@ -117,16 +111,12 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       const matches = findMatches(analysis);
 
       if (matches.length === 0) {
-        onError('No matching pets found. Try scanning from a different angle or adjust the lighting.');
+        onError('No matching pets found. Try scanning from a different angle.');
       } else {
         onCapture(photo.uri, matches, analysis);
       }
     } catch (error) {
-      if (error instanceof Error && error.message === 'Connection error') {
-        onError('Connection error. Please check your internet connection and try again.');
-      } else {
-        onError('Failed to process image. Please try again.');
-      }
+      onError('Failed to process image. Please try again.');
     } finally {
       setScanning(false);
     }
