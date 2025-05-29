@@ -112,6 +112,14 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        {userStories.length > 0 && (
+          <View style={styles.storiesSection}>
+            {userStories.map(story => (
+              <StoryCard key={story.id} story={story} />
+            ))}
+          </View>
+        )}
         
         <TouchableOpacity 
           style={styles.menuItem}
@@ -311,6 +319,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  storiesSection: {
+    marginTop: 8,
+    marginBottom: 24,
   },
   footer: {
     marginTop: 24,
