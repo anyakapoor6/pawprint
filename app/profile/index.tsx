@@ -37,6 +37,7 @@ export default function ProfileScreen() {
           <Image source={{ uri: user?.photo }} style={styles.profileImage} />
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
+          <Text style={styles.editProfileText}>Edit Profile</Text>
         </TouchableOpacity>
         
         <View style={styles.statsContainer}>
@@ -213,6 +214,12 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  editProfileText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',

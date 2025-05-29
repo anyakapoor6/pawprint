@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Camera, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
