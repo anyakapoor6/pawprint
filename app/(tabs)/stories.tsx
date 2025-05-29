@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SquarePen as PenSquare } from 'lucide-react-native';
+import { PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
@@ -12,11 +12,11 @@ export default function StoriesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Success Stories</Text>
+        <Text style={styles.headerTitle}>Stories</Text>
         <View style={styles.headerInfo}>
           <PenSquare size={16} color={colors.primary} />
           <Text style={styles.headerSubtitle}>
-            Heartwarming reunion stories from our community
+            Stories from our pet community
           </Text>
         </View>
       </View>
@@ -30,7 +30,7 @@ export default function StoriesScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No stories yet</Text>
             <Text style={styles.emptyStateText}>
-              Be the first to share a success story with the community
+              Be the first to share your story with the community
             </Text>
           </View>
         )}
