@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Heart, MessageCircle, Calendar } from 'lucide-react-native';
 import { Story } from '@/types/pet';
 import { colors } from '@/constants/colors';
