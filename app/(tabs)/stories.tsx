@@ -2,11 +2,12 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { mockStories } from '@/data/mockData';
+import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
 
 export default function StoriesScreen() {
   const router = useRouter();
+  const { stories } = useStories();
 
   return (
     <View style={styles.container}>
@@ -21,9 +22,18 @@ export default function StoriesScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        {mockStories.map(story => (
-          <StoryCard key={story.id} story={story} />
-        ))}
+        {stories.length > 0 ? (
+          stories.map(story => (
+            <StoryCard key={story.id} story={story} />
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No stories yet</Text>
+            <Text style={styles.emptyStateText}>
+              Be the first to share your success story with the community
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -60,5 +70,25 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

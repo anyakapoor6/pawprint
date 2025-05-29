@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Heart, MessageCircle, Calendar } from 'lucide-react-native';
 import { Story } from '@/types/pet';
 import { colors } from '@/constants/colors';
@@ -9,58 +9,61 @@ interface StoryCardProps {
 }
 
 export default function StoryCard({ story }: StoryCardProps) {
+  const router = useRouter();
   const formattedDate = new Date(story.date).toLocaleDateString();
   
+  const handlePress = () => {
+    router.push(`/story/${story.id}`);
+  };
+  
   return (
-    <Link href={`/story/${story.id}`} asChild>
-      <TouchableOpacity style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.userInfo}>
-            <Image 
-              source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-              style={styles.userPhoto} 
-            />
-            <View>
-              <Text style={styles.userName}>{story.userName}</Text>
-              <View style={styles.dateContainer}>
-                <Calendar size={12} color={colors.textTertiary} />
-                <Text style={styles.dateText}>{formattedDate}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        
-        <Text style={styles.title}>{story.title}</Text>
-        <Text style={styles.content} numberOfLines={3}>{story.content}</Text>
-        
-        <View style={styles.photoContainer}>
+    <TouchableOpacity style={styles.container} onPress={handlePress}>
+      <View style={styles.header}>
+        <View style={styles.userInfo}>
           <Image 
-            source={{ uri: story.petPhoto }} 
-            style={styles.petPhoto} 
-            resizeMode="cover"
+            source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
+            style={styles.userPhoto} 
           />
-          {story.photos.length > 1 && (
-            <View style={styles.morePhotosContainer}>
-              <Text style={styles.morePhotosText}>+{story.photos.length - 1}</Text>
+          <View>
+            <Text style={styles.userName}>{story.userName}</Text>
+            <View style={styles.dateContainer}>
+              <Calendar size={12} color={colors.textTertiary} />
+              <Text style={styles.dateText}>{formattedDate}</Text>
             </View>
-          )}
-        </View>
-        
-        <View style={styles.footer}>
-          <View style={styles.statContainer}>
-            <Heart size={16} color={colors.accent} />
-            <Text style={styles.statText}>{story.likes}</Text>
-          </View>
-          <View style={styles.statContainer}>
-            <MessageCircle size={16} color={colors.textSecondary} />
-            <Text style={styles.statText}>{story.comments}</Text>
-          </View>
-          <View style={styles.readMoreContainer}>
-            <Text style={styles.readMoreText}>Read full story</Text>
           </View>
         </View>
-      </TouchableOpacity>
-    </Link>
+      </View>
+      
+      <Text style={styles.title}>{story.title}</Text>
+      <Text style={styles.content} numberOfLines={3}>{story.content}</Text>
+      
+      <View style={styles.photoContainer}>
+        <Image 
+          source={{ uri: story.petPhoto }} 
+          style={styles.petPhoto} 
+          resizeMode="cover"
+        />
+        {story.photos.length > 1 && (
+          <View style={styles.morePhotosContainer}>
+            <Text style={styles.morePhotosText}>+{story.photos.length - 1}</Text>
+          </View>
+        )}
+      </View>
+      
+      <View style={styles.footer}>
+        <View style={styles.statContainer}>
+          <Heart size={16} color={colors.accent} />
+          <Text style={styles.statText}>{story.likes}</Text>
+        </View>
+        <View style={styles.statContainer}>
+          <MessageCircle size={16} color={colors.textSecondary} />
+          <Text style={styles.statText}>{story.comments}</Text>
+        </View>
+        <View style={styles.readMoreContainer}>
+          <Text style={styles.readMoreText}>Read full story</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -69,7 +72,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 12,
     padding: 16,
-    marginHorizontal: 16,
     marginBottom: 16,
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 1 },
