@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
-import { useSettings } from '@/store/settings';
+import { usePets } from '@/store/pets';
+import { mockStories } from '@/data/mockData';
+import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { getReportsByStatus } = usePets();
   const router = useRouter();
-  const { 
-    pushNotifications, 
-    emailNotifications, 
-    togglePushNotifications, 
-    toggleEmailNotifications 
-  } = useSettings();
+  
+  const activeReports = getReportsByStatus('active');
+  const resolvedReports = getReportsByStatus('resolved');
+  const userStories = mockStories.filter(story => story.userId === user?.id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -45,18 +45,18 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statNumber}>{activeReports.length}</Text>
             <Text style={styles.statLabel}>Active Reports</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
+            <Text style={styles.statNumber}>{resolvedReports.length}</Text>
             <Text style={styles.statLabel}>Resolved</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>$50</Text>
-            <Text style={styles.statLabel}>Rewards Given</Text>
+            <Text style={styles.statNumber}>{userStories.length}</Text>
+            <Text style={styles.statLabel}>Stories</Text>
           </View>
         </View>
       </View>
@@ -111,45 +111,33 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Your Stories</Text>
         
-        <Text style={styles.sectionTitle}>Notifications</Text>
-        
-        <View style={styles.menuItem}>
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => router.push('/story/create')}
+        >
           <View style={styles.menuItemContent}>
             <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Bell size={20} color={colors.primary} />
+              <PenSquare size={20} color={colors.primary} />
             </View>
             <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>Push Notifications</Text>
-              <Text style={styles.menuItemSubtitle}>Get instant alerts about matches and updates</Text>
+              <Text style={styles.menuItemTitle}>Share Your Story</Text>
+              <Text style={styles.menuItemSubtitle}>Share your experience with the community</Text>
             </View>
           </View>
-          <Switch
-            value={pushNotifications}
-            onValueChange={togglePushNotifications}
-            trackColor={{ false: colors.gray[200], true: colors.primary + '50' }}
-            thumbColor={pushNotifications ? colors.primary : colors.gray[400]}
-          />
-        </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
 
-        <View style={styles.menuItem}>
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
-              <PenSquare size={20} color={colors.accent} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>Email Notifications</Text>
-              <Text style={styles.menuItemSubtitle}>Receive detailed updates via email</Text>
-            </View>
+        {userStories.length > 0 && (
+          <View style={styles.storiesContainer}>
+            {userStories.map(story => (
+              <StoryCard key={story.id} story={story} />
+            ))}
           </View>
-          <Switch
-            value={emailNotifications}
-            onValueChange={toggleEmailNotifications}
-            trackColor={{ false: colors.gray[200], true: colors.primary + '50' }}
-            thumbColor={emailNotifications ? colors.primary : colors.gray[400]}
-          />
-        </View>
-
+        )}
+        
         <Text style={styles.sectionTitle}>Account</Text>
         
         <TouchableOpacity 
@@ -310,6 +298,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  storiesContainer: {
+    marginBottom: 16,
   },
   footer: {
     marginTop: 24,
