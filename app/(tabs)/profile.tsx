@@ -1,39 +1,21 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen, Edit2 } from 'lucide-react-native';
+import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
-import { usePets } from '@/store/pets';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const { getReportsByStatus } = usePets();
   const { getUserStories } = useStories();
-  
-  // Get user's reports
-  const activeReports = getReportsByStatus('active');
-  const resolvedReports = getReportsByStatus('resolved');
-  const totalReports = activeReports.length + resolvedReports.length;
-  
-  // Get user's stories
   const userStories = getUserStories(user?.id || '');
   
-  // Calculate rewards given based on resolved reports with rewards
-  const rewardsGiven = resolvedReports.reduce((total, report) => {
-    return total + (report.reward?.amount || 0);
-  }, 0);
-
   const handleSignOut = async () => {
     await signOut();
     router.replace('/sign-in');
-  };
-
-  const handleEditProfile = () => {
-    router.push('/profile/edit');
   };
 
   const handleNavigate = (route: string) => {
@@ -54,14 +36,9 @@ export default function ProfileScreen() {
         
         <TouchableOpacity 
           style={styles.profileHeader}
-          onPress={handleEditProfile}
+          onPress={() => router.push('/profile/edit')}
         >
-          <View style={styles.profileImageContainer}>
-            <Image source={{ uri: user?.photo }} style={styles.profileImage} />
-            <View style={styles.editIconContainer}>
-              <Edit2 size={16} color={colors.white} />
-            </View>
-          </View>
+          <Image source={{ uri: user?.photo }} style={styles.profileImage} />
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
           <Text style={styles.editProfileText}>Edit Profile</Text>
@@ -69,23 +46,41 @@ export default function ProfileScreen() {
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalReports}</Text>
-            <Text style={styles.statLabel}>Reports</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userStories.length}</Text>
             <Text style={styles.statLabel}>Stories</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>${rewardsGiven}</Text>
+            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statLabel}>Active Reports</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>$50</Text>
             <Text style={styles.statLabel}>Rewards Given</Text>
           </View>
         </View>
       </View>
       
       <ScrollView style={styles.content}>
+        <Text style={styles.sectionTitle}>Your Stories</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(tabs)/stories')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.accent + '20' }]}>
+              <BookOpen size={20} color={colors.accent} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>My Stories</Text>
+              <Text style={styles.menuItemSubtitle}>Share your success stories</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
         <Text style={styles.sectionTitle}>Your Reports</Text>
         
         <TouchableOpacity 
@@ -226,27 +221,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  profileImageContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-  },
-  editIconContainer: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
+    marginBottom: 16,
   },
   profileName: {
     fontSize: 24,
