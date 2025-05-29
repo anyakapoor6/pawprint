@@ -12,8 +12,72 @@ interface AIScanCameraProps {
   onCancel: () => void;
 }
 
+// Comprehensive breed database with visual characteristics
+const BREED_DATABASE = {
+  dog: {
+    'Golden Retriever': {
+      characteristics: ['long fur', 'golden coat', 'friendly face', 'medium to large size'],
+      colors: ['golden', 'cream', 'light golden'],
+      size: 'large',
+      furType: 'long',
+      bodyFeatures: ['floppy ears', 'feathered tail', 'broad head'],
+      visualMarkers: ['white chest patch', 'light feathering']
+    },
+    'Labrador Retriever': {
+      characteristics: ['short fur', 'athletic build', 'broad head', 'medium to large size'],
+      colors: ['black', 'yellow', 'chocolate'],
+      size: 'large',
+      furType: 'short',
+      bodyFeatures: ['otter tail', 'broad head', 'muscular build'],
+      visualMarkers: ['white chest patch', 'solid color']
+    },
+    'German Shepherd': {
+      characteristics: ['pointed ears', 'sloped back', 'medium to large size'],
+      colors: ['black and tan', 'sable', 'black'],
+      size: 'large',
+      furType: 'medium',
+      bodyFeatures: ['erect ears', 'bushy tail', 'strong jaw'],
+      visualMarkers: ['saddle pattern', 'mask']
+    },
+    'Husky': {
+      characteristics: ['thick fur', 'pointed ears', 'medium size'],
+      colors: ['black and white', 'grey and white', 'red and white'],
+      size: 'medium',
+      furType: 'thick',
+      bodyFeatures: ['erect ears', 'curved tail', 'facial mask'],
+      visualMarkers: ['mask pattern', 'bi-color coat']
+    }
+  },
+  cat: {
+    'Siamese': {
+      characteristics: ['short fur', 'pointed coloration', 'slim build'],
+      colors: ['seal point', 'chocolate point', 'blue point'],
+      size: 'medium',
+      furType: 'short',
+      bodyFeatures: ['almond eyes', 'large ears', 'slim body'],
+      visualMarkers: ['point coloration', 'dark face']
+    },
+    'Persian': {
+      characteristics: ['long fur', 'flat face', 'round body'],
+      colors: ['white', 'cream', 'blue'],
+      size: 'medium',
+      furType: 'long',
+      bodyFeatures: ['round face', 'small ears', 'thick coat'],
+      visualMarkers: ['flat face', 'long coat']
+    },
+    'Maine Coon': {
+      characteristics: ['very long fur', 'large size', 'tufted ears'],
+      colors: ['brown tabby', 'red', 'tortoiseshell'],
+      size: 'large',
+      furType: 'long',
+      bodyFeatures: ['tufted ears', 'long tail', 'rectangular body'],
+      visualMarkers: ['ear tufts', 'neck ruff']
+    }
+  }
+};
+
 interface AIAnalysis {
-  petType: string;
+  petType: 'dog' | 'cat';
   breed: string[];
   color: string[];
   size: string;
@@ -21,8 +85,9 @@ interface AIAnalysis {
   confidence: number;
   distinctiveMarks: string[];
   estimatedAge: string;
-  furLength?: string;
-  furPattern?: string;
+  furLength: string;
+  furPattern: string;
+  bodyCharacteristics: string[];
 }
 
 export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCameraProps) {
@@ -32,63 +97,130 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
   const cameraRef = useRef<any>(null);
 
   const analyzeImage = async (imageUri: string): Promise<AIAnalysis> => {
-    // Simulate AI processing
+    // Simulate AI processing with enhanced breed recognition
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    return {
-      petType: 'dog',
-      breed: ['Golden Retriever', 'Labrador Retriever'],
-      color: ['golden', 'cream'],
-      size: 'large',
-      features: ['long fur', 'pointed ears', 'collar'],
-      confidence: 0.85,
-      distinctiveMarks: ['white patch on chest', 'small scar above right eye'],
-      estimatedAge: '2-4 years',
+    // In a real app, this would use computer vision to detect these features
+    const detectedFeatures = {
+      bodyShape: 'athletic',
       furLength: 'long',
-      furPattern: 'solid'
+      furColor: 'golden',
+      earShape: 'floppy',
+      faceShape: 'broad',
+      size: 'large',
+      distinctiveFeatures: ['white chest patch', 'feathered tail']
+    };
+
+    // Match detected features against breed database
+    const breedMatches = new Map<string, number>();
+    
+    // Determine if it's a dog or cat based on features
+    const petType = detectedFeatures.bodyShape === 'athletic' ? 'dog' : 'cat';
+    
+    // Score each breed based on matching characteristics
+    Object.entries(BREED_DATABASE[petType]).forEach(([breed, traits]) => {
+      let score = 0;
+      
+      // Check fur length
+      if (traits.furType === detectedFeatures.furLength) score += 20;
+      
+      // Check colors
+      if (traits.colors.some(color => 
+        detectedFeatures.furColor.toLowerCase().includes(color.toLowerCase())
+      )) {
+        score += 20;
+      }
+      
+      // Check body features
+      traits.bodyFeatures.forEach(feature => {
+        if (detectedFeatures.distinctiveFeatures.includes(feature)) score += 10;
+      });
+      
+      // Check size
+      if (traits.size === detectedFeatures.size) score += 20;
+      
+      breedMatches.set(breed, score);
+    });
+
+    // Sort breeds by confidence score
+    const sortedBreeds = Array.from(breedMatches.entries())
+      .sort(([, a], [, b]) => b - a)
+      .filter(([, score]) => score > 50)
+      .map(([breed]) => breed);
+
+    return {
+      petType,
+      breed: sortedBreeds.slice(0, 2), // Top 2 breed matches
+      color: [detectedFeatures.furColor],
+      size: detectedFeatures.size,
+      features: [
+        detectedFeatures.furLength + ' fur',
+        detectedFeatures.earShape + ' ears',
+        detectedFeatures.faceShape + ' face'
+      ],
+      confidence: 0.85,
+      distinctiveMarks: detectedFeatures.distinctiveFeatures,
+      estimatedAge: '2-4 years', // Would be determined by facial features in real AI
+      furLength: detectedFeatures.furLength,
+      furPattern: 'solid',
+      bodyCharacteristics: [detectedFeatures.bodyShape, detectedFeatures.faceShape]
     };
   };
 
   const findMatches = (analysis: AIAnalysis): PetReport[] => {
-    // Enhanced matching algorithm with fuzzy matching
     return mockReports
       .map(report => {
         let score = 0;
         const maxScore = 100;
 
-        // Type matching (30 points)
-        if (report.type.toLowerCase() === analysis.petType.toLowerCase()) {
-          score += 30;
+        // Enhanced breed matching (30 points)
+        if (report.type === analysis.petType) {
+          score += 15;
+          if (report.breed) {
+            const breedMatches = analysis.breed.some(breed => 
+              report.breed!.toLowerCase().includes(breed.toLowerCase())
+            );
+            if (breedMatches) score += 15;
+          }
         }
 
-        // Breed matching (20 points)
-        if (report.breed) {
-          const breedMatches = analysis.breed.some(breed => 
-            report.breed!.toLowerCase().includes(breed.toLowerCase())
-          );
-          if (breedMatches) score += 20;
-        }
-
-        // Color matching (15 points)
+        // Improved color matching (20 points)
         const reportColors = report.color.toLowerCase().split(/[,\s]+/);
         const colorMatches = analysis.color.filter(c => 
           reportColors.some(rc => rc.includes(c.toLowerCase()))
         );
-        score += (colorMatches.length / analysis.color.length) * 15;
+        score += (colorMatches.length / analysis.color.length) * 20;
 
-        // Feature matching (20 points)
+        // Enhanced feature matching (25 points)
         const descriptionLower = report.description.toLowerCase();
-        const featureMatches = analysis.features.filter(f => 
+        const allFeatures = [
+          ...analysis.features,
+          ...analysis.distinctiveMarks,
+          ...analysis.bodyCharacteristics
+        ];
+        const featureMatches = allFeatures.filter(f => 
           descriptionLower.includes(f.toLowerCase())
         );
-        score += (featureMatches.length / analysis.features.length) * 20;
+        score += (featureMatches.length / allFeatures.length) * 25;
 
         // Size matching (15 points)
         if (report.size.toLowerCase() === analysis.size.toLowerCase()) {
           score += 15;
         }
 
-        return { report, score: score * analysis.confidence };
+        // Age approximation (10 points)
+        if (report.age && analysis.estimatedAge) {
+          const reportAge = parseInt(report.age);
+          const analysisAge = parseInt(analysis.estimatedAge);
+          if (Math.abs(reportAge - analysisAge) <= 2) {
+            score += 10;
+          }
+        }
+
+        // Apply confidence factor
+        score *= analysis.confidence;
+
+        return { report, score };
       })
       .filter(({ score }) => score > 50)
       .sort((a, b) => b.score - a.score)
@@ -111,12 +243,12 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       const matches = findMatches(analysis);
 
       if (matches.length === 0) {
-        onError('No matching pets found. Try scanning from a different angle.');
+        onError('No matching pets found. Try scanning from a different angle or in better lighting.');
       } else {
         onCapture(photo.uri, matches, analysis);
       }
     } catch (error) {
-      onError('Failed to process image. Please try again.');
+      onError('Failed to process image. Please ensure the pet is clearly visible and try again.');
     } finally {
       setScanning(false);
     }
@@ -139,7 +271,7 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
       <View style={styles.container}>
         <Text style={styles.text}>We need your permission to use the camera</Text>
         <Text style={styles.subtext}>
-          The camera is used to scan and match pets with our database
+          The camera is used to scan and match pets with our database using AI recognition
         </Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
@@ -176,6 +308,7 @@ export default function AIScanCamera({ onCapture, onError, onCancel }: AIScanCam
           {scanning && (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.white} />
+              <Text style={styles.scanningText}>Identifying breed characteristics...</Text>
             </View>
           )}
         </View>
@@ -288,10 +421,14 @@ const styles = StyleSheet.create({
     borderRightWidth: 3,
   },
   loadingContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -15 }, { translateY: -15 }],
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  scanningText: {
+    color: colors.white,
+    marginTop: 12,
+    fontSize: 14,
+    textAlign: 'center',
   },
   instructions: {
     color: colors.white,
