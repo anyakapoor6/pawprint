@@ -9,6 +9,10 @@ export default function UrgentCasesScreen() {
   const router = useRouter();
   const urgentCases = mockReports.filter(report => report.isUrgent);
 
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -25,7 +29,10 @@ export default function UrgentCasesScreen() {
         <View style={styles.grid}>
           {urgentCases.map(report => (
             <View key={report.id} style={styles.gridItem}>
-              <PetCard report={report} />
+              <PetCard 
+                report={report}
+                onPress={() => handlePetPress(report.id)}
+              />
             </View>
           ))}
         </View>

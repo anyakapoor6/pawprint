@@ -11,6 +11,10 @@ export default function RecentReportsScreen() {
     (a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
   );
 
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -27,7 +31,10 @@ export default function RecentReportsScreen() {
         <View style={styles.grid}>
           {recentReports.map(report => (
             <View key={report.id} style={styles.gridItem}>
-              <PetCard report={report} />
+              <PetCard 
+                report={report}
+                onPress={() => handlePetPress(report.id)}
+              />
             </View>
           ))}
         </View>
