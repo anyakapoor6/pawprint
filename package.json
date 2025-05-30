@@ -57,5 +57,8 @@
     "@types/lodash.debounce": "^4.0.9",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
+  },
+  "resolutions": {
+    "@supabase/supabase-js": "^2.39.8"
   }
 }
