@@ -37,4 +37,9 @@ export default function MapScreen() {
   }, []);
 
   if (Platform.OS === 'web') {
-    return (
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>Maps are not supported in web browser</Text>
+    </View>
+  );
+}
