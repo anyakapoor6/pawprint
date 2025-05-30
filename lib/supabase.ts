@@ -17,5 +17,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       'X-Platform': Platform.OS
     }
+  },
+  realtime: {
+    enabled: false // Disable Realtime features
   }
 });
