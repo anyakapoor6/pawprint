@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import Logo from '@/components/Logo';
@@ -24,10 +24,6 @@ export default function SignIn() {
     } catch (err) {
       setError('Invalid email or password');
     }
-  };
-
-  const handleSignUp = () => {
-    router.push('/sign-up');
   };
 
   return (
@@ -76,9 +72,11 @@ export default function SignIn() {
 
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={handleSignUp}>
-            <Text style={styles.signUpLink}>Sign Up</Text>
-          </TouchableOpacity>
+          <Link href="/sign-up" asChild>
+            <TouchableOpacity>
+              <Text style={styles.signUpLink}>Sign Up</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </View>
     </View>
