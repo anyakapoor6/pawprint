@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -45,6 +45,14 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     distance: 25,
     dateRange: 'all',
   });
+
+  const handleBack = () => {
+    if (showFilters) {
+      setShowFilters(false);
+    } else {
+      router.back();
+    }
+  };
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
@@ -188,7 +196,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={onClose}
+          onPress={handleBack}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
