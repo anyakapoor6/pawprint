@@ -140,6 +140,14 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
   );
 }
 
+export default function ProfileNotificationsScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>ProfileNotificationsScreen Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
