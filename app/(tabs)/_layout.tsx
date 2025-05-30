@@ -97,6 +97,12 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="found"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
