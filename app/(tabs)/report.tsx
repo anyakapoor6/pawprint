@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Alert, Platform } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapPin, ImagePlus, X, Zap } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
@@ -12,6 +12,7 @@ import { usePets } from '@/store/pets';
 import { useAuth } from '@/store/auth';
 
 export default function ReportScreen() {
+  const router = useRouter();
   const { type = 'lost' } = useLocalSearchParams<{ type: ReportType }>();
   const [reportType, setReportType] = useState<ReportType>(type as ReportType);
   const [petType, setPetType] = useState<PetType | null>(null);
