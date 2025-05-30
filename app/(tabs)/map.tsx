@@ -11,13 +11,13 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.0421,
 };
 
-let MapView, Marker, PROVIDER_GOOGLE;
-
+// Only load native maps if NOT on web
+let MapView: any, Marker: any, PROVIDER_GOOGLE: any;
 if (Platform.OS !== 'web') {
-  const mapModule = require('react-native-maps');
-  MapView = mapModule.default;
-  Marker = mapModule.Marker;
-  PROVIDER_GOOGLE = mapModule.PROVIDER_GOOGLE;
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
 }
 
 export default function MapScreen() {
