@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
-import { useAuth } from '@/store/auth';
-import Logo from '@/components/Logo';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
   const router = useRouter();
 
   const handleSignIn = async () => {
@@ -19,7 +16,8 @@ export default function SignIn() {
         setError('Please enter both email and password');
         return;
       }
-      await signIn(email, password);
+      
+      // Mock successful sign in
       router.replace('/(tabs)');
     } catch (err) {
       setError('Invalid email or password');
@@ -29,11 +27,8 @@ export default function SignIn() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Logo size={80} />
         <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>
-          Sign in to continue helping lost pets find their way home or to search for your missing companion
-        </Text>
+        <Text style={styles.subtitle}>Sign in to continue</Text>
       </View>
 
       <View style={styles.form}>
@@ -62,22 +57,16 @@ export default function SignIn() {
           />
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
 
-        <View style={styles.signUpContainer}>
-          <Text style={styles.signUpText}>Don't have an account? </Text>
-          <Link href="/sign-up" asChild>
-            <TouchableOpacity>
-              <Text style={styles.signUpLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
+        <TouchableOpacity 
+          style={styles.signUpButton}
+          onPress={() => router.push('/sign-up')}
+        >
+          <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -98,15 +87,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-    marginTop: 20,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
-    textAlign: 'center',
-    marginHorizontal: 20,
-    lineHeight: 22,
   },
   form: {
     flex: 1,
@@ -133,35 +118,25 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 14,
-  },
   button: {
     backgroundColor: colors.primary,
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
-  signUpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
+  signUpButton: {
+    marginTop: 16,
+    alignItems: 'center',
   },
   signUpText: {
-    color: colors.textSecondary,
-  },
-  signUpLink: {
     color: colors.primary,
+    fontSize: 14,
     fontWeight: '500',
   },
 });

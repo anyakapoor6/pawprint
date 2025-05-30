@@ -1,22 +1,24 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
-import { useAuth } from '@/store/auth';
-import Logo from '@/components/Logo';
 
 export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signUp } = useAuth();
   const router = useRouter();
 
   const handleSignUp = async () => {
     try {
       setError('');
-      await signUp(email, password, name);
+      if (!name || !email || !password) {
+        setError('Please fill in all fields');
+        return;
+      }
+      
+      // Mock successful sign up
       router.replace('/(tabs)');
     } catch (err) {
       setError('Failed to create account');
@@ -26,9 +28,8 @@ export default function SignUp() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Logo size={80} />
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join our community and help reunite lost pets with their families</Text>
+        <Text style={styles.subtitle}>Sign up to get started</Text>
       </View>
 
       <View style={styles.form}>
@@ -71,14 +72,12 @@ export default function SignUp() {
           <Text style={styles.buttonText}>Create Account</Text>
         </TouchableOpacity>
 
-        <View style={styles.signInContainer}>
-          <Text style={styles.signInText}>Already have an account? </Text>
-          <Link href="/sign-in" asChild>
-            <TouchableOpacity>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
+        <TouchableOpacity 
+          style={styles.signInButton}
+          onPress={() => router.push('/sign-in')}
+        >
+          <Text style={styles.signInText}>Already have an account? Sign In</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -99,14 +98,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-    marginTop: 20,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
-    textAlign: 'center',
-    marginHorizontal: 20,
   },
   form: {
     flex: 1,
@@ -138,22 +134,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
-  signInContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
+  signInButton: {
+    marginTop: 16,
+    alignItems: 'center',
   },
   signInText: {
-    color: colors.textSecondary,
-  },
-  signInLink: {
     color: colors.primary,
+    fontSize: 14,
     fontWeight: '500',
   },
 });
