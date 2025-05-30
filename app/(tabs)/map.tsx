@@ -5,6 +5,7 @@ import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
+import { FEATURES } from '@/constants/features';
 
 const DEFAULT_ZOOM = 13;
 const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // New York City
