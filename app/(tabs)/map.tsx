@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, TextInput, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Layers, List, MapPin, Navigation, Search, Filter, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Layers, List, MapPin, Navigation, Search, Filter, TriangleAlert as AlertTriangle, Lock } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import GoogleMapReact from 'google-map-react';
 import { colors } from '@/constants/colors';
@@ -9,9 +9,13 @@ import { PetReport } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetMarker from '@/components/PetMarker';
 import PetCard from '@/components/PetCard';
+import PremiumFeatureModal from '@/components/PremiumFeatureModal';
+import { STRIPE_PRODUCTS } from '@/stripe-config';
 
 const DEFAULT_ZOOM = 13;
 const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // New York City
+
+const FREE_RADIUS = 5; // Free users can see pets within 5km
 
 export default function MapScreen() {
   const [mode, setMode] = useState<'map' | 'list'>('map');
@@ -23,6 +27,8 @@ export default function MapScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [mapsApi, setMapsApi] = useState<any>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [mapUnlocked, setMapUnlocked] = useState(false); // In real app, get from user's purchases
   const router = useRouter();
 
   const initializeLocation = useCallback(async () => {
@@ -157,6 +163,52 @@ export default function MapScreen() {
     await initializeLocation();
   };
 
+  const handleMapUnlock = () => {
+    setShowPremiumModal(true);
+  };
+
+  const handlePremiumSuccess = () => {
+    setMapUnlocked(true);
+    setShowPremiumModal(false);
+    // In a real app, refresh user's purchases/permissions
+  };
+
+  const renderPets = () => {
+    if (!mapUnlocked) {
+      // Only show pets within FREE_RADIUS for free users
+      return nearbyPets
+        .filter(pet => {
+          if (!pet.lastSeenLocation || !location) return false;
+          const distance = calculateDistance(
+            location.lat,
+            location.lng,
+            pet.lastSeenLocation.latitude,
+            pet.lastSeenLocation.longitude
+          );
+          return distance <= FREE_RADIUS;
+        })
+        .map((pet) => (
+          <PetMarker
+            key={pet.id}
+            lat={pet.lastSeenLocation?.latitude}
+            lng={pet.lastSeenLocation?.longitude}
+            pet={pet}
+            onClick={() => handleSelectPet(pet)}
+          />
+        ));
+    }
+
+    return nearbyPets.map((pet) => (
+      <PetMarker
+        key={pet.id}
+        lat={pet.lastSeenLocation?.latitude}
+        lng={pet.lastSeenLocation?.longitude}
+        pet={pet}
+        onClick={() => handleSelectPet(pet)}
+      />
+    ));
+  };
+
   if (!location && Platform.OS === 'web') {
     return (
       <View style={styles.loadingContainer}>
@@ -219,16 +271,20 @@ export default function MapScreen() {
                 gestureHandling: 'greedy',
               }}
             >
-              {nearbyPets.map((pet) => (
-                <PetMarker
-                  key={pet.id}
-                  lat={pet.lastSeenLocation?.latitude}
-                  lng={pet.lastSeenLocation?.longitude}
-                  pet={pet}
-                  onClick={() => handleSelectPet(pet)}
-                />
-              ))}
+              {renderPets()}
             </GoogleMapReact>
+          )}
+
+          {!mapUnlocked && (
+            <TouchableOpacity
+              style={styles.unlockButton}
+              onPress={handleMapUnlock}
+            >
+              <Lock size={20} color={colors.white} />
+              <Text style={styles.unlockButtonText}>
+                Unlock Full Map Access
+              </Text>
+            </TouchableOpacity>
           )}
 
           <TouchableOpacity
@@ -259,6 +315,19 @@ export default function MapScreen() {
           </View>
         </View>
       ) : null}
+
+      <PremiumFeatureModal
+        visible={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSuccess={handlePremiumSuccess}
+        feature={{
+          id: STRIPE_PRODUCTS.MAP_UNLOCK.id,
+          name: STRIPE_PRODUCTS.MAP_UNLOCK.name,
+          description: STRIPE_PRODUCTS.MAP_UNLOCK.description,
+          price: 4.99,
+          type: 'mapUnlock'
+        }}
+      />
     </View>
   );
 }
@@ -410,5 +479,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
     marginLeft: 8,
+  },
+  unlockButton: {
+    position: 'absolute',
+    bottom: 100,
+    left: 16,
+    right: 16,
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    gap: 8,
+  },
+  unlockButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
