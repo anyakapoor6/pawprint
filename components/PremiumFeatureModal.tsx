@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { X, TriangleAlert as AlertTriangle, MapPin } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PremiumFeature } from '@/types/pet';
-import { usePremium } from '@/store/premium';
+import { useStripe } from '@/hooks/useStripe';
 
 interface PremiumFeatureModalProps {
   visible: boolean;
@@ -18,7 +18,7 @@ export default function PremiumFeatureModal({
   onSuccess,
   feature,
 }: PremiumFeatureModalProps) {
-  const { purchaseFeature } = usePremium();
+  const { createCheckoutSession } = useStripe();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +26,7 @@ export default function PremiumFeatureModal({
     try {
       setLoading(true);
       setError(null);
-      await purchaseFeature(feature.id);
+      await createCheckoutSession(feature.id);
       onSuccess();
       onClose();
     } catch (err) {
