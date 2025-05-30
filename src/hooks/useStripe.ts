@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useAuth } from '@/store/auth';
+import { STRIPE_PRODUCTS, StripeProduct } from '@/src/stripe-config';
 
-interface CheckoutOptions {
-  priceId: string;
-  mode: 'payment' | 'subscription';
+interface CreateCheckoutOptions {
+  productId: StripeProduct;
   successUrl: string;
   cancelUrl: string;
 }
@@ -18,9 +18,15 @@ export function useStripe() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createCheckoutSession = useCallback(async (options: CheckoutOptions): Promise<CheckoutResponse | null> => {
+  const createCheckoutSession = useCallback(async (options: CreateCheckoutOptions): Promise<CheckoutResponse | null> => {
     if (!user) {
       setError('User must be logged in');
+      return null;
+    }
+
+    const product = STRIPE_PRODUCTS[options.productId];
+    if (!product) {
+      setError('Invalid product');
       return null;
     }
 
@@ -34,7 +40,12 @@ export function useStripe() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          price_id: product.priceId,
+          mode: product.mode,
+          success_url: options.successUrl,
+          cancel_url: options.cancelUrl,
+        }),
       });
 
       if (!response.ok) {

@@ -18,21 +18,28 @@ export default function PremiumFeatureModal({
   onSuccess,
   feature,
 }: PremiumFeatureModalProps) {
-  const { createCheckoutSession } = useStripe();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { createCheckoutSession, loading, error } = useStripe();
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
   const handlePurchase = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      await createCheckoutSession(feature.id);
-      onSuccess();
-      onClose();
-    } catch (err) {
-      setError('Failed to process payment. Please try again.');
-    } finally {
-      setLoading(false);
+      setPurchaseError(null);
+
+      const productId = feature.type === 'mapUnlock' ? 'MAP_UNLOCK' : 'URGENCY_TAG';
+      
+      const result = await createCheckoutSession({
+        productId,
+        successUrl: `${window.location.origin}/payment-success`,
+        cancelUrl: `${window.location.origin}/payment-cancelled`,
+      });
+
+      if (result?.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
+    } catch (err: any) {
+      setPurchaseError(err.message);
     }
   };
 
@@ -61,8 +68,8 @@ export default function PremiumFeatureModal({
           <Text style={styles.description}>{feature.description}</Text>
           <Text style={styles.price}>${feature.price.toFixed(2)}</Text>
 
-          {error && (
-            <Text style={styles.error}>{error}</Text>
+          {(error || purchaseError) && (
+            <Text style={styles.error}>{error || purchaseError}</Text>
           )}
 
           <TouchableOpacity
