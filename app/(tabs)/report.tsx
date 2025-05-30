@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Camera, ImagePlus, X, AlertTriangle } from 'lucide-react-native';
+import { ArrowLeft, Camera, ImagePlus, X, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
