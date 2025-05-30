@@ -254,6 +254,14 @@ export default function EditProfileScreen() {
   );
 }
 
+export default function EditProfileScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>EditProfileScreen Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
