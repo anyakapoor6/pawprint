@@ -186,6 +186,14 @@ export default function CreateStoryScreen() {
   );
 }
 
+export default function CreateStoryScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>CreateStoryScreen Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
