@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType, PetSize } from '@/types/pet';
@@ -25,6 +26,7 @@ interface FilterState {
 }
 
 export default function SearchScreen() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -203,6 +205,10 @@ export default function SearchScreen() {
       distance: 25,
       dateRange: 'all',
     });
+  };
+
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
   };
 
   return (
