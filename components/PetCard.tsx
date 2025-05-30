@@ -1,6 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MapPin, Calendar, Award, Heart, Check, CreditCard as Edit, MessageCircle } from 'lucide-react-native';
+import { MapPin, Calendar, Heart, Check, CreditCard as Edit, MessageCircle } from 'lucide-react-native';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
@@ -119,15 +119,6 @@ export default function PetCard({
           <Text style={styles.infoText}>{formattedDate}</Text>
         </View>
 
-        {report.reward && report.status === 'active' && (
-          <View style={styles.rewardContainer}>
-            <Award size={14} color={colors.accent} />
-            <Text style={styles.rewardText}>
-              ${report.reward.amount} Reward
-            </Text>
-          </View>
-        )}
-
         <View style={styles.interactionBar}>
           <TouchableOpacity 
             style={styles.interactionButton}
@@ -245,17 +236,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginLeft: 6,
-  },
-  rewardContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  rewardText: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
   },
   interactionBar: {
     flexDirection: 'row',

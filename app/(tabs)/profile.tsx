@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, Award, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
+import { Settings, Bell, Heart, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useStories } from '@/store/stories';
@@ -54,11 +54,6 @@ export default function ProfileScreen() {
             <Text style={styles.statNumber}>2</Text>
             <Text style={styles.statLabel}>Active Reports</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>$50</Text>
-            <Text style={styles.statLabel}>Rewards Given</Text>
-          </View>
         </View>
       </View>
       
@@ -110,22 +105,6 @@ export default function ProfileScreen() {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>Saved Pets</Text>
               <Text style={styles.menuItemSubtitle}>Pets you've bookmarked</Text>
-            </View>
-          </View>
-          <ChevronRight size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleNavigate('/(modals)/rewards')}
-        >
-          <View style={styles.menuItemContent}>
-            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary + '20' }]}>
-              <Award size={20} color={colors.secondary} />
-            </View>
-            <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>Rewards</Text>
-              <Text style={styles.menuItemSubtitle}>Manage and track rewards you've offered</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />

@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MapPin, ImagePlus, X, Zap } from 'lucide-react-native';
+import { MapPin, ImagePlus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
 import { PetType, ReportType } from '@/types/pet';
 import CameraComponent from '@/components/CameraComponent';
-import PremiumFeatureModal from '@/components/PremiumFeatureModal';
-import { usePremium } from '@/store/premium';
 import { usePets } from '@/store/pets';
 import { useAuth } from '@/store/auth';
 
@@ -26,11 +24,8 @@ export default function ReportScreen() {
   const [location, setLocation] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUrgent, setIsUrgent] = useState(false);
-  const [reward, setReward] = useState('');
   const [showCamera, setShowCamera] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { features } = usePremium();
   const { addReport } = usePets();
   const { user } = useAuth();
 
@@ -135,11 +130,7 @@ export default function ReportScreen() {
   };
 
   const handleUrgentToggle = () => {
-    if (!isUrgent) {
-      setShowPremiumModal(true);
-    } else {
-      setIsUrgent(false);
-    }
+    setIsUrgent(!isUrgent);
   };
 
   const handleSubmit = async () => {
@@ -173,10 +164,6 @@ export default function ReportScreen() {
           longitude: 0,
           address: location,
         },
-        reward: reward ? {
-          amount: parseInt(reward, 10),
-          description: 'Reward for safe return'
-        } : undefined,
         contactInfo: {
           name: user?.name || 'Anonymous',
           email: user?.email || 'anonymous@example.com',
@@ -416,53 +403,6 @@ export default function ReportScreen() {
           </TouchableOpacity>
         </View>
 
-        {reportType === 'lost' && (
-          <>
-            <View style={styles.checkboxContainer}>
-              <TouchableOpacity
-                style={[styles.checkbox, isUrgent && styles.checkboxChecked]}
-                onPress={handleUrgentToggle}
-              >
-                <View style={[
-                  styles.checkboxInner,
-                  isUrgent && styles.checkboxCheckedInner
-                ]} />
-              </TouchableOpacity>
-              <View style={styles.checkboxLabelContainer}>
-                <View style={styles.checkboxHeaderContainer}>
-                  <Zap size={16} color={colors.primary} />
-                  <Text style={styles.checkboxLabel}>
-                    Priority Boost
-                  </Text>
-                  <View style={styles.premiumBadge}>
-                    <Text style={styles.premiumBadgeText}>Premium</Text>
-                  </View>
-                </View>
-                <Text style={styles.checkboxSubLabel}>
-                  Boost your report's visibility with priority placement, urgent tag, and extended reach ($9.99)
-                </Text>
-                <View style={styles.boostFeatures}>
-                  <Text style={styles.boostFeature}>• Featured in urgent section</Text>
-                  <Text style={styles.boostFeature}>• Higher search ranking</Text>
-                  <Text style={styles.boostFeature}>• Highlighted in map view</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Reward (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={reward}
-                onChangeText={setReward}
-                placeholder="Amount in USD"
-                placeholderTextColor={colors.textTertiary}
-                keyboardType="number-pad"
-              />
-            </View>
-          </>
-        )}
-
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
@@ -473,13 +413,6 @@ export default function ReportScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-
-      <PremiumFeatureModal
-        visible={showPremiumModal}
-        onClose={() => setShowPremiumModal(false)}
-        onSuccess={() => setIsUrgent(true)}
-        feature={features.find(f => f.id === 'urgent-tag')!}
-      />
     </View>
   );
 }
@@ -695,71 +628,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     fontWeight: '500',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    marginRight: 12,
-    padding: 4,
-  },
-  checkboxChecked: {
-    backgroundColor: colors.primary,
-  },
-  checkboxInner: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 2,
-    backgroundColor: 'transparent',
-  },
-  checkboxCheckedInner: {
-    backgroundColor: colors.white,
-  },
-  checkboxLabelContainer: {
-    flex: 1,
-  },
-  checkboxHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginLeft: 6,
-  },
-  premiumBadge: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  premiumBadgeText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  checkboxSubLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  boostFeatures: {
-    marginTop: 8,
-  },
-  boostFeature: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 4,
   },
   submitButton: {
     backgroundColor: colors.primary,
