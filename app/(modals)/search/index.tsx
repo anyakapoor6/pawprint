@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
-import { PetReport, ReportType, PetType, PetSize } from '@/types/pet';
+import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
 
-interface FilterState {
+interface SearchScreenProps {
+  onClose?: () => void;
+}
+
+type FilterState = {
   reportType: ReportType | 'all';
   petType: PetType | 'all';
   breed: string;
   color: string;
-  size: PetSize | 'all';
+  size: 'small' | 'medium' | 'large' | 'all';
   gender: 'male' | 'female' | 'unknown' | 'all';
   age: string;
   distance: number;
@@ -23,10 +25,9 @@ interface FilterState {
     longitude: number;
     address: string;
   };
-}
+};
 
-export default function SearchScreen() {
-  const router = useRouter();
+export default function SearchScreen({ onClose }: SearchScreenProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -41,12 +42,10 @@ export default function SearchScreen() {
     distance: 25,
     dateRange: 'all',
   });
-  const [locationError, setLocationError] = useState<string | null>(null);
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
     if (text.length > 2) {
-      // Simple search implementation - in a real app, this would be more sophisticated
       const filtered = mockReports.filter((report) => {
         const searchLower = text.toLowerCase();
         const nameLower = (report.name || '').toLowerCase();
@@ -85,85 +84,37 @@ export default function SearchScreen() {
     });
   };
 
-  const handleLocationSelect = async () => {
-    try {
-      setLocationError(null);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      
-      if (status !== 'granted') {
-        setLocationError('Permission to access location was denied');
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      });
-
-      const locationData = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        address: address[0] ? `${address[0].city}, ${address[0].region}` : 'Current Location'
-      };
-
-      updateFilter('location', locationData);
-    } catch (error) {
-      setLocationError('Error getting location');
-      console.error('Error:', error);
-    }
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distance in km
-  };
-
   const applyFilters = () => {
     let filtered = [...mockReports];
     
-    // Filter by report type
     if (filters.reportType !== 'all') {
       filtered = filtered.filter(r => r.reportType === filters.reportType);
     }
     
-    // Filter by pet type
     if (filters.petType !== 'all') {
       filtered = filtered.filter(r => r.type === filters.petType);
     }
 
-    // Filter by breed
     if (filters.breed) {
       filtered = filtered.filter(r => 
         r.breed?.toLowerCase().includes(filters.breed.toLowerCase())
       );
     }
 
-    // Filter by color
     if (filters.color) {
       filtered = filtered.filter(r => 
         r.color.toLowerCase().includes(filters.color.toLowerCase())
       );
     }
 
-    // Filter by size
     if (filters.size !== 'all') {
       filtered = filtered.filter(r => r.size === filters.size);
     }
 
-    // Filter by gender
     if (filters.gender !== 'all') {
       filtered = filtered.filter(r => r.gender === filters.gender);
     }
 
-    // Filter by age
     if (filters.age) {
       filtered = filtered.filter(r => {
         if (!r.age) return false;
@@ -173,7 +124,6 @@ export default function SearchScreen() {
       });
     }
 
-    // Filter by location and distance
     if (filters.location && filters.distance) {
       filtered = filtered.filter(report => {
         if (!report.lastSeenLocation) return false;
@@ -207,8 +157,16 @@ export default function SearchScreen() {
     });
   };
 
-  const handlePetPress = (id: string) => {
-    router.push(`/pet/${id}`);
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
   return (
@@ -216,14 +174,14 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={onClose}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Search</Text>
         <TouchableOpacity
           style={[styles.filterButton, showFilters && styles.filterButtonActive]}
-          onPress={() => setShowFilters(!showFilters)}
+          onPress={toggleFilters}
         >
           <Filter size={20} color={showFilters ? colors.white : colors.primary} />
         </TouchableOpacity>
@@ -247,219 +205,220 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {showFilters && (
-        <View style={styles.filtersContainer}>
-          <Text style={styles.filterTitle}>Filters</Text>
-          
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Report Type</Text>
-            <View style={styles.filterOptions}>
-              {(['all', 'lost', 'found'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterOption,
-                    filters.reportType === type && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('reportType', type)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.reportType === type && styles.filterOptionTextActive
-                  ]}>
-                    {type === 'all' ? 'All' : type === 'lost' ? 'Lost' : 'Found'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Pet Type</Text>
-            <View style={styles.filterOptions}>
-              {(['all', 'dog', 'cat'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterOption,
-                    filters.petType === type && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('petType', type)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.petType === type && styles.filterOptionTextActive
-                  ]}>
-                    {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Size</Text>
-            <View style={styles.filterOptions}>
-              {(['all', 'small', 'medium', 'large'] as const).map((size) => (
-                <TouchableOpacity
-                  key={size}
-                  style={[
-                    styles.filterOption,
-                    filters.size === size && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('size', size)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.size === size && styles.filterOptionTextActive
-                  ]}>
-                    {size === 'all' ? 'All' : size.charAt(0).toUpperCase() + size.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Gender</Text>
-            <View style={styles.filterOptions}>
-              {(['all', 'male', 'female', 'unknown'] as const).map((gender) => (
-                <TouchableOpacity
-                  key={gender}
-                  style={[
-                    styles.filterOption,
-                    filters.gender === gender && styles.filterOptionActive
-                  ]}
-                  onPress={() => updateFilter('gender', gender)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    filters.gender === gender && styles.filterOptionTextActive
-                  ]}>
-                    {gender === 'all' ? 'All' : gender.charAt(0).toUpperCase() + gender.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Age (in years)</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.age}
-              onChangeText={(text) => updateFilter('age', text)}
-              placeholder="Enter age"
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Breed</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.breed}
-              onChangeText={(text) => updateFilter('breed', text)}
-              placeholder="Enter breed"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Color</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.color}
-              onChangeText={(text) => updateFilter('color', text)}
-              placeholder="Enter color"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Location</Text>
-            <TouchableOpacity
-              style={styles.locationButton}
-              onPress={handleLocationSelect}
-            >
-              <MapPin size={20} color={colors.primary} />
-              <Text style={styles.locationButtonText}>
-                {filters.location ? filters.location.address : 'Use Current Location'}
-              </Text>
-            </TouchableOpacity>
-            {locationError && (
-              <Text style={styles.errorText}>{locationError}</Text>
-            )}
-            {filters.location && (
-              <View style={styles.distanceContainer}>
-                <Text style={styles.distanceLabel}>
-                  Search within {filters.distance} km
-                </Text>
-                <View style={styles.distanceOptions}>
-                  {[5, 10, 25, 50, 100].map((distance) => (
+      <View style={styles.contentContainer}>
+        {showFilters && (
+          <ScrollView style={styles.filtersScroll}>
+            <View style={styles.filtersContainer}>
+              <Text style={styles.filterTitle}>Filters</Text>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Report Type</Text>
+                <View style={styles.filterOptions}>
+                  {(['all', 'lost', 'found'] as const).map((type) => (
                     <TouchableOpacity
-                      key={distance}
+                      key={type}
                       style={[
-                        styles.distanceOption,
-                        filters.distance === distance && styles.distanceOptionActive
+                        styles.filterOption,
+                        filters.reportType === type && styles.filterOptionActive
                       ]}
-                      onPress={() => updateFilter('distance', distance)}
+                      onPress={() => updateFilter('reportType', type)}
                     >
                       <Text style={[
-                        styles.distanceOptionText,
-                        filters.distance === distance && styles.distanceOptionTextActive
+                        styles.filterOptionText,
+                        filters.reportType === type && styles.filterOptionTextActive
                       ]}>
-                        {distance}km
+                        {type === 'all' ? 'All' : type === 'lost' ? 'Lost' : 'Found'}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
-            )}
-          </View>
-
-          <View style={styles.filterButtons}>
-            <TouchableOpacity 
-              style={styles.resetButton}
-              onPress={resetFilters}
-            >
-              <Text style={styles.resetButtonText}>Reset</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.applyButton}
-              onPress={applyFilters}
-            >
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      <ScrollView style={styles.resultsContainer}>
-        {searchTerm.length > 0 && results.length === 0 ? (
-          <View style={styles.noResults}>
-            <Text style={styles.noResultsText}>No pets found matching your criteria</Text>
-            <Text style={styles.noResultsSubtext}>Try adjusting your filters or search terms</Text>
-          </View>
-        ) : (
-          <>
-            {results.length > 0 && (
-              <Text style={styles.resultCount}>{results.length} pets found</Text>
-            )}
-            <View style={styles.resultsGrid}>
-              {results.map((report) => (
-                <View key={report.id} style={styles.resultItem}>
-                  <PetCard 
-                    report={report}
-                    onPress={() => handlePetPress(report.id)}
-                  />
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Pet Type</Text>
+                <View style={styles.filterOptions}>
+                  {(['all', 'dog', 'cat'] as const).map((type) => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.filterOption,
+                        filters.petType === type && styles.filterOptionActive
+                      ]}
+                      onPress={() => updateFilter('petType', type)}
+                    >
+                      <Text style={[
+                        styles.filterOptionText,
+                        filters.petType === type && styles.filterOptionTextActive
+                      ]}>
+                        {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              ))}
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Size</Text>
+                <View style={styles.filterOptions}>
+                  {(['all', 'small', 'medium', 'large'] as const).map((size) => (
+                    <TouchableOpacity
+                      key={size}
+                      style={[
+                        styles.filterOption,
+                        filters.size === size && styles.filterOptionActive
+                      ]}
+                      onPress={() => updateFilter('size', size)}
+                    >
+                      <Text style={[
+                        styles.filterOptionText,
+                        filters.size === size && styles.filterOptionTextActive
+                      ]}>
+                        {size === 'all' ? 'All' : size.charAt(0).toUpperCase() + size.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Gender</Text>
+                <View style={styles.filterOptions}>
+                  {(['all', 'male', 'female', 'unknown'] as const).map((gender) => (
+                    <TouchableOpacity
+                      key={gender}
+                      style={[
+                        styles.filterOption,
+                        filters.gender === gender && styles.filterOptionActive
+                      ]}
+                      onPress={() => updateFilter('gender', gender)}
+                    >
+                      <Text style={[
+                        styles.filterOptionText,
+                        filters.gender === gender && styles.filterOptionTextActive
+                      ]}>
+                        {gender === 'all' ? 'All' : gender.charAt(0).toUpperCase() + gender.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Age (in years)</Text>
+                <TextInput
+                  style={styles.filterInput}
+                  value={filters.age}
+                  onChangeText={(text) => updateFilter('age', text)}
+                  placeholder="Enter age"
+                  placeholderTextColor={colors.textTertiary}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Breed</Text>
+                <TextInput
+                  style={styles.filterInput}
+                  value={filters.breed}
+                  onChangeText={(text) => updateFilter('breed', text)}
+                  placeholder="Enter breed"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Color</Text>
+                <TextInput
+                  style={styles.filterInput}
+                  value={filters.color}
+                  onChangeText={(text) => updateFilter('color', text)}
+                  placeholder="Enter color"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Location</Text>
+                <TouchableOpacity
+                  style={styles.locationButton}
+                  onPress={() => {}}
+                >
+                  <MapPin size={20} color={colors.primary} />
+                  <Text style={styles.locationButtonText}>
+                    {filters.location ? filters.location.address : 'Use Current Location'}
+                  </Text>
+                </TouchableOpacity>
+                {filters.location && (
+                  <View style={styles.distanceContainer}>
+                    <Text style={styles.distanceLabel}>
+                      Search within {filters.distance} km
+                    </Text>
+                    <View style={styles.distanceOptions}>
+                      {[5, 10, 25, 50, 100].map((distance) => (
+                        <TouchableOpacity
+                          key={distance}
+                          style={[
+                            styles.distanceOption,
+                            filters.distance === distance && styles.distanceOptionActive
+                          ]}
+                          onPress={() => updateFilter('distance', distance)}
+                        >
+                          <Text style={[
+                            styles.distanceOptionText,
+                            filters.distance === distance && styles.distanceOptionTextActive
+                          ]}>
+                            {distance}km
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.filterButtons}>
+                <TouchableOpacity 
+                  style={styles.resetButton}
+                  onPress={resetFilters}
+                >
+                  <Text style={styles.resetButtonText}>Reset</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.applyButton}
+                  onPress={applyFilters}
+                >
+                  <Text style={styles.applyButtonText}>Apply Filters</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </>
+          </ScrollView>
         )}
-      </ScrollView>
+
+        <ScrollView style={styles.resultsContainer}>
+          {searchTerm.length > 0 && results.length === 0 ? (
+            <View style={styles.noResults}>
+              <Text style={styles.noResultsText}>No pets found matching your criteria</Text>
+              <Text style={styles.noResultsSubtext}>Try adjusting your filters or search terms</Text>
+            </View>
+          ) : (
+            <>
+              {results.length > 0 && (
+                <Text style={styles.resultCount}>{results.length} pets found</Text>
+              )}
+              <View style={styles.resultsGrid}>
+                {results.map((report) => (
+                  <View key={report.id} style={styles.resultItem}>
+                    <PetCard 
+                      report={report}
+                      onPress={() => {}}
+                    />
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -523,8 +482,17 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
-  filtersContainer: {
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  filtersScroll: {
+    width: '40%',
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
     backgroundColor: colors.white,
+  },
+  filtersContainer: {
     padding: 16,
   },
   filterTitle: {
@@ -583,11 +551,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: colors.text,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 14,
-    marginTop: 4,
   },
   distanceContainer: {
     marginTop: 12,
