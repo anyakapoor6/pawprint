@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
@@ -36,6 +35,10 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  // ⬇️ Import native-only modules after web check
+  const MapView = require('react-native-maps').default;
+  const { Marker, PROVIDER_GOOGLE } = require('react-native-maps');
 
   if (errorMsg) {
     return (
