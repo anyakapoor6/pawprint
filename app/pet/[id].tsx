@@ -315,6 +315,14 @@ export default function PetDetailScreen() {
   );
 }
 
+export default function PetDetailsScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>PetDetailsScree Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
