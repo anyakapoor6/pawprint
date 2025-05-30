@@ -10,6 +10,7 @@ import PremiumFeatureModal from '@/components/PremiumFeatureModal';
 import { usePremium } from '@/store/premium';
 import { usePets } from '@/store/pets';
 import { useAuth } from '@/store/auth';
+import { STRIPE_PRODUCTS } from '@/src/stripe-config';
 
 export default function ReportScreen() {
   const router = useRouter();
