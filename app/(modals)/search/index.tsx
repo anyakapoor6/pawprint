@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
+import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -28,8 +29,19 @@ type FilterState = {
   };
 };
 
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
 export default function SearchScreen({ onClose }: SearchScreenProps) {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -46,13 +58,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     dateRange: 'all',
   });
 
-  const handleBack = () => {
-    if (showFilters) {
-      setShowFilters(false);
-    } else {
-      router.back();
-    }
-  };
+  const router = useRouter();
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
@@ -89,9 +95,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
 
   const toggleFilters = () => {
     setShowFilters(!showFilters);
-    if (!showFilters) {
-      setFiltersApplied(false);
-    }
   };
 
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
@@ -99,6 +102,35 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       ...filters,
       [key]: value,
     });
+  };
+
+  const handleLocationSelect = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permission to access location was denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const [address] = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      const formattedAddress = address 
+        ? `${address.street || ''} ${address.city || ''} ${address.region || ''}`
+        : 'Current Location';
+
+      updateFilter('location', {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address: formattedAddress.trim(),
+      });
+    } catch (error) {
+      console.error('Error getting location:', error);
+      alert('Failed to get location. Please try again.');
+    }
   };
 
   const applyFilters = () => {
@@ -175,18 +207,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     });
   };
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
   };
@@ -196,7 +216,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onClose}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -361,7 +381,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
             <Text style={styles.filterLabel}>Location</Text>
             <TouchableOpacity
               style={styles.locationButton}
-              onPress={() => {}}
+              onPress={handleLocationSelect}
             >
               <MapPin size={20} color={colors.primary} />
               <Text style={styles.locationButtonText}>
