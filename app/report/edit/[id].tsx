@@ -257,13 +257,6 @@ export default function EditReportScreen() {
   );
 }
 
-export default function EditReportScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>EditReportSrceen Screen</Text>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
