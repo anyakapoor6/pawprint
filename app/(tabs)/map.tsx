@@ -11,14 +11,6 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.0421,
 };
 
-let MapView: any, Marker: any, PROVIDER_GOOGLE: any;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
-
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,6 +28,7 @@ export default function MapScreen() {
     })();
   }, []);
 
+  // ❗️Skip maps completely on web
   if (Platform.OS === 'web') {
     return (
       <View style={styles.container}>
@@ -43,6 +36,11 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  // ✅ Import map-related things *after* Platform.OS !== 'web' check
+  const Maps = require('react-native-maps');
+  const MapView = Maps.default;
+  const { Marker, PROVIDER_GOOGLE } = Maps;
 
   if (errorMsg) {
     return (
