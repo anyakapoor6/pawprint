@@ -29,19 +29,7 @@ type FilterState = {
   };
 };
 
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-};
-
-export default function SearchScreen({ onClose }: SearchScreenProps) {
+export default function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -97,13 +85,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     setShowFilters(!showFilters);
   };
 
-  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-    setFilters({
-      ...filters,
-      [key]: value,
-    });
-  };
-
   const handleLocationSelect = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -131,6 +112,13 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       console.error('Error getting location:', error);
       alert('Failed to get location. Please try again.');
     }
+  };
+
+  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+    setFilters({
+      ...filters,
+      [key]: value,
+    });
   };
 
   const applyFilters = () => {
@@ -193,6 +181,18 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
     setFiltersApplied(true);
   };
 
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   const resetFilters = () => {
     setFilters({
       reportType: 'all',
@@ -216,7 +216,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={onClose}
+          onPress={() => router.back()}
         >
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -352,28 +352,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
               placeholder="Enter age"
               placeholderTextColor={colors.textTertiary}
               keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Breed</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.breed}
-              onChangeText={(text) => updateFilter('breed', text)}
-              placeholder="Enter breed"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Color</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.color}
-              onChangeText={(text) => updateFilter('color', text)}
-              placeholder="Enter color"
-              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
