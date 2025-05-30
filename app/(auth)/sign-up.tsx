@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import Logo from '@/components/Logo';
@@ -21,6 +21,10 @@ export default function SignUp() {
     } catch (err) {
       setError('Failed to create account');
     }
+  };
+
+  const handleSignIn = () => {
+    router.push('/sign-in');
   };
 
   return (
@@ -73,11 +77,9 @@ export default function SignUp() {
 
         <View style={styles.signInContainer}>
           <Text style={styles.signInText}>Already have an account? </Text>
-          <Link href="/sign-in" asChild>
-            <TouchableOpacity>
-              <Text style={styles.signInLink}>Sign In</Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity onPress={handleSignIn}>
+            <Text style={styles.signInLink}>Sign In</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
