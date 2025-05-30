@@ -10,7 +10,6 @@ import PremiumFeatureModal from '@/components/PremiumFeatureModal';
 import { usePremium } from '@/store/premium';
 import { usePets } from '@/store/pets';
 import { useAuth } from '@/store/auth';
-import { STRIPE_PRODUCTS } from '@/src/stripe-config';
 
 export default function ReportScreen() {
   const router = useRouter();
@@ -29,7 +28,7 @@ export default function ReportScreen() {
   const [isUrgent, setIsUrgent] = useState(false);
   const [reward, setReward] = useState('');
   const [showCamera, setShowCamera] = useState(false);
-  const [showUrgentModal, setShowUrgentModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const { features } = usePremium();
   const { addReport } = usePets();
@@ -137,15 +136,10 @@ export default function ReportScreen() {
 
   const handleUrgentToggle = () => {
     if (!isUrgent) {
-      setShowUrgentModal(true);
+      setShowPremiumModal(true);
     } else {
       setIsUrgent(false);
     }
-  };
-
-  const handleUrgentSuccess = () => {
-    setIsUrgent(true);
-    setShowUrgentModal(false);
   };
 
   const handleSubmit = async () => {
@@ -423,43 +417,50 @@ export default function ReportScreen() {
         </View>
 
         {reportType === 'lost' && (
-          <View style={styles.checkboxContainer}>
-            <TouchableOpacity
-              style={[styles.checkbox, isUrgent && styles.checkboxChecked]}
-              onPress={handleUrgentToggle}
-            >
-              <View style={[
-                styles.checkboxInner,
-                isUrgent && styles.checkboxCheckedInner
-              ]} />
-            </TouchableOpacity>
-            <View style={styles.checkboxLabelContainer}>
-              <View style={styles.checkboxHeaderContainer}>
-                <Zap size={16} color={colors.primary} />
-                <Text style={styles.checkboxLabel}>Priority Boost</Text>
-                <View style={styles.premiumBadge}>
-                  <Text style={styles.premiumBadgeText}>Premium</Text>
+          <>
+            <View style={styles.checkboxContainer}>
+              <TouchableOpacity
+                style={[styles.checkbox, isUrgent && styles.checkboxChecked]}
+                onPress={handleUrgentToggle}
+              >
+                <View style={[
+                  styles.checkboxInner,
+                  isUrgent && styles.checkboxCheckedInner
+                ]} />
+              </TouchableOpacity>
+              <View style={styles.checkboxLabelContainer}>
+                <View style={styles.checkboxHeaderContainer}>
+                  <Zap size={16} color={colors.primary} />
+                  <Text style={styles.checkboxLabel}>
+                    Priority Boost
+                  </Text>
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                  </View>
+                </View>
+                <Text style={styles.checkboxSubLabel}>
+                  Boost your report's visibility with priority placement, urgent tag, and extended reach ($9.99)
+                </Text>
+                <View style={styles.boostFeatures}>
+                  <Text style={styles.boostFeature}>• Featured in urgent section</Text>
+                  <Text style={styles.boostFeature}>• Higher search ranking</Text>
+                  <Text style={styles.boostFeature}>• Highlighted in map view</Text>
                 </View>
               </View>
-              <Text style={styles.checkboxSubLabel}>
-                Boost your report's visibility with priority placement, urgent tag, and extended reach
-              </Text>
             </View>
-          </View>
-        )}
 
-        {reportType === 'lost' && (
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Reward (Optional)</Text>
-            <TextInput
-              style={styles.input}
-              value={reward}
-              onChangeText={setReward}
-              placeholder="Amount in USD"
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="number-pad"
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Reward (Optional)</Text>
+              <TextInput
+                style={styles.input}
+                value={reward}
+                onChangeText={setReward}
+                placeholder="Amount in USD"
+                placeholderTextColor={colors.textTertiary}
+                keyboardType="number-pad"
+              />
+            </View>
+          </>
         )}
 
         <TouchableOpacity
@@ -474,16 +475,10 @@ export default function ReportScreen() {
       </ScrollView>
 
       <PremiumFeatureModal
-        visible={showUrgentModal}
-        onClose={() => setShowUrgentModal(false)}
-        onSuccess={handleUrgentSuccess}
-        feature={{
-          id: STRIPE_PRODUCTS.URGENCY_TAG.id,
-          name: STRIPE_PRODUCTS.URGENCY_TAG.name,
-          description: STRIPE_PRODUCTS.URGENCY_TAG.description,
-          price: 9.99,
-          type: 'urgentTag'
-        }}
+        visible={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSuccess={() => setIsUrgent(true)}
+        feature={features.find(f => f.id === 'urgent-tag')!}
       />
     </View>
   );

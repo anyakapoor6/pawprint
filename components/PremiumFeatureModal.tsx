@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { X, TriangleAlert as AlertTriangle, MapPin } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PremiumFeature } from '@/types/pet';
-import { useStripe } from '@/hooks/useStripe';
+import { usePremium } from '@/store/premium';
 
 interface PremiumFeatureModalProps {
   visible: boolean;
@@ -18,26 +18,21 @@ export default function PremiumFeatureModal({
   onSuccess,
   feature,
 }: PremiumFeatureModalProps) {
-  const { createCheckoutSession, loading, error } = useStripe();
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const { purchaseFeature } = usePremium();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePurchase = async () => {
     try {
-      setPurchaseError(null);
-      
-      const result = await createCheckoutSession({
-        productId: feature.id,
-        successUrl: `${window.location.origin}/payment-success`,
-        cancelUrl: `${window.location.origin}/payment-cancelled`,
-      });
-
-      if (result?.url) {
-        window.location.href = result.url;
-      } else {
-        throw new Error('Failed to create checkout session');
-      }
-    } catch (err: any) {
-      setPurchaseError(err.message);
+      setLoading(true);
+      setError(null);
+      await purchaseFeature(feature.id);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      setError('Failed to process payment. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,8 +61,8 @@ export default function PremiumFeatureModal({
           <Text style={styles.description}>{feature.description}</Text>
           <Text style={styles.price}>${feature.price.toFixed(2)}</Text>
 
-          {(error || purchaseError) && (
-            <Text style={styles.error}>{error || purchaseError}</Text>
+          {error && (
+            <Text style={styles.error}>{error}</Text>
           )}
 
           <TouchableOpacity
