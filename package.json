@@ -22,8 +22,7 @@
     "expo-status-bar": "^2.2.2",
     "expo-system-ui": "^5.0.5",
     "expo-web-browser": "^14.1.5",
-    "google-map-react": "^2.2.1"npm install
-
+    "google-map-react": "^2.2.1",
     "lucide-react-native": "^0.341.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
