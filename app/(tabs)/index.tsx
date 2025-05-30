@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { MapPin, Heart, Award, Clock, ChevronRight, SquarePen as PenSquare, Search, Bell } from 'lucide-react-native';
+import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, Story } from '@/types/pet';
 import { mockReports, mockStories } from '@/data/mockData';
@@ -9,6 +10,7 @@ import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
 import ImpactStats from '@/components/ImpactStats';
 import { useNotifications } from '@/store/notifications';
+import { usePets } from '@/store/pets';
 
 export default function HomeScreen() {
   const [urgentReports, setUrgentReports] = useState<PetReport[]>([]);
@@ -18,31 +20,63 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const { getUnreadCount } = useNotifications();
+  const { getNearbyPets, getUrgentPets, setUserLocation } = usePets();
   const unreadCount = getUnreadCount();
 
   useEffect(() => {
-    loadData();
+    initializeLocation();
   }, []);
 
-  const loadData = () => {
-    // In a real app, these would be API calls
-    const urgent = mockReports.filter(report => report.isUrgent).slice(0, 5);
-    const recent = mockReports.slice(0, 5);
-    const foundPets = mockReports
-      .filter(report => report.reportType === 'found' && report.status === 'active')
-      .slice(0, 5);
-    const latestStories = mockStories.slice(0, 3);
-    
+  const initializeLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+      
+      loadData(location.coords);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Load data without location
+      loadData();
+    }
+  };
+
+  const loadData = (coords?: { latitude: number; longitude: number }) => {
+    // Get urgent cases
+    const urgent = getUrgentPets().slice(0, 5);
     setUrgentReports(urgent);
+
+    // Get recent reports
+    const recent = mockReports
+      .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
+      .slice(0, 5);
     setRecentReports(recent);
-    setFoundPetsNearMe(foundPets);
+
+    // Get found pets near user
+    if (coords) {
+      const nearbyPets = getNearbyPets(10) // 10km radius
+        .filter(report => report.reportType === 'found' && report.status === 'active')
+        .slice(0, 5);
+      setFoundPetsNearMe(nearbyPets);
+    }
+
+    // Get latest stories
+    const latestStories = mockStories.slice(0, 3);
     setStories(latestStories);
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadData();
-    setTimeout(() => setRefreshing(false), 1000);
+    await initializeLocation();
+    setRefreshing(false);
   };
 
   const handlePetPress = (id: string) => {
