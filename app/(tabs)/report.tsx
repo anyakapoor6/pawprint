@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MapPin, ImagePlus, X } from 'lucide-react-native';
+import { ArrowLeft, Camera, ImagePlus, X, AlertTriangle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/constants/colors';
-import { PetType, ReportType } from '@/types/pet';
-import CameraComponent from '@/components/CameraComponent';
-import { usePets } from '@/store/pets';
 import { useAuth } from '@/store/auth';
+import { usePets } from '@/store/pets';
 
-export default function ReportScreen() {
+export default function CreateReportScreen() {
   const router = useRouter();
   const { type = 'lost' } = useLocalSearchParams<{ type: ReportType }>();
   const [reportType, setReportType] = useState<ReportType>(type as ReportType);
@@ -24,7 +22,6 @@ export default function ReportScreen() {
   const [location, setLocation] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUrgent, setIsUrgent] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
   const { addReport } = usePets();
   const { user } = useAuth();
@@ -118,19 +115,8 @@ export default function ReportScreen() {
     }
   };
 
-  const handleCameraCapture = (uri: string) => {
-    setPhotos([...photos, uri]);
-    setShowCamera(false);
-  };
-
   const handleRemovePhoto = (index: number) => {
-    const newPhotos = [...photos];
-    newPhotos.splice(index, 1);
-    setPhotos(newPhotos);
-  };
-
-  const handleUrgentToggle = () => {
-    setIsUrgent(!isUrgent);
+    setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -139,9 +125,9 @@ export default function ReportScreen() {
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
+    try {
       const newReport = {
         id: Date.now().toString(),
         userId: user?.id || 'anonymous',
@@ -196,10 +182,6 @@ export default function ReportScreen() {
     }
   };
 
-  if (showCamera) {
-    return <CameraComponent onCapture={handleCameraCapture} onCancel={() => setShowCamera(false)} />;
-  }
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -237,6 +219,18 @@ export default function ReportScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {reportType === 'lost' && (
+          <TouchableOpacity
+            style={[styles.urgentToggle, isUrgent && styles.urgentToggleActive]}
+            onPress={() => setIsUrgent(!isUrgent)}
+          >
+            <AlertTriangle size={20} color={isUrgent ? colors.white : colors.urgent} />
+            <Text style={[styles.urgentText, isUrgent && styles.urgentTextActive]}>
+              Mark as Urgent
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.sectionTitle}>Pet Type</Text>
         <View style={styles.petTypeContainer}>
@@ -366,16 +360,13 @@ export default function ReportScreen() {
           <Text style={styles.label}>
             {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
           </Text>
-          <View style={styles.locationInputContainer}>
-            <MapPin size={20} color={colors.textSecondary} style={styles.locationIcon} />
-            <TextInput
-              style={styles.locationInput}
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Enter location"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </View>
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Enter location"
+            placeholderTextColor={colors.textTertiary}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>Photos</Text>
@@ -456,6 +447,30 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   typeButtonTextActive: {
+    color: colors.white,
+  },
+  urgentToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gray[100],
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.urgent,
+  },
+  urgentToggleActive: {
+    backgroundColor: colors.urgent,
+  },
+  urgentText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.urgent,
+  },
+  urgentTextActive: {
     color: colors.white,
   },
   sectionTitle: {
@@ -560,40 +575,16 @@ const styles = StyleSheet.create({
   genderButtonTextActive: {
     color: colors.white,
   },
-  locationInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  locationIcon: {
-    marginRight: 8,
-  },
-  locationInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.text,
-  },
-  photoHelper: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 12,
-  },
   photosContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 20,
   },
   photoItem: {
     width: 100,
     height: 100,
     borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 8,
     position: 'relative',
   },
   photoThumbnail: {
@@ -627,7 +618,11 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 12,
     marginTop: 4,
-    fontWeight: '500',
+  },
+  photoHelper: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 12,
   },
   submitButton: {
     backgroundColor: colors.primary,
