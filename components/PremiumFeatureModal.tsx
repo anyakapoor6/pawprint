@@ -24,11 +24,9 @@ export default function PremiumFeatureModal({
   const handlePurchase = async () => {
     try {
       setPurchaseError(null);
-
-      const productId = feature.type === 'mapUnlock' ? 'MAP_UNLOCK' : 'URGENCY_TAG';
       
       const result = await createCheckoutSession({
-        productId,
+        productId: feature.id,
         successUrl: `${window.location.origin}/payment-success`,
         cancelUrl: `${window.location.origin}/payment-cancelled`,
       });
