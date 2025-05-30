@@ -4,7 +4,7 @@ import { X, TriangleAlert as AlertTriangle, MapPin } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { PremiumFeature } from '@/types/pet';
 import { useStripe } from '@/hooks/useStripe';
-import { STRIPE_PRODUCTS } from '@/stripe-config';
+import { STRIPE_PRODUCTS } from '@/src/stripe-config';
 
 interface PremiumFeatureModalProps {
   visible: boolean;

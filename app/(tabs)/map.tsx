@@ -10,7 +10,7 @@ import { mockReports } from '@/data/mockData';
 import PetMarker from '@/components/PetMarker';
 import PetCard from '@/components/PetCard';
 import PremiumFeatureModal from '@/components/PremiumFeatureModal';
-import { STRIPE_PRODUCTS } from '@/stripe-config';
+import { STRIPE_PRODUCTS } from '@/src/stripe-config';
 
 const DEFAULT_ZOOM = 13;
 const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // New York City
