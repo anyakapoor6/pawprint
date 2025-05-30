@@ -351,6 +351,14 @@ export default function StoryDetailScreen() {
   );
 }
 
+export default function StoryDetailsScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>StoryDetailsScreen Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
