@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
 import { mockReports } from '@/data/mockData';
@@ -28,6 +29,7 @@ type FilterState = {
 };
 
 export default function SearchScreen({ onClose }: SearchScreenProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<PetReport[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -175,6 +177,10 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  };
+
+  const handlePetPress = (id: string) => {
+    router.push(`/pet/${id}`);
   };
 
   return (
@@ -412,7 +418,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
                   <View key={report.id} style={styles.resultItem}>
                     <PetCard 
                       report={report}
-                      onPress={() => {}}
+                      onPress={() => handlePetPress(report.id)}
                     />
                   </View>
                 ))}
@@ -599,9 +605,9 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 2,
+    backgroundColor: colors.primary,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: colors.primary,
     alignItems: 'center',
   },
   applyButtonText: {
