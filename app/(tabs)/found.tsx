@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
@@ -31,12 +31,16 @@ export default function FoundPetsScreen() {
         {foundPets.length > 0 ? (
           <View style={styles.grid}>
             {foundPets.map(report => (
-              <View key={report.id} style={styles.gridItem}>
+              <TouchableOpacity
+                key={report.id}
+                style={styles.gridItem}
+                onPress={() => handlePetPress(report.id)}
+              >
                 <PetCard 
                   report={report}
                   onPress={() => handlePetPress(report.id)}
                 />
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
