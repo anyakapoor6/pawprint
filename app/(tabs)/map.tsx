@@ -11,6 +11,15 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.0421,
 };
 
+let MapView, Marker, PROVIDER_GOOGLE;
+
+if (Platform.OS !== 'web') {
+  const mapModule = require('react-native-maps');
+  MapView = mapModule.default;
+  Marker = mapModule.Marker;
+  PROVIDER_GOOGLE = mapModule.PROVIDER_GOOGLE;
+}
+
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -35,10 +44,6 @@ export default function MapScreen() {
       </View>
     );
   }
-
-  // ⬇️ Import native-only modules after web check
-  const MapView = require('react-native-maps').default;
-  const { Marker, PROVIDER_GOOGLE } = require('react-native-maps');
 
   if (errorMsg) {
     return (
@@ -90,10 +95,4 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  text: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 40,
-    color: colors.textSecondary,
-  },
-});
+  tex
