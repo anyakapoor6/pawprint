@@ -65,14 +65,6 @@ export default function ScanScreen() {
   );
 }
 
-export default function ScanScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>ScanScreen Screen</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
