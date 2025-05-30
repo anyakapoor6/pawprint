@@ -95,4 +95,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  tex
+  text: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 40,
+    color: colors.textSecondary,
+  },
+});
