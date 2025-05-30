@@ -38,8 +38,8 @@
     "google-map-react": "^2.2.2",
     "lodash.debounce": "^4.0.8",
     "lucide-react-native": "^0.475.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-native": "0.79.1",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "~3.17.4",
@@ -55,7 +55,7 @@
     "@babel/core": "^7.25.2",
     "@types/google-map-react": "^2.1.10",
     "@types/lodash.debounce": "^4.0.9",
-    "@types/react": "~19.0.10",
-    "typescript": "~5.8.3"
+    "@types/react": "~18.2.45",
+    "typescript": "~5.1.3"
   }
 }
