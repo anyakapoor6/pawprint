@@ -219,6 +219,14 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
   );
 }
 
+export default function ProfileSearchScreen() {
+  return (
+    <View style={styles.container}>
+      <Text>ProfileSearchScreen Screen</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
