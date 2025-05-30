@@ -20,6 +20,7 @@ export default function ReportScreen() {
   const [petColor, setPetColor] = useState('');
   const [petSize, setPetSize] = useState<'small' | 'medium' | 'large' | null>(null);
   const [petGender, setPetGender] = useState<'male' | 'female' | 'unknown' | null>(null);
+  const [petAge, setPetAge] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -158,6 +159,7 @@ export default function ReportScreen() {
         color: petColor,
         size: petSize,
         gender: petGender || 'unknown',
+        age: petAge,
         description,
         photos,
         reportType,
@@ -166,7 +168,7 @@ export default function ReportScreen() {
         dateReported: new Date().toISOString(),
         lastSeenDate: new Date().toISOString(),
         lastSeenLocation: {
-          latitude: 0, // You would get this from a location picker
+          latitude: 0,
           longitude: 0,
           address: location,
         },
@@ -301,6 +303,18 @@ export default function ReportScreen() {
             onChangeText={setPetColor}
             placeholder="Primary color(s)"
             placeholderTextColor={colors.textTertiary}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Age (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={petAge}
+            onChangeText={setPetAge}
+            placeholder="Age in years (approximate)"
+            placeholderTextColor={colors.textTertiary}
+            keyboardType="numeric"
           />
         </View>
 
