@@ -6,7 +6,18 @@ import { useNotifications } from '@/store/notifications';
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { notifications, markAllAsRead, markAsRead } = useNotifications();
+  const notificationsStore = useNotifications();
+
+  // Fix: ensure notificationsStore is defined
+  if (!notificationsStore) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ padding: 20 }}>Loading notifications...</Text>
+      </View>
+    );
+  }
+
+  const { notifications, markAllAsRead, markAsRead } = notificationsStore;
   const hasUnreadNotifications = notifications.some(n => !n.read);
 
   const handleBack = () => {
@@ -17,11 +28,11 @@ export default function NotificationsScreen() {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor(diff / (1000 * 60));
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return `${minutes}m ago`;
@@ -43,56 +54,54 @@ export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={handleBack}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        {hasUnreadNotifications && (
+        {hasUnreadNotifications ? (
           <TouchableOpacity onPress={markAllAsRead}>
             <Text style={styles.markAllRead}>Mark all read</Text>
           </TouchableOpacity>
+        ) : (
+          <View style={{ width: 80 }} />
         )}
-        {!hasUnreadNotifications && <View style={{ width: 80 }} />}
       </View>
 
       <ScrollView style={styles.content}>
         {notifications.map((notification) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={notification.id}
             style={[
               styles.notificationCard,
-              !notification.read && styles.unreadCard
+              !notification.read && styles.unreadCard,
             ]}
             onPress={() => markAsRead(notification.id)}
           >
             <View style={styles.notificationIcon}>
               {getNotificationIcon(notification.type)}
             </View>
-            
+
             <View style={styles.notificationContent}>
               <View style={styles.notificationHeader}>
-                <Text style={styles.notificationTitle}>{notification.title}</Text>
+                <Text style={styles.notificationTitle}>
+                  {notification.title}
+                </Text>
                 <Text style={styles.timestamp}>
                   {formatTimestamp(notification.timestamp)}
                 </Text>
               </View>
-              
+
               <Text style={styles.message}>{notification.message}</Text>
-              
+
               {notification.image && (
-                <Image 
+                <Image
                   source={{ uri: notification.image }}
                   style={styles.notificationImage}
                 />
               )}
             </View>
-            
-            {!notification.read && (
-              <View style={styles.unreadDot} />
-            )}
+
+            {!notification.read && <View style={styles.unreadDot} />}
           </TouchableOpacity>
         ))}
 
@@ -100,7 +109,8 @@ export default function NotificationsScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No notifications</Text>
             <Text style={styles.emptyStateMessage}>
-              You'll receive notifications about matches, updates, and important alerts here
+              You'll receive notifications about matches, updates, and important
+              alerts here
             </Text>
           </View>
         )}
@@ -109,6 +119,7 @@ export default function NotificationsScreen() {
   );
 }
 
+// Your styles (unchanged)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
