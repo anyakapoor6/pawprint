@@ -4,10 +4,12 @@ import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useNotifications } from '../../../store/notifications';
 
+
 export default function NotificationsScreen() {
   const router = useRouter();
   const notificationsStore = useNotifications();
 
+  console.log('notificationsStore:', notificationsStore);
   // Fix: ensure notificationsStore is defined
   if (!notificationsStore) {
     return (
