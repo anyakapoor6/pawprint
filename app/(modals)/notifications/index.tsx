@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
-import { colors } from '@/constants/colors';
+
+import { colors } from '../../../constants/colors';
 import { useNotifications } from '../../../store/notifications';
 
 export default function NotificationsScreen() {
@@ -117,10 +118,7 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -132,9 +130,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  backButton: {
-    padding: 8,
-  },
+  backButton: { padding: 8 },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -145,9 +141,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '500',
   },
-  content: {
-    flex: 1,
-  },
+  content: { flex: 1 },
   notificationCard: {
     flexDirection: 'row',
     backgroundColor: colors.white,
@@ -155,9 +149,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  unreadCard: {
-    backgroundColor: colors.gray[50],
-  },
+  unreadCard: { backgroundColor: colors.gray[50] },
   notificationIcon: {
     width: 40,
     height: 40,
@@ -167,9 +159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  notificationContent: {
-    flex: 1,
-  },
+  notificationContent: { flex: 1 },
   notificationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -183,10 +173,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  timestamp: {
-    fontSize: 12,
-    color: colors.textTertiary,
-  },
+  timestamp: { fontSize: 12, color: colors.textTertiary },
   message: {
     fontSize: 14,
     color: colors.textSecondary,
