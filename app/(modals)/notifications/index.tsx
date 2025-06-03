@@ -13,11 +13,12 @@ export default function NotificationsScreen() {
   if (!notificationsStore) {
     console.warn('❌ useNotifications is undefined or not returning correctly');
     return (
-      <View style={styles.container}>
-        <Text style={{ padding: 20 }}>Notifications store failed to load.</Text>
-      </View>
-    );
-  }
+  <View style={styles.container}>
+    <Text style={{ padding: 20 }}>✅ Notifications screen loaded</Text>
+    <Text>Total notifications: {notifications.length}</Text>
+  </View>
+);
+
 
   const { notifications, markAllAsRead, markAsRead } = notificationsStore;
   const hasUnreadNotifications = notifications.some(n => !n.read);
