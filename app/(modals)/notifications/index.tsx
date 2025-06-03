@@ -109,14 +109,6 @@ export default function NotificationsScreen() {
   );
 }
 
-export default function NotificationsModal() {
-  return (
-    <View style={styles.container}>
-      <Text>NotificationsModal Screen</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
