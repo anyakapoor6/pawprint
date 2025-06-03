@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { useNotifications } from '@/store/notifications';
+import { useNotifications } from '../../../store/notifications';
 
 export default function NotificationsScreen() {
   const router = useRouter();
