@@ -408,13 +408,6 @@ export default function CreateReportScreen() {
   );
 }
 
-export default function ReportScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>ReportScreen Screen</Text>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
