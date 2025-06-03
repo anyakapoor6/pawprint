@@ -22,7 +22,6 @@ export default function NotificationsScreen() {
 
   const { notifications, markAllAsRead, markAsRead } = notificationsStore;
   const hasUnreadNotifications = notifications.some(n => !n.read);
-
   const handleBack = () => {
     router.back();
   };
