@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
@@ -6,19 +14,9 @@ import { useNotifications } from '../../../store/notifications';
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const notificationsStore = typeof useNotifications === 'function' ? useNotifications() : null;
+  const { notifications, markAllAsRead, markAsRead } = useNotifications();
 
-  if (!notificationsStore) {
-    console.warn('❌ useNotifications is undefined or not returning correctly');
-    return (
-      <View style={styles.container}>
-        <Text style={{ padding: 20 }}>Notifications store failed to load.</Text>
-      </View>
-    );
-  }
-
-  const { notifications, markAllAsRead, markAsRead } = notificationsStore;
-  const hasUnreadNotifications = notifications.some(n => !n.read);
+  const hasUnreadNotifications = notifications.some((n) => !n.read);
 
   const handleBack = () => {
     router.back();
@@ -109,7 +107,7 @@ export default function NotificationsScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No notifications</Text>
             <Text style={styles.emptyStateMessage}>
-              You'll receive notifications about matches, updates, and important alerts here
+              You’ll receive notifications about matches, updates, and important alerts here.
             </Text>
           </View>
         )}
