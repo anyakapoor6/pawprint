@@ -11,7 +11,7 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.0421,
 };
 
-// ✅ Only import react-native-maps if NOT web
+// Only import react-native-maps if NOT running on web
 let MapView: any, Marker: any, PROVIDER_GOOGLE: any;
 if (Platform.OS !== 'web') {
   const Maps = require('react-native-maps');
