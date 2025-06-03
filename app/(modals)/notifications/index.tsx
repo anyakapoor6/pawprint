@@ -4,17 +4,17 @@ import { ChevronLeft, MapPin, Bell, Heart } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useNotifications } from '../../../store/notifications';
 
-
 export default function NotificationsScreen() {
   const router = useRouter();
-  const notificationsStore = useNotifications();
 
-  console.log('notificationsStore:', notificationsStore);
-  // Fix: ensure notificationsStore is defined
+  // Safely call the hook
+  const notificationsStore = typeof useNotifications === 'function' ? useNotifications() : null;
+
   if (!notificationsStore) {
+    console.warn('❌ useNotifications is undefined or not returning correctly');
     return (
       <View style={styles.container}>
-        <Text style={{ padding: 20 }}>Loading notifications...</Text>
+        <Text style={{ padding: 20 }}>Notifications store failed to load.</Text>
       </View>
     );
   }
@@ -40,7 +40,7 @@ export default function NotificationsScreen() {
     return `${minutes}m ago`;
   };
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'match':
         return <Heart size={24} color={colors.accent} />;
@@ -120,114 +120,3 @@ export default function NotificationsScreen() {
     </View>
   );
 }
-
-// Your styles (unchanged)
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  markAllRead: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-  },
-  notificationCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  unreadCard: {
-    backgroundColor: colors.gray[50],
-  },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.gray[100],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  notificationContent: {
-    flex: 1,
-  },
-  notificationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  notificationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: colors.textTertiary,
-  },
-  message: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  notificationImage: {
-    width: '100%',
-    height: 160,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    position: 'absolute',
-    top: 16,
-    right: 16,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptyStateMessage: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-});
