@@ -441,14 +441,6 @@ export default function SearchScreen() {
   );
 }
 
-export default function SearchModal() {
-  return (
-    <View style={styles.container}>
-      <Text>SearchModal Screen</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
