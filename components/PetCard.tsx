@@ -114,6 +114,16 @@ export default function PetCard({
           </Text>
         </View>
 
+        {report.tags?.length > 0 && (
+          <View style={styles.tagRow}>
+            {report.tags.map((tag) => (
+              <View key={tag} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         <View style={styles.infoRow}>
           <Calendar size={14} color={colors.textSecondary} />
           <Text style={styles.infoText}>{formattedDate}</Text>
@@ -179,6 +189,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     overflow: 'hidden',
   },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  tag: {
+    backgroundColor: colors.gray[100],
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  tagText: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+
   imageContainer: {
     position: 'relative',
     height: 140,

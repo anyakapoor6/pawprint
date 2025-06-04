@@ -21,6 +21,8 @@ export default function CreateReportScreen() {
   const [petSize, setPetSize] = useState<'small' | 'medium' | 'large' | null>(null);
   const [petGender, setPetGender] = useState<'male' | 'female' | 'unknown' | null>(null);
   const [petAge, setPetAge] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const tagOptions = ['Microchipped', 'Friendly', 'Shy', 'Collar'];
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -29,6 +31,7 @@ export default function CreateReportScreen() {
   const { addReport } = usePets();
   const { user } = useAuth();
   const [showCamera, setShowCamera] = useState(false);
+
 
 
   const handleTypeSelection = (type: ReportType) => {
@@ -160,7 +163,7 @@ export default function CreateReportScreen() {
           email: user?.email || 'anonymous@example.com',
           phone: user?.phone,
         },
-        tags: [],
+        tags: selectedTags,
       };
 
       await addReport(newReport);
@@ -358,6 +361,36 @@ export default function CreateReportScreen() {
           ))}
         </View>
 
+        <Text style={styles.sectionTitle}>Tags (Optional)</Text>
+        <View style={styles.tagContainer}>
+          {tagOptions.map((tag) => {
+            const isSelected = selectedTags.includes(tag);
+            return (
+              <TouchableOpacity
+                key={tag}
+                style={[styles.tagButton, isSelected && styles.tagButtonSelected]}
+                onPress={() =>
+                  setSelectedTags((prev) =>
+                    isSelected
+                      ? prev.filter((t) => t !== tag)
+                      : [...prev, tag]
+                  )
+                }
+              >
+                <Text
+                  style={[
+                    styles.tagButtonText,
+                    isSelected && styles.tagButtonTextSelected,
+                  ]}
+                >
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Description</Text>
           <TextInput
@@ -428,6 +461,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 24,
+  },
+  tagButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  tagButtonSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tagButtonText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+  tagButtonTextSelected: {
+    color: colors.white,
+    fontWeight: '600',
   },
   scrollContent: {
     padding: 16,
