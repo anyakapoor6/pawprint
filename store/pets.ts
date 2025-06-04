@@ -72,7 +72,7 @@ export const usePets = create<PetsState>((set, get) => ({
   },
 
   getReportsByStatus: (status: ReportStatus) => {
-    const reports = get().reports;
+    const reports = get().reports ?? [];
     if (status === 'resolved') {
       return reports.filter(report =>
         report.status === 'resolved' || report.reportType === 'found'
@@ -94,62 +94,73 @@ export const usePets = create<PetsState>((set, get) => ({
 
   getNearbyPets: (radius = 10) => {
     const { reports, userLocation } = get();
-    if (!userLocation) return [];
+    if (!userLocation || !Array.isArray(reports)) return [];
 
-    return reports.filter(report => {
-      if (!report.lastSeenLocation) return false;
+    return reports
+      .filter((report) => {
+        if (!report.lastSeenLocation) return false;
 
-      const distance = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        report.lastSeenLocation.latitude,
-        report.lastSeenLocation.longitude
-      );
+        const distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          report.lastSeenLocation.latitude,
+          report.lastSeenLocation.longitude
+        );
 
-      return distance <= radius;
-    }).sort((a, b) => {
-      // Sort by distance
-      const distanceA = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        a.lastSeenLocation!.latitude,
-        a.lastSeenLocation!.longitude
-      );
-      const distanceB = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        b.lastSeenLocation!.latitude,
-        b.lastSeenLocation!.longitude
-      );
-      return distanceA - distanceB;
-    });
+        return distance <= radius;
+      })
+      .sort((a, b) => {
+        const aLoc = a.lastSeenLocation;
+        const bLoc = b.lastSeenLocation;
+        if (!aLoc || !bLoc) return 0;
+
+        const distA = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          aLoc.latitude,
+          aLoc.longitude
+        );
+        const distB = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          bLoc.latitude,
+          bLoc.longitude
+        );
+        return distA - distB;
+      });
   },
+
 
   getUrgentPets: () => {
     const { reports, userLocation } = get();
-    let urgentPets = reports.filter(report => report.isUrgent);
 
+    // Filter urgent reports
+    let urgentPets = reports.filter((report) => report.isUrgent);
+
+    // If userLocation is available, sort by distance
     if (userLocation) {
-      // Sort urgent pets by distance if user location is available
       urgentPets = urgentPets.sort((a, b) => {
-        if (!a.lastSeenLocation || !b.lastSeenLocation) return 0;
+        const aLoc = a.lastSeenLocation;
+        const bLoc = b.lastSeenLocation;
+        if (!aLoc || !bLoc) return 0;
 
-        const distanceA = calculateDistance(
+        const distA = calculateDistance(
           userLocation.latitude,
           userLocation.longitude,
-          a.lastSeenLocation.latitude,
-          a.lastSeenLocation.longitude
+          aLoc.latitude,
+          aLoc.longitude
         );
-        const distanceB = calculateDistance(
+        const distB = calculateDistance(
           userLocation.latitude,
           userLocation.longitude,
-          b.lastSeenLocation.latitude,
-          b.lastSeenLocation.longitude
+          bLoc.latitude,
+          bLoc.longitude
         );
-        return distanceA - distanceB;
+        return distA - distB;
       });
     }
 
     return urgentPets;
   },
+
 }));

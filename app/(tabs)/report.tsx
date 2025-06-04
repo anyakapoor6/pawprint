@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -415,15 +414,16 @@ export default function CreateReportScreen() {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
-          </Text>
+        <Text style={styles.label}>
+          {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
+        </Text>
+
+        {/* Render outside of ScrollView */}
+        <View style={{ zIndex: 100 }}>
           <GooglePlacesAutocomplete
             placeholder="Search for a location"
-            predefinedPlaces={[]}
             textInputProps={{
-              onFocus: () => { },
+              onFocus: () => { }, // Prevent undefined onFocus crash
             }}
             onPress={(data, details = null) => {
               setLocation(data.description);
@@ -432,21 +432,43 @@ export default function CreateReportScreen() {
                   latitude: details.geometry.location.lat,
                   longitude: details.geometry.location.lng,
                 });
+                Alert.alert("Location Error", "Could not retrieve coordinates for this location.");
+                return;
               }
             }}
             fetchDetails={true}
             styles={{
-              textInput: styles.input,
-              listView: { backgroundColor: 'white' },
+              textInput: {
+                ...styles.input,
+                marginBottom: 16,
+                zIndex: 100,
+              },
+              listView: {
+                zIndex: 200,
+                backgroundColor: 'white',
+                elevation: 5,
+              },
+              row: {
+                padding: 13,
+                height: 44,
+                flexDirection: 'row',
+              },
+              separator: {
+                height: 0.5,
+                backgroundColor: '#c8c7cc',
+              },
+              description: {
+                color: '#000',
+              },
             }}
             query={{
               key: 'AIzaSyB7axeVt4Ofja7fIHawyDXHKQ1M4GocEC4',
               language: 'en',
             }}
           />
-
-
         </View>
+
+
 
 
         <Text style={styles.sectionTitle}>Photos</Text>
