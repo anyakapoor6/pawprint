@@ -15,11 +15,11 @@ export default function PetDetailScreen() {
   const { getReportById } = usePets();
   const { toggleLike, isLiked, getLikeCount, getComments, addComment } = usePetInteractions();
   const [comment, setComment] = useState('');
-  
+
   const pet = getReportById(id);
   const likeCount = getLikeCount(id);
   const comments = getComments(id);
-  
+
   if (!pet) {
     return (
       <View style={styles.notFoundContainer}>
@@ -30,7 +30,7 @@ export default function PetDetailScreen() {
       </View>
     );
   }
-  
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -40,12 +40,12 @@ export default function PetDetailScreen() {
       Alert.alert('Error sharing');
     }
   };
-  
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -53,11 +53,11 @@ export default function PetDetailScreen() {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
@@ -86,32 +86,32 @@ export default function PetDetailScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageContainer}>
           <Image source={{ uri: pet.photos[0] }} style={styles.image} />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButtonCircle}
             onPress={() => router.back()}
           >
             <ChevronLeft size={24} color={colors.white} />
           </TouchableOpacity>
-          
+
           <View style={styles.imageActions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => toggleLike(id)}
             >
-              <Heart 
-                size={20} 
+              <Heart
+                size={20}
                 color={isLiked(id) ? colors.error : colors.white}
                 fill={isLiked(id) ? colors.error : 'transparent'}
               />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={handleShare}
             >
               <ShareIcon size={20} color={colors.white} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={[
             styles.statusBadge,
             pet.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
@@ -120,19 +120,19 @@ export default function PetDetailScreen() {
               {pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
             </Text>
           </View>
-          
+
           {pet.isUrgent && (
             <View style={styles.urgentBadge}>
               <Text style={styles.urgentText}>URGENT</Text>
             </View>
           )}
         </View>
-        
+
         <View style={styles.content}>
           <Text style={styles.title}>
             {pet.name || `${pet.type.charAt(0).toUpperCase() + pet.type.slice(1)} (${pet.color})`}
           </Text>
-          
+
           {pet.reward && (
             <View style={styles.rewardBanner}>
               <Award size={16} color={colors.white} />
@@ -141,7 +141,7 @@ export default function PetDetailScreen() {
               </Text>
             </View>
           )}
-          
+
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
@@ -153,7 +153,7 @@ export default function PetDetailScreen() {
                 <Text style={styles.infoValue}>{pet.breed || 'Unknown'}</Text>
               </View>
             </View>
-            
+
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Color</Text>
@@ -164,7 +164,7 @@ export default function PetDetailScreen() {
                 <Text style={styles.infoValue}>{pet.size.charAt(0).toUpperCase() + pet.size.slice(1)}</Text>
               </View>
             </View>
-            
+
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Gender</Text>
@@ -178,12 +178,12 @@ export default function PetDetailScreen() {
               </View>
             </View>
           </View>
-          
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
             <Text style={styles.description}>{pet.description}</Text>
           </View>
-          
+
           <View style={styles.section}>
             <View style={styles.locationHeader}>
               <MapPin size={20} color={colors.primary} />
@@ -199,9 +199,9 @@ export default function PetDetailScreen() {
               </Text>
             </View>
             <View style={styles.mapPreview}>
-              <Image 
-                source={{ uri: 'https://images.pexels.com/photos/6195286/pexels-photo-6195286.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-                style={styles.mapImage} 
+              <Image
+                source={{ uri: 'https://images.pexels.com/photos/6195286/pexels-photo-6195286.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+                style={styles.mapImage}
               />
               <Link href={`/map?pet=${pet.id}`} asChild>
                 <TouchableOpacity style={styles.viewMapButton}>
@@ -210,7 +210,7 @@ export default function PetDetailScreen() {
               </Link>
             </View>
           </View>
-          
+
           {pet.tags.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Tags</Text>
@@ -223,7 +223,7 @@ export default function PetDetailScreen() {
               </View>
             </View>
           )}
-          
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Contact Information</Text>
             <Text style={styles.contactName}>{pet.contactInfo.name}</Text>
@@ -235,8 +235,8 @@ export default function PetDetailScreen() {
 
           <View style={styles.interactionStats}>
             <View style={styles.statItem}>
-              <Heart 
-                size={16} 
+              <Heart
+                size={16}
                 color={isLiked(id) ? colors.error : colors.textSecondary}
                 fill={isLiked(id) ? colors.error : 'transparent'}
               />
@@ -250,9 +250,9 @@ export default function PetDetailScreen() {
 
           <View style={styles.commentsSection}>
             <Text style={styles.sectionTitle}>Comments</Text>
-            
+
             <View style={styles.commentInput}>
-              <Image 
+              <Image
                 source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
                 style={styles.commentUserPhoto}
               />
@@ -265,7 +265,7 @@ export default function PetDetailScreen() {
                   placeholderTextColor={colors.textTertiary}
                   multiline
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.sendButton, !comment.trim() && styles.sendButtonDisabled]}
                   onPress={handleComment}
                   disabled={!comment.trim()}
@@ -277,7 +277,7 @@ export default function PetDetailScreen() {
 
             {comments.map((comment) => (
               <View key={comment.id} style={styles.commentItem}>
-                <Image 
+                <Image
                   source={{ uri: comment.userPhoto }}
                   style={styles.commentUserPhoto}
                 />
@@ -289,12 +289,12 @@ export default function PetDetailScreen() {
                     </Text>
                   </View>
                   <Text style={styles.commentText}>{comment.content}</Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.commentLikeButton}
                     onPress={() => toggleLike(comment.id)}
                   >
-                    <Heart 
-                      size={14} 
+                    <Heart
+                      size={14}
                       color={isLiked(comment.id) ? colors.error : colors.textSecondary}
                       fill={isLiked(comment.id) ? colors.error : 'transparent'}
                     />
@@ -311,14 +311,6 @@ export default function PetDetailScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
-  );
-}
-
-export default function PetDetailsScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>PetDetailsScree Screen</Text>
     </View>
   );
 }
