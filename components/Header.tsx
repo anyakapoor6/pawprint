@@ -23,15 +23,18 @@ export default function Header() {
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <Image
-            source={{ uri: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+            source={require('../assets/images/pawprintlogo.png')}
             style={styles.logoImage}
+            resizeMode="contain"
           />
+
+
           <Text style={styles.logoText}>PawPrint</Text>
         </View>
         <View style={styles.actions}>
           {/* Create Story Button (plus icon) */}
           <TouchableOpacity style={styles.iconButton} onPress={handleCreatePress}>
-            <Plus size={24} color={colors.text} />
+            <Plus size={24} color={colors.black} />
           </TouchableOpacity>
           {/* Search Button */}
           <TouchableOpacity style={styles.iconButton} onPress={handleSearchPress}>

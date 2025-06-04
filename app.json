@@ -20,6 +20,11 @@
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "splash": {
+      "image": "./assets/images/pawprintlogo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
     }
   }
 }
