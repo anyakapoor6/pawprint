@@ -8,6 +8,8 @@ import { colors } from '../../constants/colors';
 import { usePets } from '../../store/pets';
 import { useAuth } from '../../store/auth';
 import { PetType, ReportType, PetReport, ReportStatus } from '@/types/pet';
+import * as Location from 'expo-location';
+
 
 
 export default function CreateReportScreen() {
@@ -135,6 +137,10 @@ export default function CreateReportScreen() {
 
     setLoading(true);
 
+    const geocodedLocation = await Location.geocodeAsync(location);
+    const coords = geocodedLocation[0] || { latitude: 0, longitude: 0 };
+
+
     try {
       const newReport = {
         id: Date.now().toString(),
@@ -154,10 +160,11 @@ export default function CreateReportScreen() {
         dateReported: new Date().toISOString(),
         lastSeenDate: new Date().toISOString(),
         lastSeenLocation: {
-          latitude: 0,
-          longitude: 0,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
           address: location,
         },
+
         contactInfo: {
           name: user?.name || 'Anonymous',
           email: user?.email || 'anonymous@example.com',

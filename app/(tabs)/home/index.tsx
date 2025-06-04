@@ -8,6 +8,10 @@ import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
 import Header from '@/components/Header';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePets } from '@/store/pets';
+import { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
+
 
 type SectionProps = {
 	title: string;
@@ -78,12 +82,35 @@ const styles = StyleSheet.create({
 
 export default function HomeScreen() {
 	const { stories } = useStories();
+	const { reports } = usePets();
+	const [userLocation, setUserLocation] = useState<Location.LocationObjectCoords | null>(null);
 
-	const urgentReports = mockReports.filter(r => r.isUrgent);
-	const recentReports = [...mockReports].sort((a, b) =>
+	useEffect(() => {
+		(async () => {
+			const { status } = await Location.requestForegroundPermissionsAsync();
+			if (status !== 'granted') return;
+
+			const location = await Location.getCurrentPositionAsync({});
+			setUserLocation(location.coords);
+		})();
+	}, []);
+
+
+	const urgentReports = reports.filter(r => r.isUrgent);
+	const recentReports = [...reports].sort((a, b) =>
 		new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
 	);
-	const foundReports = mockReports.filter(r => r.reportType === 'found' && r.status === 'active');
+	const foundReports = reports.filter((r) => {
+		if (r.reportType !== 'found' || r.status !== 'active') return false;
+		if (!userLocation || !r.lastSeenLocation) return true;
+
+		const dist = Math.sqrt(
+			Math.pow(userLocation.latitude - r.lastSeenLocation.latitude, 2) +
+			Math.pow(userLocation.longitude - r.lastSeenLocation.longitude, 2)
+		);
+		return dist < 0.1; // ~10km radius
+	});
+
 
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
