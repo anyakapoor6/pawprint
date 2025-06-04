@@ -12,7 +12,7 @@ interface LikesState {
 export const useLikes = create<LikesState>((set, get) => ({
   storyLikes: new Set(),
   commentLikes: new Set(),
-  
+
   toggleStoryLike: (storyId: string) => {
     set(state => {
       const newLikes = new Set(state.storyLikes);
@@ -24,7 +24,7 @@ export const useLikes = create<LikesState>((set, get) => ({
       return { storyLikes: newLikes };
     });
   },
-  
+
   toggleCommentLike: (commentId: string) => {
     set(state => {
       const newLikes = new Set(state.commentLikes);
@@ -36,11 +36,11 @@ export const useLikes = create<LikesState>((set, get) => ({
       return { commentLikes: newLikes };
     });
   },
-  
+
   isStoryLiked: (storyId: string) => {
     return get().storyLikes.has(storyId);
   },
-  
+
   isCommentLiked: (commentId: string) => {
     return get().commentLikes.has(commentId);
   },

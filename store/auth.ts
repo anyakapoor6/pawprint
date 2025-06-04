@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
-import { Session } from '@supabase/supabase-js';
+import * as SecureStore from 'expo-secure-store';
 
 interface User {
   id: string;
@@ -12,7 +11,6 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -21,129 +19,87 @@ interface AuthState {
   updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
-export const useAuth = create<AuthState>((set, get) => ({
+// Mock user data - used only for demo purposes
+const MOCK_USERS = [
+  {
+    id: '1',
+    email: 'john@example.com',
+    password: 'password123',
+    name: 'John Doe',
+    phone: '555-0123',
+    photo: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg',
+  },
+  {
+    id: '2',
+    email: 'sarah@example.com',
+    password: 'password123',
+    name: 'Sarah Johnson',
+    phone: '555-0124',
+    photo: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+  },
+];
+
+export const useAuth = create<AuthState>((set) => ({
   user: null,
-  session: null,
   isLoading: true,
 
-  signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  signIn: async (email, password) => {
+    const user = MOCK_USERS.find(u => u.email === email && u.password === password);
+    if (!user) throw new Error('Invalid credentials');
 
-    if (error) throw error;
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
-
-    set({
-      session: data.session,
-      user: {
-        id: data.user.id,
-        email: data.user.email!,
-        name: profile.name,
-        phone: profile.phone,
-        photo: profile.photo_url,
-      }
-    });
+    const { password: _, ...userWithoutPassword } = user;
+    await SecureStore.setItemAsync('user', JSON.stringify(userWithoutPassword));
+    set({ user: userWithoutPassword });
   },
 
-  signUp: async (email: string, password: string, name: string) => {
-    const { data: { user }, error } = await supabase.auth.signUp({
+  signUp: async (email, password, name) => {
+    if (MOCK_USERS.some(u => u.email === email)) {
+      throw new Error('User already exists');
+    }
+
+    const newUser = {
+      id: String(MOCK_USERS.length + 1),
       email,
-      password,
-    });
+      name,
+      photo: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
+    };
 
-    if (error) throw error;
-    if (!user) throw new Error('No user returned after signup');
-
-    // Create profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([
-        {
-          id: user.id,
-          name,
-          email,
-          photo_url: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        }
-      ]);
-
-    if (profileError) throw profileError;
-
-    // Get session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
-
-    set({
-      session,
-      user: {
-        id: user.id,
-        email,
-        name,
-        photo: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      }
-    });
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+    set({ user: newUser });
   },
 
   signOut: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    set({ user: null, session: null });
+    await SecureStore.deleteItemAsync('user');
+    set({ user: null });
   },
 
   restoreSession: async () => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
-
-      if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        set({
-          session,
-          user: {
-            id: session.user.id,
-            email: session.user.email!,
-            name: profile.name,
-            phone: profile.phone,
-            photo: profile.photo_url,
-          }
-        });
+      const userString = await SecureStore.getItemAsync('user');
+      if (userString) {
+        const user = JSON.parse(userString);
+        set({ user });
       }
     } catch (error) {
-      console.error('Error restoring session:', error);
+      console.error('Failed to restore session:', error);
     } finally {
       set({ isLoading: false });
     }
   },
 
   updateProfile: async (updates: Partial<User>) => {
-    const { session } = get();
-    if (!session?.user) throw new Error('No user logged in');
+    try {
+      const currentUser = await SecureStore.getItemAsync('user');
+      if (!currentUser) throw new Error('No user found');
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        name: updates.name,
-        phone: updates.phone,
-        photo_url: updates.photo,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', session.user.id);
+      const user = JSON.parse(currentUser);
+      const updatedUser = { ...user, ...updates };
 
-    if (error) throw error;
-
-    set(state => ({
-      user: state.user ? { ...state.user, ...updates } : null
-    }));
+      await SecureStore.setItemAsync('user', JSON.stringify(updatedUser));
+      set({ user: updatedUser });
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      throw error;
+    }
   },
 }));
