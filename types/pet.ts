@@ -1,48 +1,7 @@
-export type ReportType = 'lost' | 'found';
-
 export type PetType = 'dog' | 'cat';
-
+export type ReportType = 'lost' | 'found';
 export type PetSize = 'small' | 'medium' | 'large';
-
-export type PetGender = 'male' | 'female' | 'unknown';
-
 export type ReportStatus = 'active' | 'resolved';
-
-export interface PetReport {
-  location: string;
-  id: string;
-  userId: string;
-  name: string;
-  type: PetType;
-  breed: string;
-  color: string;
-  size: PetSize;
-  gender: PetGender;
-  age: string;
-  description: string;
-  photos: string[];
-  reportType: ReportType;
-  status: ReportStatus;
-  isUrgent: boolean;
-  dateReported: string;
-  lastSeenDate: string;
-  lastSeenLocation: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  };
-  contactInfo: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
-  tags: string[];
-  reward?: {
-    amount: number;
-    currency: string;
-  };
-}
-
 
 export interface Location {
   latitude: number;
@@ -72,28 +31,28 @@ export interface PetComment {
   replies?: PetComment[];
 }
 
-// export interface PetReport {
-//   id: string;
-//   userId: string;
-//   name?: string;
-//   type: PetType;
-//   breed?: string;
-//   color: string;
-//   size: PetSize;
-//   gender?: string;
-//   age?: string;
-//   description: string;
-//   photos: string[];
-//   reportType: ReportType;
-//   status: ReportStatus;
-//   isUrgent: boolean;
-//   dateReported: string;
-//   lastSeenDate?: string;
-//   lastSeenLocation?: Location;
-//   reward?: Reward;
-//   contactInfo: ContactInfo;
-//   tags: string[];
-// }
+export interface PetReport {
+  id: string;
+  userId: string;
+  name?: string;
+  type: PetType;
+  breed?: string;
+  color: string;
+  size: PetSize;
+  gender?: string;
+  age?: string;
+  description: string;
+  photos: string[];
+  reportType: ReportType;
+  status: ReportStatus;
+  isUrgent: boolean;
+  dateReported: string;
+  lastSeenDate?: string;
+  lastSeenLocation?: Location;
+  reward?: Reward;
+  contactInfo: ContactInfo;
+  tags: string[];
+}
 
 export interface Story {
   id: string;

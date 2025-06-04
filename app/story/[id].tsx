@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Tex
 import { useLocalSearchParams, Link, useRouter } from 'expo-router';
 import { ArrowLeft, Heart, MessageCircle, Share as ShareIcon, Send, CornerDownRight, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { Story, Comment } from '@/types/pet';
+import { Story, PetComment } from '@/types/pet';
 import { useStories } from '@/store/stories';
 import { useAuth } from '@/store/auth';
 import { useLikes } from '@/store/likes';
@@ -13,15 +13,15 @@ export default function StoryDetailScreen() {
   const router = useRouter();
   const { stories } = useStories();
   const { user } = useAuth();
-  const { 
-    toggleStoryLike, 
-    toggleCommentLike, 
-    isStoryLiked, 
-    isCommentLiked 
+  const {
+    toggleStoryLike,
+    toggleCommentLike,
+    isStoryLiked,
+    isCommentLiked
   } = useLikes();
   const [comment, setComment] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; userName: string } | null>(null);
-  const [comments, setComments] = useState<Comment[]>([
+  const [comments, setComments] = useState<PetComment[]>([
     {
       id: '1',
       userId: 'user1',
@@ -53,9 +53,9 @@ export default function StoryDetailScreen() {
     },
   ]);
   const scrollViewRef = useRef<ScrollView>(null);
-  
+
   const story = stories.find(s => s.id === id);
-  
+
   if (!story) {
     return (
       <View style={styles.notFoundContainer}>
@@ -66,7 +66,7 @@ export default function StoryDetailScreen() {
       </View>
     );
   }
-  
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -80,7 +80,7 @@ export default function StoryDetailScreen() {
   const handleComment = () => {
     if (!comment.trim()) return;
 
-    const newComment: Comment = {
+    const newComment: PetComment = {
       id: String(Date.now()),
       userId: user?.id || 'anonymous',
       userName: user?.name || 'Anonymous',
@@ -114,12 +114,12 @@ export default function StoryDetailScreen() {
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }, 100);
   };
-  
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -127,11 +127,11 @@ export default function StoryDetailScreen() {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
@@ -156,11 +156,11 @@ export default function StoryDetailScreen() {
     setComment('');
   };
 
-  const renderComment = (comment: Comment, isReply = false) => (
+  const renderComment = (comment: PetComment, isReply = false) => (
     <View key={comment.id} style={[styles.commentItem, isReply && styles.replyItem]}>
-      <Image 
-        source={{ uri: comment.userPhoto }} 
-        style={styles.commentUserPhoto} 
+      <Image
+        source={{ uri: comment.userPhoto }}
+        style={styles.commentUserPhoto}
       />
       <View style={styles.commentContent}>
         <View style={styles.commentHeader}>
@@ -171,12 +171,12 @@ export default function StoryDetailScreen() {
         </View>
         <Text style={styles.commentText}>{comment.content}</Text>
         <View style={styles.commentActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.commentAction}
             onPress={() => handleLikeComment(comment.id)}
           >
-            <Heart 
-              size={16} 
+            <Heart
+              size={16}
               color={isCommentLiked(comment.id) ? colors.error : colors.textSecondary}
               fill={isCommentLiked(comment.id) ? colors.error : 'transparent'}
             />
@@ -188,7 +188,7 @@ export default function StoryDetailScreen() {
             </Text>
           </TouchableOpacity>
           {!isReply && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.commentAction}
               onPress={() => handleReply(comment.id, comment.userName)}
             >
@@ -202,12 +202,12 @@ export default function StoryDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -216,14 +216,14 @@ export default function StoryDetailScreen() {
           <Text style={styles.headerTitle}>Success Story</Text>
           <View style={{ width: 24 }} />
         </View>
-        
+
         <View style={styles.storyHeader}>
           <Text style={styles.title}>{story.title}</Text>
-          
+
           <View style={styles.userInfo}>
-            <Image 
-              source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-              style={styles.userPhoto} 
+            <Image
+              source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+              style={styles.userPhoto}
             />
             <View>
               <Text style={styles.userName}>{story.userName}</Text>
@@ -231,29 +231,29 @@ export default function StoryDetailScreen() {
             </View>
           </View>
         </View>
-        
-        <Image 
-          source={{ uri: story.petPhoto }} 
-          style={styles.mainImage} 
+
+        <Image
+          source={{ uri: story.petPhoto }}
+          style={styles.mainImage}
           resizeMode="cover"
         />
-        
+
         <View style={styles.content}>
           <Text style={styles.storyText}>{story.content}</Text>
-          
+
           {story.photos.length > 1 && (
             <View style={styles.photoGallery}>
               <Text style={styles.galleryTitle}>More Photos</Text>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.galleryContent}
               >
                 {story.photos.map((photo, index) => (
-                  <Image 
+                  <Image
                     key={index}
-                    source={{ uri: photo }} 
-                    style={styles.galleryImage} 
+                    source={{ uri: photo }}
+                    style={styles.galleryImage}
                   />
                 ))}
               </ScrollView>
@@ -262,7 +262,7 @@ export default function StoryDetailScreen() {
 
           <View style={styles.commentsSection}>
             <Text style={styles.commentsTitle}>Comments ({comments.length})</Text>
-            
+
             <View style={styles.commentInput}>
               {replyTo && (
                 <View style={styles.replyingTo}>
@@ -270,7 +270,7 @@ export default function StoryDetailScreen() {
                   <Text style={styles.replyingToText}>
                     Replying to {replyTo.userName}
                   </Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.cancelReplyButton}
                     onPress={cancelReply}
                   >
@@ -279,9 +279,9 @@ export default function StoryDetailScreen() {
                 </View>
               )}
               <View style={styles.commentInputRow}>
-                <Image 
-                  source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-                  style={styles.commentUserPhoto} 
+                <Image
+                  source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+                  style={styles.commentUserPhoto}
                 />
                 <TextInput
                   style={styles.commentTextInput}
@@ -291,7 +291,7 @@ export default function StoryDetailScreen() {
                   placeholderTextColor={colors.textTertiary}
                   multiline
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
                     styles.sendButton,
                     !comment.trim() && styles.sendButtonDisabled
@@ -307,7 +307,7 @@ export default function StoryDetailScreen() {
             {comments.map((comment) => (
               <View key={comment.id}>
                 {renderComment(comment)}
-                {comment.replies?.map(reply => (
+                {comment.replies?.map((reply: any) => (
                   renderComment(reply, true)
                 ))}
               </View>
@@ -315,14 +315,14 @@ export default function StoryDetailScreen() {
           </View>
         </View>
       </ScrollView>
-      
+
       <View style={styles.footer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.footerButton}
           onPress={handleLikeStory}
         >
-          <Heart 
-            size={24} 
+          <Heart
+            size={24}
             color={isStoryLiked(story.id) ? colors.error : colors.textSecondary}
             fill={isStoryLiked(story.id) ? colors.error : 'transparent'}
           />
@@ -333,13 +333,13 @@ export default function StoryDetailScreen() {
             {story.likes + (isStoryLiked(story.id) ? 1 : 0)}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.footerButton}>
           <MessageCircle size={24} color={colors.textSecondary} />
           <Text style={styles.footerButtonText}>{comments.length}</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.shareButton}
           onPress={handleShare}
         >
@@ -347,14 +347,6 @@ export default function StoryDetailScreen() {
           <Text style={styles.shareButtonText}>Share Story</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-}
-
-export default function StoryDetailsScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>StoryDetailsScreen Screen</Text>
     </View>
   );
 }

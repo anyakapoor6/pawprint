@@ -11,18 +11,18 @@ interface StoryCardProps {
 export default function StoryCard({ story }: StoryCardProps) {
   const router = useRouter();
   const formattedDate = new Date(story.date).toLocaleDateString();
-  
+
   const handlePress = () => {
     router.push(`/story/${story.id}`);
   };
-  
+
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
       <View style={styles.header}>
         <View style={styles.userInfo}>
-          <Image 
-            source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }} 
-            style={styles.userPhoto} 
+          <Image
+            source={{ uri: story.userPhoto || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+            style={styles.userPhoto}
           />
           <View>
             <Text style={styles.userName}>{story.userName}</Text>
@@ -33,14 +33,14 @@ export default function StoryCard({ story }: StoryCardProps) {
           </View>
         </View>
       </View>
-      
+
       <Text style={styles.title}>{story.title}</Text>
       <Text style={styles.content} numberOfLines={3}>{story.content}</Text>
-      
+
       <View style={styles.photoContainer}>
-        <Image 
-          source={{ uri: story.petPhoto }} 
-          style={styles.petPhoto} 
+        <Image
+          source={{ uri: story.petPhoto }}
+          style={styles.petPhoto}
           resizeMode="cover"
         />
         {story.photos.length > 1 && (
@@ -49,7 +49,7 @@ export default function StoryCard({ story }: StoryCardProps) {
           </View>
         )}
       </View>
-      
+
       <View style={styles.footer}>
         <View style={styles.statContainer}>
           <Heart size={16} color={colors.accent} />
