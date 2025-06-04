@@ -6,6 +6,7 @@ import { mockReports } from '@/data/mockData';
 import { useStories } from '@/store/stories';
 import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
+import Header from '@/components/Header';
 
 export default function HomeScreen() {
 	const { stories } = useStories();
@@ -18,8 +19,8 @@ export default function HomeScreen() {
 
 	return (
 		<ScrollView style={styles.container}>
+			<Header />
 			<Text style={styles.title}>Connect, Care, and Share in Your Pet Community</Text>
-
 			<Section
 				title="Urgent Cases"
 				iconColor={colors.urgent}

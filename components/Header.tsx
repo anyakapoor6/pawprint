@@ -18,9 +18,9 @@ export default function Header() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          <Image 
-            source={{ uri: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }} 
-            style={styles.logoImage} 
+          <Image
+            source={{ uri: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+            style={styles.logoImage}
           />
           <Text style={styles.logoText}>PawPrint</Text>
         </View>
@@ -37,9 +37,9 @@ export default function Header() {
         </View>
       </View>
       <View style={styles.heroContainer}>
-        <Text style={styles.heroTitle}>
+        {/* <Text style={styles.heroTitle}>
           Help reunite lost pets with their families
-        </Text>
+        </Text> */}
         <View style={styles.actionButtonsContainer}>
           <Link href="/report?type=lost" asChild>
             <TouchableOpacity style={[styles.actionButton, styles.lostButton]}>
