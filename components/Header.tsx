@@ -51,6 +51,12 @@ export default function Header() {
               <Text style={styles.actionButtonText}>Report Found Pet</Text>
             </TouchableOpacity>
           </Link>
+          <Link href="/story/create" asChild>
+            <TouchableOpacity style={[styles.actionButton, styles.storyButton]}>
+              <Text style={styles.actionButtonText}>Write a Story</Text>
+            </TouchableOpacity>
+          </Link>
+
         </View>
       </View>
     </View>
@@ -133,6 +139,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  storyButton: {
+    backgroundColor: colors.accent,
   },
   lostButton: {
     backgroundColor: colors.urgent,

@@ -1,98 +1,123 @@
-import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { X } from 'lucide-react-native';
-import { colors } from '../../../constants/colors';
-import { useSearch } from '../../../store/search';
-import { PetReport } from '../../../types/pet';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { mockReports } from '@/data/mockData';
+import PetCard from '@/components/PetCard';
+import { colors } from '@/constants/colors';
+import { router } from 'expo-router';
+import report from '@/app/(tabs)/report';
 
-export default function SearchModal() {
-  const router = useRouter();
-  const { searchResults, setSearchQuery } = useSearch();
+export default function SearchScreen() {
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  const handleClose = () => {
-    router.back();
-  };
+  const matchesQuery = (report.name || '').toLowerCase().includes(query.toLowerCase());
 
-  const handleSelect = (report: PetReport) => {
-    router.push(`/pet/${report.id}`);
-  };
+
+  interface FilterButtonProps {
+    label: string;
+    value: string;
+    selectedValue: string;
+    onPress: () => void;
+  }
+
+  const FilterButton = ({ label, value, selectedValue, onPress }: FilterButtonProps) => (
+    <TouchableOpacity
+      style={[styles.filterButton, selectedValue === value && styles.selectedFilter]}
+      onPress={onPress}
+    >
+      <Text style={styles.filterText}>{label}</Text>
+    </TouchableOpacity>
+  );
+
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search pets..."
-          placeholderTextColor={colors.textTertiary}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity onPress={handleClose}>
-          <X size={24} color={colors.text} />
-        </TouchableOpacity>
+    <ScrollView style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Search by name..."
+        value={query}
+        onChangeText={setQuery}
+      />
+
+      <Text style={styles.filterLabel}>Filter by Type</Text>
+      <View style={styles.filterRow}>
+        <FilterButton label="All" value="" selectedValue={typeFilter} onPress={() => setTypeFilter('')} />
+        <FilterButton label="Dog" value="dog" selectedValue={typeFilter} onPress={() => setTypeFilter('dog')} />
+        <FilterButton label="Cat" value="cat" selectedValue={typeFilter} onPress={() => setTypeFilter('cat')} />
       </View>
 
-      <FlatList
-        data={searchResults}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.resultItem}
-            onPress={() => handleSelect(item)}
-          >
-            <Text style={styles.resultText}>
-              {item.name || `${item.type} - ${item.breed}`}
-            </Text>
-          </TouchableOpacity>
+      <Text style={styles.filterLabel}>Filter by Gender</Text>
+      <View style={styles.filterRow}>
+        <FilterButton label="All" value="" selectedValue={genderFilter} onPress={() => setGenderFilter('')} />
+        <FilterButton label="Male" value="male" selectedValue={genderFilter} onPress={() => setGenderFilter('male')} />
+        <FilterButton label="Female" value="female" selectedValue={genderFilter} onPress={() => setGenderFilter('female')} />
+      </View>
+
+      <Text style={styles.filterLabel}>Filter by Status</Text>
+      <View style={styles.filterRow}>
+        <FilterButton label="All" value="" selectedValue={statusFilter} onPress={() => setStatusFilter('')} />
+        <FilterButton label="Active" value="active" selectedValue={statusFilter} onPress={() => setStatusFilter('active')} />
+        <FilterButton label="Resolved" value="resolved" selectedValue={statusFilter} onPress={() => setStatusFilter('resolved')} />
+      </View>
+
+      <View style={styles.results}>
+        {filteredReports.map(report => (
+          <PetCard key={report.id} report={report} onPress={() => router.push(`/pet/${report.id}`)} />
+        ))}
+        {filteredReports.length === 0 && (
+          <Text style={styles.noResults}>No matching reports found.</Text>
         )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No matching pets found.</Text>
-        }
-      />
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.background,
-    paddingTop: 60,
-    paddingHorizontal: 16,
+    padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#f2f2f2', // fallback if colors.gray[100] doesn't exist
+  input: {
+    backgroundColor: colors.white,
     padding: 12,
     borderRadius: 8,
-    marginRight: 8,
-    color: colors.text,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  resultItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  resultText: {
+  filterLabel: {
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
     color: colors.text,
   },
-  emptyText: {
+  filterRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 20,
+  },
+  selectedFilter: {
+    backgroundColor: colors.primary,
+  },
+  filterText: {
+    color: colors.text,
+    fontSize: 14,
+  },
+  results: {
+    paddingVertical: 16,
+  },
+  noResults: {
     textAlign: 'center',
-    marginTop: 32,
-    fontSize: 16,
-    color: colors.textTertiary,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
   },
 });

@@ -15,9 +15,9 @@ interface PetCardProps {
   onResolve?: () => void;
 }
 
-export default function PetCard({ 
-  report, 
-  onPress, 
+export default function PetCard({
+  report,
+  onPress,
   showSaveButton = true,
   showResolveButton = false,
   onResolve
@@ -31,22 +31,22 @@ export default function PetCard({
   const isOwner = user?.id === report.userId;
   const likeCount = getLikeCount(report.id);
   const commentCount = getComments(report.id).length;
-  
+
   const handleSave = (e: any) => {
     e.stopPropagation();
     toggleSavedPet(report.id, report);
   };
-  
+
   const handleLike = (e: any) => {
     e.stopPropagation();
     toggleLike(report.id);
   };
-  
+
   const handleComments = (e: any) => {
     e.stopPropagation();
     router.push(`/pet/${report.id}?showComments=true`);
   };
-  
+
   const handleResolve = (e: any) => {
     e.stopPropagation();
     onResolve?.();
@@ -56,13 +56,13 @@ export default function PetCard({
     e.stopPropagation();
     router.push(`/report/edit/${report.id}`);
   };
-  
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: report.photos[0] }} 
-          style={styles.image} 
+        <Image
+          source={{ uri: report.photos[0] }}
+          style={styles.image}
           resizeMode="cover"
         />
         {report.isUrgent && report.status === 'active' && (
@@ -71,29 +71,29 @@ export default function PetCard({
           </View>
         )}
         <View style={[
-          styles.typeBadge, 
-          report.status === 'resolved' ? styles.resolvedBadge : 
-          report.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
+          styles.typeBadge,
+          report.status === 'resolved' ? styles.resolvedBadge :
+            report.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
         ]}>
           <Text style={styles.typeText}>
             {report.status === 'resolved' ? 'FOUND' :
-             report.reportType === 'lost' ? 'LOST' : 'FOUND'}
+              report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>
         {showSaveButton && !isOwner && (
-          <TouchableOpacity 
-            style={[styles.saveButton, isSaved && styles.savedButton]} 
+          <TouchableOpacity
+            style={[styles.saveButton, isSaved && styles.savedButton]}
             onPress={handleSave}
           >
-            <Heart 
-              size={16} 
+            <Heart
+              size={16}
               color={isSaved ? colors.error : colors.white}
               fill={isSaved ? colors.error : 'transparent'}
             />
           </TouchableOpacity>
         )}
         {isOwner && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editButton}
             onPress={handleEdit}
           >
@@ -101,31 +101,31 @@ export default function PetCard({
           </TouchableOpacity>
         )}
       </View>
-      
+
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={1}>
           {report.name || `${report.type} (${report.color})`}
         </Text>
-        
+
         <View style={styles.infoRow}>
           <MapPin size={14} color={colors.textSecondary} />
           <Text style={styles.infoText} numberOfLines={1}>
             {report.lastSeenLocation?.address || 'Location unknown'}
           </Text>
         </View>
-        
+
         <View style={styles.infoRow}>
           <Calendar size={14} color={colors.textSecondary} />
           <Text style={styles.infoText}>{formattedDate}</Text>
         </View>
 
         <View style={styles.interactionBar}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.interactionButton}
             onPress={handleLike}
           >
-            <Heart 
-              size={16} 
+            <Heart
+              size={16}
               color={isLiked(report.id) ? colors.error : colors.textSecondary}
               fill={isLiked(report.id) ? colors.error : 'transparent'}
             />
@@ -137,7 +137,7 @@ export default function PetCard({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.interactionButton}
             onPress={handleComments}
           >
@@ -147,7 +147,7 @@ export default function PetCard({
         </View>
 
         {showResolveButton && report.status === 'active' && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.resolveButton}
             onPress={handleResolve}
           >
