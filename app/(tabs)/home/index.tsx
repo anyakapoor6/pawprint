@@ -1,87 +1,112 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { useStories } from '@/store/stories';
+import { AlertTriangle, Clock, MapPin, Heart } from 'lucide-react-native';
+import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
+import { useStories } from '@/store/stories';
 import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
-import { colors } from '@/constants/colors';
 
 export default function HomeScreen() {
 	const { stories } = useStories();
-	const urgentReports = mockReports.filter(r => r.isUrgent).slice(0, 5);
-	const recentReports = [...mockReports].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()).slice(0, 5);
-	const foundReports = mockReports.filter(r => r.reportType === 'found' && r.status === 'active').slice(0, 5);
+
+	const urgentReports = mockReports.filter(r => r.isUrgent);
+	const recentReports = [...mockReports].sort((a, b) =>
+		new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
+	);
+	const foundReports = mockReports.filter(r => r.reportType === 'found' && r.status === 'active');
 
 	return (
-		<ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-			<View style={styles.header}>
-				<Text style={styles.appName}>PawPrint</Text>
-				<Text style={styles.tagline}>Connect, Care, and Share in Your Pet Community</Text>
-			</View>
+		<ScrollView style={styles.container}>
+			<Text style={styles.title}>Connect, Care, and Share in Your Pet Community</Text>
 
-			<Section title="Urgent Cases" iconColor={colors.urgent} onSeeAll={() => router.push('/home/urgent')}>
+			<Section
+				title="Urgent Cases"
+				iconColor={colors.urgent}
+				onSeeAll={() => router.push('/home/urgent')}
+				icon={<AlertTriangle size={16} color={colors.urgent} />}
+			>
 				<FlatList
+					data={urgentReports.slice(0, 5)}
 					horizontal
-					data={urgentReports}
-					keyExtractor={item => item.id}
+					keyExtractor={(item) => item.id}
 					renderItem={({ item }) => (
 						<View style={styles.cardSpacing}>
 							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
 						</View>
-
 					)}
 					showsHorizontalScrollIndicator={false}
 				/>
 			</Section>
 
-			<Section title="Recently Reported" iconColor={colors.primary} onSeeAll={() => router.push('/home/recent')}>
+			<Section
+				title="Recently Reported"
+				iconColor={colors.secondary}
+				onSeeAll={() => router.push('/home/recent')}
+				icon={<Clock size={16} color={colors.secondary} />}
+			>
 				<FlatList
+					data={recentReports.slice(0, 5)}
 					horizontal
-					data={recentReports}
-					keyExtractor={item => item.id}
+					keyExtractor={(item) => item.id}
 					renderItem={({ item }) => (
 						<View style={styles.cardSpacing}>
 							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
 						</View>
-
 					)}
 					showsHorizontalScrollIndicator={false}
 				/>
 			</Section>
 
-			<Section title="Found Pets Near Me" iconColor={colors.secondary} onSeeAll={() => router.push('/home/found')}>
+			<Section
+				title="Found Pets Near Me"
+				iconColor={colors.primary}
+				onSeeAll={() => router.push('/home/found')}
+				icon={<MapPin size={16} color={colors.primary} />}
+			>
 				<FlatList
+					data={foundReports.slice(0, 5)}
 					horizontal
-					data={foundReports}
-					keyExtractor={item => item.id}
+					keyExtractor={(item) => item.id}
 					renderItem={({ item }) => (
 						<View style={styles.cardSpacing}>
 							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
 						</View>
-
 					)}
 					showsHorizontalScrollIndicator={false}
 				/>
 			</Section>
 
-			<Section title="Storyboard" iconColor={colors.orange} onSeeAll={() => router.push('/home/stories')}>
-				{stories.length > 0 && <StoryCard story={stories[0]} />}
+			<Section
+				title="Storyboard"
+				iconColor={colors.accent}
+				onSeeAll={() => router.push('/home/stories')}
+				icon={<Heart size={16} color={colors.accent} />}
+			>
+				{stories.length > 0 && (
+					<StoryCard story={stories[0]} />
+				)}
 			</Section>
 		</ScrollView>
 	);
 }
+
 type SectionProps = {
 	title: string;
 	iconColor: string;
 	onSeeAll: () => void;
 	children: React.ReactNode;
+	icon: React.ReactNode;
 };
 
-function Section({ title, iconColor, onSeeAll, children }: SectionProps) {
+function Section({ title, iconColor, onSeeAll, children, icon }: SectionProps) {
 	return (
 		<View style={styles.section}>
 			<View style={styles.sectionHeader}>
-				<Text style={[styles.sectionTitle, { color: iconColor }]}>{title}</Text>
+				<View style={styles.sectionTitleWrap}>
+					{icon}
+					<Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+				</View>
 				<TouchableOpacity onPress={onSeeAll}>
 					<Text style={styles.seeAll}>See All</Text>
 				</TouchableOpacity>
@@ -94,32 +119,31 @@ function Section({ title, iconColor, onSeeAll, children }: SectionProps) {
 const styles = StyleSheet.create({
 	container: {
 		backgroundColor: colors.background,
-	},
-	header: {
 		paddingTop: 60,
-		paddingHorizontal: 20,
-		paddingBottom: 24,
-		backgroundColor: colors.white,
+		paddingBottom: 40,
 	},
-	appName: {
-		fontSize: 22,
+	title: {
+		fontSize: 20,
 		fontWeight: '700',
-		color: colors.primary,
-	},
-	tagline: {
-		fontSize: 16,
-		fontWeight: '500',
-		marginTop: 6,
+		textAlign: 'center',
+		marginBottom: 24,
+		paddingHorizontal: 20,
 		color: colors.text,
 	},
 	section: {
-		marginTop: 24,
+		marginBottom: 32,
+		paddingHorizontal: 16,
 	},
 	sectionHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		paddingHorizontal: 20,
+		alignItems: 'center',
 		marginBottom: 12,
+	},
+	sectionTitleWrap: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 6,
 	},
 	sectionTitle: {
 		fontSize: 18,
@@ -127,10 +151,10 @@ const styles = StyleSheet.create({
 	},
 	seeAll: {
 		fontSize: 14,
-		color: colors.primary,
 		fontWeight: '500',
+		color: colors.primary,
 	},
 	cardSpacing: {
-		marginLeft: 20,
+		marginRight: 12,
 	},
 });
