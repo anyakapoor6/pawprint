@@ -9,6 +9,8 @@ import { usePets } from '../../store/pets';
 import { useAuth } from '../../store/auth';
 import { PetType, ReportType, PetReport, ReportStatus } from '@/types/pet';
 import * as Location from 'expo-location';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
 
 
 
@@ -33,6 +35,8 @@ export default function CreateReportScreen() {
   const { addReport } = usePets();
   const { user } = useAuth();
   const [showCamera, setShowCamera] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+
 
 
 
@@ -137,8 +141,8 @@ export default function CreateReportScreen() {
 
     setLoading(true);
 
-    const geocodedLocation = await Location.geocodeAsync(location);
-    const coords = geocodedLocation[0] || { latitude: 0, longitude: 0 };
+    const coords = coordinates || { latitude: 0, longitude: 0 };
+
 
 
     try {
@@ -416,14 +420,30 @@ export default function CreateReportScreen() {
           <Text style={styles.label}>
             {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
           </Text>
-          <TextInput
-            style={styles.input}
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Enter location"
-            placeholderTextColor={colors.textTertiary}
+          <GooglePlacesAutocomplete
+            placeholder="Search for a location"
+            onPress={(data, details = null) => {
+              setLocation(data.description);
+              if (details?.geometry?.location) {
+                setCoordinates({
+                  latitude: details.geometry.location.lat,
+                  longitude: details.geometry.location.lng,
+                });
+              }
+            }}
+
+            fetchDetails={true}
+            styles={{
+              textInput: styles.input,
+              listView: { backgroundColor: 'white' },
+            }}
+            query={{
+              key: 'AIzaSyB7axeVt4Ofja7fIHawyDXHKQ1M4GocEC4',
+              language: 'en',
+            }}
           />
         </View>
+
 
         <Text style={styles.sectionTitle}>Photos</Text>
         <Text style={styles.photoHelper}>

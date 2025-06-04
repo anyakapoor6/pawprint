@@ -7,6 +7,8 @@ import { PetReport, PetComment } from '@/types/pet';
 import { usePets } from '@/store/pets';
 import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
+import MapView, { Marker } from 'react-native-maps';
+
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -199,115 +201,125 @@ export default function PetDetailScreen() {
               </Text>
             </View>
             <View style={styles.mapPreview}>
-              <Image
-                source={{ uri: 'https://images.pexels.com/photos/6195286/pexels-photo-6195286.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
-                style={styles.mapImage}
-              />
-              <Link href={`/map?pet=${pet.id}`} asChild>
-                <TouchableOpacity style={styles.viewMapButton}>
-                  <Text style={styles.viewMapButtonText}>View on Map</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
-          </View>
-
-          {pet.tags.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Tags</Text>
-              <View style={styles.tagsContainer}>
-                {pet.tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contact Information</Text>
-            <Text style={styles.contactName}>{pet.contactInfo.name}</Text>
-            {pet.contactInfo.phone && (
-              <Text style={styles.contactDetail}>{pet.contactInfo.phone}</Text>
-            )}
-            <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
-          </View>
-
-          <View style={styles.interactionStats}>
-            <View style={styles.statItem}>
-              <Heart
-                size={16}
-                color={isLiked(id) ? colors.error : colors.textSecondary}
-                fill={isLiked(id) ? colors.error : 'transparent'}
-              />
-              <Text style={styles.statText}>{likeCount}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <MessageCircle size={16} color={colors.textSecondary} />
-              <Text style={styles.statText}>{comments.length}</Text>
-            </View>
-          </View>
-
-          <View style={styles.commentsSection}>
-            <Text style={styles.sectionTitle}>Comments</Text>
-
-            <View style={styles.commentInput}>
-              <Image
-                source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
-                style={styles.commentUserPhoto}
-              />
-              <View style={styles.commentInputContainer}>
-                <TextInput
-                  style={styles.commentTextInput}
-                  value={comment}
-                  onChangeText={setComment}
-                  placeholder="Write a comment..."
-                  placeholderTextColor={colors.textTertiary}
-                  multiline
+              <MapView
+                style={{ width: '100%', height: '100%' }}
+                initialRegion={{
+                  latitude: pet.lastSeenLocation?.latitude || 0,
+                  longitude: pet.lastSeenLocation?.longitude || 0,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: pet.lastSeenLocation?.latitude || 0,
+                    longitude: pet.lastSeenLocation?.longitude || 0,
+                  }}
+                  title={pet.name || 'Pet'}
+                  description={pet.lastSeenLocation?.address || ''}
                 />
-                <TouchableOpacity
-                  style={[styles.sendButton, !comment.trim() && styles.sendButtonDisabled]}
-                  onPress={handleComment}
-                  disabled={!comment.trim()}
-                >
-                  <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
-                </TouchableOpacity>
+              </MapView>
+            </View>
+
+
+            {pet.tags.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Tags</Text>
+                <View style={styles.tagsContainer}>
+                  {pet.tags.map((tag, index) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Contact Information</Text>
+              <Text style={styles.contactName}>{pet.contactInfo.name}</Text>
+              {pet.contactInfo.phone && (
+                <Text style={styles.contactDetail}>{pet.contactInfo.phone}</Text>
+              )}
+              <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
+            </View>
+
+            <View style={styles.interactionStats}>
+              <View style={styles.statItem}>
+                <Heart
+                  size={16}
+                  color={isLiked(id) ? colors.error : colors.textSecondary}
+                  fill={isLiked(id) ? colors.error : 'transparent'}
+                />
+                <Text style={styles.statText}>{likeCount}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <MessageCircle size={16} color={colors.textSecondary} />
+                <Text style={styles.statText}>{comments.length}</Text>
               </View>
             </View>
 
-            {comments.map((comment) => (
-              <View key={comment.id} style={styles.commentItem}>
+            <View style={styles.commentsSection}>
+              <Text style={styles.sectionTitle}>Comments</Text>
+
+              <View style={styles.commentInput}>
                 <Image
-                  source={{ uri: comment.userPhoto }}
+                  source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
                   style={styles.commentUserPhoto}
                 />
-                <View style={styles.commentContent}>
-                  <View style={styles.commentHeader}>
-                    <Text style={styles.commentUserName}>{comment.userName}</Text>
-                    <Text style={styles.commentTime}>
-                      {formatCommentTime(comment.timestamp)}
-                    </Text>
-                  </View>
-                  <Text style={styles.commentText}>{comment.content}</Text>
+                <View style={styles.commentInputContainer}>
+                  <TextInput
+                    style={styles.commentTextInput}
+                    value={comment}
+                    onChangeText={setComment}
+                    placeholder="Write a comment..."
+                    placeholderTextColor={colors.textTertiary}
+                    multiline
+                  />
                   <TouchableOpacity
-                    style={styles.commentLikeButton}
-                    onPress={() => toggleLike(comment.id)}
+                    style={[styles.sendButton, !comment.trim() && styles.sendButtonDisabled]}
+                    onPress={handleComment}
+                    disabled={!comment.trim()}
                   >
-                    <Heart
-                      size={14}
-                      color={isLiked(comment.id) ? colors.error : colors.textSecondary}
-                      fill={isLiked(comment.id) ? colors.error : 'transparent'}
-                    />
-                    <Text style={[
-                      styles.commentLikeCount,
-                      isLiked(comment.id) && styles.commentLikeCountActive
-                    ]}>
-                      {comment.likes}
-                    </Text>
+                    <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
                   </TouchableOpacity>
                 </View>
               </View>
-            ))}
+
+              {comments.map((comment) => (
+                <View key={comment.id} style={styles.commentItem}>
+                  <Image
+                    source={{ uri: comment.userPhoto }}
+                    style={styles.commentUserPhoto}
+                  />
+                  <View style={styles.commentContent}>
+                    <View style={styles.commentHeader}>
+                      <Text style={styles.commentUserName}>{comment.userName}</Text>
+                      <Text style={styles.commentTime}>
+                        {formatCommentTime(comment.timestamp)}
+                      </Text>
+                    </View>
+                    <Text style={styles.commentText}>{comment.content}</Text>
+                    <TouchableOpacity
+                      style={styles.commentLikeButton}
+                      onPress={() => toggleLike(comment.id)}
+                    >
+                      <Heart
+                        size={14}
+                        color={isLiked(comment.id) ? colors.error : colors.textSecondary}
+                        fill={isLiked(comment.id) ? colors.error : 'transparent'}
+                      />
+                      <Text style={[
+                        styles.commentLikeCount,
+                        isLiked(comment.id) && styles.commentLikeCountActive
+                      ]}>
+                        {comment.likes}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
       </ScrollView>
