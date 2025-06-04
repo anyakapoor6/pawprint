@@ -119,6 +119,11 @@ export default function PetCard({
           <Text style={styles.infoText}>{formattedDate}</Text>
         </View>
 
+        <Text style={styles.infoText}>
+          Age: {report.age ? report.age.charAt(0).toUpperCase() + report.age.slice(1) : 'Unknown'}
+        </Text>
+
+
         <View style={styles.interactionBar}>
           <TouchableOpacity
             style={styles.interactionButton}

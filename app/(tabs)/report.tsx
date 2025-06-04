@@ -172,7 +172,7 @@ export default function CreateReportScreen() {
           {
             text: "Not Now",
             style: "cancel",
-            onPress: () => router.replace('/(tabs)')
+            onPress: () => router.replace('/home')
           },
           {
             text: "Share Story",
@@ -293,17 +293,28 @@ export default function CreateReportScreen() {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Age (Optional)</Text>
-          <TextInput
-            style={styles.input}
-            value={petAge}
-            onChangeText={setPetAge}
-            placeholder="Age in years (approximate)"
-            placeholderTextColor={colors.textTertiary}
-            keyboardType="numeric"
-          />
+        {/* After: Age category selection buttons */}
+        <Text style={styles.label}>Age (Optional)</Text>
+        <View style={styles.ageContainer}>
+          {(['baby', 'adult', 'senior'] as const).map((ageCategory) => (
+            <TouchableOpacity
+              key={ageCategory}
+              style={[
+                styles.ageButton,
+                petAge === ageCategory && styles.ageButtonActive
+              ]}
+              onPress={() => setPetAge(ageCategory)}
+            >
+              <Text style={[
+                styles.ageButtonText,
+                petAge === ageCategory && styles.ageButtonTextActive
+              ]}>
+                {ageCategory.charAt(0).toUpperCase() + ageCategory.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
+
 
         <Text style={styles.sectionTitle}>Size</Text>
         <View style={styles.sizeContainer}>
@@ -578,6 +589,31 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   genderButtonTextActive: {
+    color: colors.white,
+  },
+  ageContainer: {
+    flexDirection: 'row',
+    marginBottom: 24,
+  },
+  ageButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+  },
+  ageButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  ageButtonText: {
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  ageButtonTextActive: {
     color: colors.white,
   },
   photosContainer: {
