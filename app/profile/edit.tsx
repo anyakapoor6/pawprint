@@ -68,8 +68,8 @@ export default function EditProfileScreen() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedType, setSelectedType] = useState<'all' | 'dog' | 'cat'>('all');
 
-  const filteredPhotos = selectedType === 'all' 
-    ? PET_PHOTOS 
+  const filteredPhotos = selectedType === 'all'
+    ? PET_PHOTOS
     : PET_PHOTOS.filter(p => p.type === selectedType);
 
   const handleSave = async () => {
@@ -104,7 +104,7 @@ export default function EditProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -124,13 +124,13 @@ export default function EditProfileScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.photoSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setShowPhotoModal(true)}
             style={styles.photoButton}
           >
             <View style={styles.photoContainer}>
-              <Image 
-                source={{ uri: photo }} 
+              <Image
+                source={{ uri: photo }}
                 style={styles.profilePhoto}
               />
               <View style={styles.cameraIconContainer}>
@@ -188,7 +188,7 @@ export default function EditProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Choose Profile Picture</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setShowPhotoModal(false)}
             >
@@ -197,7 +197,7 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.filterContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.filterButton, selectedType === 'all' && styles.filterButtonActive]}
               onPress={() => setSelectedType('all')}
             >
@@ -205,7 +205,7 @@ export default function EditProfileScreen() {
                 All
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.filterButton, selectedType === 'dog' && styles.filterButtonActive]}
               onPress={() => setSelectedType('dog')}
             >
@@ -213,7 +213,7 @@ export default function EditProfileScreen() {
                 Dogs
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.filterButton, selectedType === 'cat' && styles.filterButtonActive]}
               onPress={() => setSelectedType('cat')}
             >
@@ -236,7 +236,7 @@ export default function EditProfileScreen() {
                   setShowPhotoModal(false);
                 }}
               >
-                <Image 
+                <Image
                   source={{ uri: petPhoto.url }}
                   style={styles.photoOptionImage}
                 />

@@ -14,8 +14,8 @@ interface MyReportsScreenProps {
 export default function MyReportsScreen({ onClose }: MyReportsScreenProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'active' | 'resolved'>('active');
-  
-  const userReports = mockReports.filter(report => 
+
+  const userReports = mockReports.filter(report =>
     activeTab === 'active' ? report.status === 'active' : report.status === 'resolved'
   );
 
@@ -26,7 +26,7 @@ export default function MyReportsScreen({ onClose }: MyReportsScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
         >
@@ -37,7 +37,7 @@ export default function MyReportsScreen({ onClose }: MyReportsScreenProps) {
       </View>
 
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.tab, activeTab === 'active' && styles.activeTab]}
           onPress={() => setActiveTab('active')}
         >
@@ -45,7 +45,7 @@ export default function MyReportsScreen({ onClose }: MyReportsScreenProps) {
             Active
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.tab, activeTab === 'resolved' && styles.activeTab]}
           onPress={() => setActiveTab('resolved')}
         >
@@ -67,14 +67,14 @@ export default function MyReportsScreen({ onClose }: MyReportsScreenProps) {
             </TouchableOpacity>
           ))}
         </View>
-        
+
         {userReports.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>
               No {activeTab} reports
             </Text>
             <Text style={styles.emptyStateText}>
-              {activeTab === 'active' 
+              {activeTab === 'active'
                 ? "You don't have any active reports at the moment"
                 : "You haven't resolved any reports yet"}
             </Text>

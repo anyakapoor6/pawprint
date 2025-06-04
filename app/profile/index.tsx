@@ -12,7 +12,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { getUserStories } = useStories();
   const userStories = getUserStories(user?.id || '');
-  
+
   const handleSignOut = async () => {
     await signOut();
     router.replace('/sign-in');
@@ -33,8 +33,8 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.profileHeader}
           onPress={() => router.push('/profile/edit')}
         >
@@ -43,7 +43,7 @@ export default function ProfileScreen() {
           <Text style={styles.profileEmail}>{user?.email}</Text>
           <Text style={styles.editProfileText}>Edit Profile</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userStories.length}</Text>
@@ -61,11 +61,11 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
-      
+
       <ScrollView style={styles.content}>
         <Text style={styles.sectionTitle}>Your Stories</Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(tabs)/stories')}
         >
@@ -82,8 +82,8 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <Text style={styles.sectionTitle}>Your Reports</Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/my-reports')}
         >
@@ -98,8 +98,8 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/saved-pets')}
         >
@@ -114,8 +114,8 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/rewards')}
         >
@@ -130,10 +130,10 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.sectionTitle}>Account</Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/notifications')}
         >
@@ -149,7 +149,7 @@ export default function ProfileScreen() {
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => handleNavigate('/(modals)/search')}
         >
@@ -164,7 +164,7 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
           <View style={styles.menuItemContent}>
             <View style={[styles.menuIconContainer, { backgroundColor: colors.error + '20' }]}>
@@ -175,7 +175,7 @@ export default function ProfileScreen() {
             </View>
           </View>
         </TouchableOpacity>
-        
+
         <View style={styles.footer}>
           <Text style={styles.appVersion}>PawPrint v1.0.0</Text>
           <TouchableOpacity>

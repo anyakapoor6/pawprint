@@ -61,11 +61,11 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor(diff / (1000 * 60));
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return `${minutes}m ago`;
@@ -87,7 +87,7 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
         >
@@ -101,7 +101,7 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
 
       <ScrollView style={styles.content}>
         {mockNotifications.map((notification) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={notification.id}
             style={[
               styles.notificationCard,
@@ -111,7 +111,7 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
             <View style={styles.notificationIcon}>
               {getNotificationIcon(notification.type)}
             </View>
-            
+
             <View style={styles.notificationContent}>
               <View style={styles.notificationHeader}>
                 <Text style={styles.notificationTitle}>{notification.title}</Text>
@@ -119,31 +119,23 @@ export default function NotificationsScreen({ onClose }: NotificationsScreenProp
                   {formatTimestamp(notification.timestamp)}
                 </Text>
               </View>
-              
+
               <Text style={styles.message}>{notification.message}</Text>
-              
+
               {notification.image && (
-                <Image 
+                <Image
                   source={{ uri: notification.image }}
                   style={styles.notificationImage}
                 />
               )}
             </View>
-            
+
             {!notification.read && (
               <View style={styles.unreadDot} />
             )}
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
-  );
-}
-
-export default function ProfileNotificationsScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>ProfileNotificationsScreen Screen</Text>
     </View>
   );
 }

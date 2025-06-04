@@ -64,14 +64,14 @@ export default function RewardsScreen({ onClose }: RewardsScreenProps) {
             <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
           </View>
         </View>
-        
+
         <Text style={styles.rewardAmount}>${reward.amount}</Text>
         <Text style={styles.rewardPet}>for finding {reward.petName}</Text>
-        
+
         {reward.status === 'claimed' && (
           <Text style={styles.claimedBy}>Claimed by {reward.claimedBy}</Text>
         )}
-        
+
         {reward.status === 'active' && reward.expiryDate && (
           <Text style={styles.expiryDate}>Expires {new Date(reward.expiryDate).toLocaleDateString()}</Text>
         )}
@@ -82,7 +82,7 @@ export default function RewardsScreen({ onClose }: RewardsScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
         >
@@ -107,7 +107,7 @@ export default function RewardsScreen({ onClose }: RewardsScreenProps) {
         </View>
 
         <Text style={styles.sectionTitle}>Your Rewards</Text>
-        
+
         <View style={styles.rewardsGrid}>
           {mockRewards.map(renderRewardCard)}
         </View>

@@ -15,7 +15,7 @@ export default function MyStoriesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -36,7 +36,7 @@ export default function MyStoriesScreen() {
             <Text style={styles.emptyStateText}>
               Share your experiences and help others by creating your first story
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.createButton}
               onPress={() => router.push('/story/create')}
             >

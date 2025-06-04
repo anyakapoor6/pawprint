@@ -11,7 +11,7 @@ interface SavedPetsScreenProps {
 
 export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
   const router = useRouter();
-  
+
   // In a real app, this would be filtered based on user's saved pets
   const savedPets = mockReports.slice(0, 4);
 
@@ -22,7 +22,7 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
         >
@@ -44,7 +44,7 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
             </TouchableOpacity>
           ))}
         </View>
-        
+
         {savedPets.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No saved pets</Text>

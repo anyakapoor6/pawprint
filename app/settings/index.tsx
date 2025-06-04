@@ -10,14 +10,11 @@ import * as Notifications from 'expo-notifications';
 export default function SettingsScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { 
-    pushNotifications, 
-    emailNotifications, 
-    darkMode,
+  const {
+    pushNotifications,
+    emailNotifications,
     togglePushNotifications,
-    toggleEmailNotifications,
-    toggleDarkMode
-  } = useSettings();
+    toggleEmailNotifications } = useSettings();
 
   const handlePushToggle = async () => {
     if (!pushNotifications) {
@@ -44,9 +41,9 @@ export default function SettingsScreen() {
         'You will receive important updates and matches via email.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Enable', 
-            onPress: toggleEmailNotifications 
+          {
+            text: 'Enable',
+            onPress: toggleEmailNotifications
           }
         ]
       );
@@ -55,10 +52,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleDarkModeToggle = () => {
-    toggleDarkMode();
-    // In a real app, you would update the app's theme here
-  };
 
   const handleBack = () => {
     router.back();
@@ -105,7 +98,7 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
         >
@@ -154,7 +147,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Privacy & Security</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={handlePrivacyPolicy}
           >
@@ -169,7 +162,7 @@ export default function SettingsScreen() {
             </View>
             <ChevronRight size={20} color={colors.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={handleTerms}
           >
@@ -188,7 +181,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingItem}
             onPress={handleSupport}
           >
@@ -207,7 +200,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.settingItem, styles.dangerItem]}
             onPress={handleDeleteAccount}
           >

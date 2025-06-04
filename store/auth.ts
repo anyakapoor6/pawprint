@@ -40,7 +40,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       .eq('id', data.user.id)
       .single();
 
-    set({ 
+    set({
       session: data.session,
       user: {
         id: data.user.id,
@@ -79,7 +79,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) throw sessionError;
 
-    set({ 
+    set({
       session,
       user: {
         id: user.id,
