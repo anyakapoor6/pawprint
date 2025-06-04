@@ -10,6 +10,7 @@ export const colors = {
   border: '#E5E5E5',
   error: '#FF3B30',
   urgent: '#D92D20',
+  orange: '#FF8C42',
   gray: {
     50: '#F9FAFB',
     100: '#F3F4F6',
