@@ -11,6 +11,7 @@ export default function CreateStoryScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { addStory } = useStories();
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -23,15 +24,12 @@ export default function CreateStoryScreen() {
         input.type = 'file';
         input.accept = 'image/*';
         input.multiple = true;
-        
         const promise = new Promise((resolve) => {
           input.onchange = (e: any) => {
             resolve(e.target.files);
           };
         });
-        
         input.click();
-        
         const files = await promise;
         if (files) {
           const fileArray = Array.from(files as FileList);
@@ -40,11 +38,10 @@ export default function CreateStoryScreen() {
         }
       } else {
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.images,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsMultipleSelection: true,
           quality: 1,
         });
-
         if (!result.canceled && result.assets) {
           const newPhotos = result.assets.map(asset => asset.uri);
           setPhotos(prev => [...prev, ...newPhotos]);
@@ -64,9 +61,7 @@ export default function CreateStoryScreen() {
       Alert.alert('Error', 'Please fill in all fields and add at least one photo');
       return;
     }
-
     setLoading(true);
-
     try {
       const newStory = {
         id: Date.now().toString(),
@@ -83,7 +78,6 @@ export default function CreateStoryScreen() {
         comments: 0,
         photos,
       };
-
       await addStory(newStory);
       Alert.alert('Success', 'Your story has been published!', [
         { text: 'OK', onPress: () => router.back() }
@@ -97,8 +91,9 @@ export default function CreateStoryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header with Back arrow and Publish button */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
@@ -116,9 +111,10 @@ export default function CreateStoryScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Story Form */}
       <ScrollView style={styles.content}>
         <View style={styles.userInfo}>
-          <Image 
+          <Image
             source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
             style={styles.userPhoto}
           />
@@ -140,8 +136,8 @@ export default function CreateStoryScreen() {
             Add photos to make your story more engaging
           </Text>
 
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.photosContainer}
           >
@@ -156,7 +152,6 @@ export default function CreateStoryScreen() {
                 </TouchableOpacity>
               </View>
             ))}
-            
             <TouchableOpacity
               style={styles.addPhotoButton}
               onPress={handleAddPhoto}
