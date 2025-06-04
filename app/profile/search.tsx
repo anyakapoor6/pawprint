@@ -39,7 +39,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
         const colorLower = report.color.toLowerCase();
         const descLower = report.description.toLowerCase();
         const locationLower = (report.lastSeenLocation?.address || '').toLowerCase();
-        
+
         return (
           nameLower.includes(searchLower) ||
           breedLower.includes(searchLower) ||
@@ -72,17 +72,17 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
 
   const applyFilters = () => {
     let filtered = [...mockReports];
-    
+
     // Filter by report type
     if (filters.reportType !== 'all') {
       filtered = filtered.filter(r => r.reportType === filters.reportType);
     }
-    
+
     // Filter by pet type
     if (filters.petType !== 'all') {
       filtered = filtered.filter(r => r.type === filters.petType);
     }
-    
+
     // In a real app, we would filter by distance and date range here
     // For this demo, we'll just set the results
     setResults(filtered);
@@ -101,7 +101,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
         >
@@ -130,7 +130,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
       {showFilters && (
         <View style={styles.filtersContainer}>
           <Text style={styles.filterTitle}>Filter Results</Text>
-          
+
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Report Type</Text>
             <View style={styles.filterOptions}>
@@ -153,7 +153,7 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
               ))}
             </View>
           </View>
-          
+
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Pet Type</Text>
             <View style={styles.filterOptions}>
@@ -176,15 +176,15 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
               ))}
             </View>
           </View>
-          
+
           <View style={styles.filterButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.resetButton}
               onPress={resetFilters}
             >
               <Text style={styles.resetButtonText}>Reset</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.applyButton}
               onPress={applyFilters}
             >
@@ -215,14 +215,6 @@ export default function SearchScreen({ onClose }: SearchScreenProps) {
           </>
         )}
       </ScrollView>
-    </View>
-  );
-}
-
-export default function ProfileSearchScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>ProfileSearchScreen Screen</Text>
     </View>
   );
 }

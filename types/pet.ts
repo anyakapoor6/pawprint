@@ -9,6 +9,7 @@ export type PetGender = 'male' | 'female' | 'unknown';
 export type ReportStatus = 'active' | 'resolved';
 
 export interface PetReport {
+  location: string;
   id: string;
   userId: string;
   name: string;
