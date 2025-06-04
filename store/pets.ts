@@ -40,15 +40,15 @@ const deg2rad = (deg: number) => {
 export const usePets = create<PetsState>((set, get) => ({
   reports: mockReports,
   userLocation: null,
-  
+
   setUserLocation: (location) => {
     set({ userLocation: location });
   },
 
   updatePetStatus: (petId: string, status: ReportStatus) => {
     set(state => ({
-      reports: state.reports.map(report => 
-        report.id === petId 
+      reports: state.reports.map(report =>
+        report.id === petId
           ? { ...report, status }
           : report
       )
@@ -70,15 +70,15 @@ export const usePets = create<PetsState>((set, get) => ({
       reports: [report, ...state.reports]
     }));
   },
-  
+
   getReportsByStatus: (status: ReportStatus) => {
     const reports = get().reports;
     if (status === 'resolved') {
-      return reports.filter(report => 
+      return reports.filter(report =>
         report.status === 'resolved' || report.reportType === 'found'
       );
     } else {
-      return reports.filter(report => 
+      return reports.filter(report =>
         report.status === status && report.reportType === 'lost'
       );
     }
@@ -98,14 +98,14 @@ export const usePets = create<PetsState>((set, get) => ({
 
     return reports.filter(report => {
       if (!report.lastSeenLocation) return false;
-      
+
       const distance = calculateDistance(
         userLocation.latitude,
         userLocation.longitude,
         report.lastSeenLocation.latitude,
         report.lastSeenLocation.longitude
       );
-      
+
       return distance <= radius;
     }).sort((a, b) => {
       // Sort by distance
@@ -128,12 +128,12 @@ export const usePets = create<PetsState>((set, get) => ({
   getUrgentPets: () => {
     const { reports, userLocation } = get();
     let urgentPets = reports.filter(report => report.isUrgent);
-    
+
     if (userLocation) {
       // Sort urgent pets by distance if user location is available
       urgentPets = urgentPets.sort((a, b) => {
         if (!a.lastSeenLocation || !b.lastSeenLocation) return 0;
-        
+
         const distanceA = calculateDistance(
           userLocation.latitude,
           userLocation.longitude,
@@ -149,9 +149,7 @@ export const usePets = create<PetsState>((set, get) => ({
         return distanceA - distanceB;
       });
     }
-    
+
     return urgentPets;
   },
 }));
-
-export { usePets };

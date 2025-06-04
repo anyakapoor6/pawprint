@@ -38,9 +38,9 @@ export default function ScanResults({ scannedImage, matches, aiAnalysis, onClose
 
     // Store the data temporarily (you'd want to use a proper state management solution in a real app)
     global.scanReportData = reportData;
-    
+
     // Navigate to report form with type=found
-    router.push('/report?type=found&fromScan=true');
+    router.push('/report');
   };
 
   return (
@@ -54,8 +54,8 @@ export default function ScanResults({ scannedImage, matches, aiAnalysis, onClose
 
       <ScrollView style={styles.content}>
         <View style={styles.scannedImageContainer}>
-          <Image 
-            source={{ uri: scannedImage }} 
+          <Image
+            source={{ uri: scannedImage }}
             style={styles.scannedImage}
             resizeMode="cover"
           />
@@ -86,12 +86,12 @@ export default function ScanResults({ scannedImage, matches, aiAnalysis, onClose
           <Text style={styles.matchesTitle}>
             Found {matches.length} potential matches
           </Text>
-          
+
           {matches.map((match, index) => (
             <Link key={match.id} href={`/pet/${match.id}`} asChild>
               <TouchableOpacity style={styles.matchItem}>
-                <Image 
-                  source={{ uri: match.photos[0] }} 
+                <Image
+                  source={{ uri: match.photos[0] }}
                   style={styles.matchImage}
                   resizeMode="cover"
                 />
@@ -118,7 +118,7 @@ export default function ScanResults({ scannedImage, matches, aiAnalysis, onClose
 
         <View style={styles.noMatchContainer}>
           <Text style={styles.noMatchTitle}>Don't see a match?</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.reportButton}
             onPress={handleReportFound}
           >

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ArrowLeft, Camera, ImagePlus, X, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../../constants/colors';
@@ -16,8 +16,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 
 export default function CreateReportScreen() {
   const router = useRouter();
-  const { type = 'lost' } = useLocalSearchParams<{ type: ReportType }>();
-  const [reportType, setReportType] = useState<ReportType>(type as ReportType);
+  const [reportType, setReportType] = useState<ReportType>('lost');
   const [petType, setPetType] = useState<PetType | null>(null);
   const [petName, setPetName] = useState('');
   const [petBreed, setPetBreed] = useState('');
@@ -422,6 +421,10 @@ export default function CreateReportScreen() {
           </Text>
           <GooglePlacesAutocomplete
             placeholder="Search for a location"
+            predefinedPlaces={[]}
+            textInputProps={{
+              onFocus: () => { },
+            }}
             onPress={(data, details = null) => {
               setLocation(data.description);
               if (details?.geometry?.location) {
@@ -431,7 +434,6 @@ export default function CreateReportScreen() {
                 });
               }
             }}
-
             fetchDetails={true}
             styles={{
               textInput: styles.input,
@@ -442,6 +444,8 @@ export default function CreateReportScreen() {
               language: 'en',
             }}
           />
+
+
         </View>
 
 
