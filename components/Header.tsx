@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Bell, Search, Plus } from 'lucide-react-native';
+import { Bell, Pen, Search, SquarePen } from 'lucide-react-native';
 import { Link, useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 
@@ -32,9 +32,9 @@ export default function Header() {
           <Text style={styles.logoText}>PawPrint</Text>
         </View>
         <View style={styles.actions}>
-          {/* Create Story Button (plus icon) */}
+          {/* Create Story Button (pen icon) */}
           <TouchableOpacity style={styles.iconButton} onPress={handleCreatePress}>
-            <Plus size={24} color={colors.black} />
+            <SquarePen size={24} color={colors.black} />
           </TouchableOpacity>
           {/* Search Button */}
           <TouchableOpacity style={styles.iconButton} onPress={handleSearchPress}>
