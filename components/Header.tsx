@@ -55,11 +55,9 @@ export default function Header() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
-    paddingTop: Platform.OS === 'ios' ? 48 : 24,
+    // backgroundColor: colors.white,
+    paddingTop: Platform.OS === 'ios' ? 32 : 16,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   content: {
     flexDirection: 'row',

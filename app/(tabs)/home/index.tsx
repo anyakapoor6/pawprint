@@ -7,90 +7,7 @@ import { useStories } from '@/store/stories';
 import PetCard from '@/components/PetCard';
 import StoryCard from '@/components/StoryCard';
 import Header from '@/components/Header';
-
-export default function HomeScreen() {
-	const { stories } = useStories();
-
-	const urgentReports = mockReports.filter(r => r.isUrgent);
-	const recentReports = [...mockReports].sort((a, b) =>
-		new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
-	);
-	const foundReports = mockReports.filter(r => r.reportType === 'found' && r.status === 'active');
-
-	return (
-		<ScrollView style={styles.container}>
-			<Header />
-			<Text style={styles.title}>Connect, Care, and Share in Your Pet Community</Text>
-			<Section
-				title="Urgent Cases"
-				iconColor={colors.urgent}
-				onSeeAll={() => router.push('/home/urgent')}
-				icon={<AlertTriangle size={16} color={colors.urgent} />}
-			>
-				<FlatList
-					data={urgentReports.slice(0, 5)}
-					horizontal
-					keyExtractor={(item) => item.id}
-					renderItem={({ item }) => (
-						<View style={styles.cardSpacing}>
-							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
-						</View>
-					)}
-					showsHorizontalScrollIndicator={false}
-				/>
-			</Section>
-
-			<Section
-				title="Recently Reported"
-				iconColor={colors.secondary}
-				onSeeAll={() => router.push('/home/recent')}
-				icon={<Clock size={16} color={colors.secondary} />}
-			>
-				<FlatList
-					data={recentReports.slice(0, 5)}
-					horizontal
-					keyExtractor={(item) => item.id}
-					renderItem={({ item }) => (
-						<View style={styles.cardSpacing}>
-							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
-						</View>
-					)}
-					showsHorizontalScrollIndicator={false}
-				/>
-			</Section>
-
-			<Section
-				title="Found Pets Near Me"
-				iconColor={colors.primary}
-				onSeeAll={() => router.push('/home/found')}
-				icon={<MapPin size={16} color={colors.primary} />}
-			>
-				<FlatList
-					data={foundReports.slice(0, 5)}
-					horizontal
-					keyExtractor={(item) => item.id}
-					renderItem={({ item }) => (
-						<View style={styles.cardSpacing}>
-							<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
-						</View>
-					)}
-					showsHorizontalScrollIndicator={false}
-				/>
-			</Section>
-
-			<Section
-				title="Storyboard"
-				iconColor={colors.accent}
-				onSeeAll={() => router.push('/home/stories')}
-				icon={<Heart size={16} color={colors.accent} />}
-			>
-				{stories.length > 0 && (
-					<StoryCard story={stories[0]} />
-				)}
-			</Section>
-		</ScrollView>
-	);
-}
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type SectionProps = {
 	title: string;
@@ -120,7 +37,6 @@ function Section({ title, iconColor, onSeeAll, children, icon }: SectionProps) {
 const styles = StyleSheet.create({
 	container: {
 		backgroundColor: colors.background,
-		paddingTop: 60,
 		paddingBottom: 40,
 	},
 	title: {
@@ -159,3 +75,91 @@ const styles = StyleSheet.create({
 		marginRight: 12,
 	},
 });
+
+export default function HomeScreen() {
+	const { stories } = useStories();
+
+	const urgentReports = mockReports.filter(r => r.isUrgent);
+	const recentReports = [...mockReports].sort((a, b) =>
+		new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
+	);
+	const foundReports = mockReports.filter(r => r.reportType === 'found' && r.status === 'active');
+
+	return (
+		<SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+			<ScrollView
+				contentContainerStyle={styles.container}
+				showsVerticalScrollIndicator={false}
+			>
+				<Header />
+				<Text style={styles.title}>Find Your Lost Pet</Text>
+
+				<Section
+					title="Urgent Cases"
+					iconColor={colors.urgent}
+					onSeeAll={() => router.push('/home/urgent')}
+					icon={<AlertTriangle size={25} color={colors.urgent} />}
+				>
+					<FlatList
+						data={urgentReports.slice(0, 5)}
+						horizontal
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => (
+							<View style={styles.cardSpacing}>
+								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							</View>
+						)}
+						showsHorizontalScrollIndicator={false}
+					/>
+				</Section>
+
+				<Section
+					title="Recently Reported"
+					iconColor={colors.secondary}
+					onSeeAll={() => router.push('/home/recent')}
+					icon={<Clock size={25} color={colors.secondary} />}
+				>
+					<FlatList
+						data={recentReports.slice(0, 5)}
+						horizontal
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => (
+							<View style={styles.cardSpacing}>
+								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							</View>
+						)}
+						showsHorizontalScrollIndicator={false}
+					/>
+				</Section>
+
+				<Section
+					title="Found Pets Near Me"
+					iconColor={colors.primary}
+					onSeeAll={() => router.push('/home/found')}
+					icon={<MapPin size={25} color={colors.primary} />}
+				>
+					<FlatList
+						data={foundReports.slice(0, 5)}
+						horizontal
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => (
+							<View style={styles.cardSpacing}>
+								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							</View>
+						)}
+						showsHorizontalScrollIndicator={false}
+					/>
+				</Section>
+
+				<Section
+					title="Storyboard"
+					iconColor={colors.accent}
+					onSeeAll={() => router.push('/home/stories')}
+					icon={<Heart size={25} color={colors.accent} />}
+				>
+					{stories.length > 0 && <StoryCard story={stories[0]} />}
+				</Section>
+			</ScrollView>
+		</SafeAreaView>
+	);
+}
