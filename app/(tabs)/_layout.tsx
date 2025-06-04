@@ -1,14 +1,20 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import { Home, MapPin, Camera, AlertTriangle, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarStyle: { height: 60, paddingBottom: 6 },
+        tabBarStyle: {
+          height: 60 + insets.bottom,
+          paddingBottom: 6 + insets.bottom,
+        },
         headerShown: false,
       }}
     >
