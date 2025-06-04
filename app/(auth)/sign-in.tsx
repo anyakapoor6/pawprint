@@ -16,9 +16,9 @@ export default function SignIn() {
         setError('Please enter both email and password');
         return;
       }
-      
+
       // Mock successful sign in
-      router.replace('/(tabs)');
+      router.replace('/home');
     } catch (err) {
       setError('Invalid email or password');
     }
@@ -61,7 +61,7 @@ export default function SignIn() {
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.signUpButton}
           onPress={() => router.push('/sign-up')}
         >
