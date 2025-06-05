@@ -110,7 +110,7 @@ export default function ProfileScreen() {
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>Notifications</Text>
 
         <TouchableOpacity
           style={styles.menuItem}
@@ -121,12 +121,29 @@ export default function ProfileScreen() {
               <Bell size={20} color={colors.gray[600]} />
             </View>
             <View style={styles.menuItemTextContainer}>
-              <Text style={styles.menuItemTitle}>Notifications</Text>
-              <Text style={styles.menuItemSubtitle}>Manage your notification preferences</Text>
+              <Text style={styles.menuItemTitle}>Notification Feed</Text>
+              <Text style={styles.menuItemSubtitle}>See recent alerts and updates</Text>
             </View>
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => handleNavigate('/(modals)/notifications/notification-preferences')}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.gray[200] }]}>
+              <Settings size={20} color={colors.gray[600]} />
+            </View>
+            <View style={styles.menuItemTextContainer}>
+              <Text style={styles.menuItemTitle}>Notification Settings</Text>
+              <Text style={styles.menuItemSubtitle}>Control what you get notified about</Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
 
         <TouchableOpacity
           style={styles.menuItem}
