@@ -6,6 +6,8 @@ import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
 import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
+import { Linking } from 'react-native';
+
 
 interface PetCardProps {
   report: PetReport;
@@ -110,6 +112,19 @@ export default function PetCard({
           <Text style={styles.dateText}>{formattedDate}</Text>
         </View>
 
+        {/* {report.contactInfo?.phone && (
+          <TouchableOpacity
+            style={styles.callButton}
+            onPress={() => {
+              const phoneUrl = `tel:${report.contactInfo.phone}`;
+              Linking.openURL(phoneUrl);
+            }}
+          >
+            <Text style={styles.callButtonText}>Call Owner</Text>
+          </TouchableOpacity>
+        )} */}
+
+
         <View style={styles.infoRow}>
           <MapPin size={14} color={colors.textSecondary} />
           <Text style={styles.infoText} numberOfLines={1}>
@@ -199,6 +214,21 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     gap: 6, // or rowGap/columnGap if supported
   },
+
+  // callButton: {
+  //   alignSelf: 'flex-start',
+  //   backgroundColor: colors.success, // or a custom green like '#4CAF50'
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 4,
+  //   borderRadius: 6,
+  //   marginBottom: 8,
+  // },
+
+  // callButtonText: {
+  //   color: colors.white,
+  //   fontSize: 12,
+  //   fontWeight: '600',
+  // },
 
   topRow: {
     flexDirection: 'row',

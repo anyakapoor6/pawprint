@@ -22,7 +22,7 @@ export default function CreateReportScreen() {
   const [petColor, setPetColor] = useState('');
   const [petSize, setPetSize] = useState<'small' | 'medium' | 'large' | null>(null);
   const [petGender, setPetGender] = useState<'male' | 'female' | 'unknown' | null>(null);
-  const [petAge, setPetAge] = useState('');
+  const [petAge, setPetAge] = useState<'baby' | 'adult' | 'senior' | ''>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const tagOptions = ['Microchipped', 'Friendly', 'Shy', 'Collar'];
   const [description, setDescription] = useState('');
@@ -153,7 +153,7 @@ export default function CreateReportScreen() {
         color: petColor,
         size: petSize,
         gender: petGender || 'unknown',
-        age: petAge,
+        ageCategory: petAge as 'baby' | 'adult' | 'senior',
         description,
         photos,
         reportType,
@@ -176,6 +176,23 @@ export default function CreateReportScreen() {
       };
 
       await addReport(newReport);
+
+      // Reset all form values
+      setReportType('lost');
+      setPetType(null);
+      setPetName('');
+      setPetBreed('');
+      setPetColor('');
+      setPetSize(null);
+      setPetGender(null);
+      setPetAge('');
+      setSelectedTags([]);
+      setDescription('');
+      setLocation('');
+      setPhotos([]);
+      setIsUrgent(false);
+      setCoordinates(null);
+
 
       Alert.alert(
         "Report Submitted",

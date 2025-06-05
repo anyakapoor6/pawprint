@@ -8,6 +8,8 @@ import { usePets } from '@/store/pets';
 import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
 import MapView, { Marker } from 'react-native-maps';
+import { Linking } from 'react-native';
+
 
 
 export default function PetDetailScreen() {
@@ -243,6 +245,15 @@ export default function PetDetailScreen() {
               )}
               <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
             </View>
+            {pet.contactInfo?.phone && (
+              <TouchableOpacity
+                style={styles.callButton}
+                onPress={() => Linking.openURL(`tel:${pet.contactInfo.phone}`)}
+              >
+                <Text style={styles.callButtonText}>📞 Call Owner</Text>
+              </TouchableOpacity>
+            )}
+
 
             <View style={styles.interactionStats}>
               <View style={styles.statItem}>
@@ -332,6 +343,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  callButton: {
+    backgroundColor: colors.success,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 24, // 👈 This pushes it up by adding space below
+    marginHorizontal: 16,
+  },
+
+
+  callButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
   scrollContent: {
     paddingBottom: 24,
   },
