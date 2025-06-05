@@ -422,8 +422,9 @@ export default function CreateReportScreen() {
         <View style={{ zIndex: 100 }}>
           <GooglePlacesAutocomplete
             placeholder="Search for a location"
+            predefinedPlaces={[]}
             textInputProps={{
-              onFocus: () => { }, // Prevent undefined onFocus crash
+              onFocus: () => { },
             }}
             onPress={(data, details = null) => {
               setLocation(data.description);
@@ -432,8 +433,6 @@ export default function CreateReportScreen() {
                   latitude: details.geometry.location.lat,
                   longitude: details.geometry.location.lng,
                 });
-                Alert.alert("Location Error", "Could not retrieve coordinates for this location.");
-                return;
               }
             }}
             fetchDetails={true}
@@ -448,24 +447,14 @@ export default function CreateReportScreen() {
                 backgroundColor: 'white',
                 elevation: 5,
               },
-              row: {
-                padding: 13,
-                height: 44,
-                flexDirection: 'row',
-              },
-              separator: {
-                height: 0.5,
-                backgroundColor: '#c8c7cc',
-              },
-              description: {
-                color: '#000',
-              },
             }}
             query={{
-              key: 'AIzaSyB7axeVt4Ofja7fIHawyDXHKQ1M4GocEC4',
+              key: 'YOUR_GOOGLE_PLACES_API_KEY',
               language: 'en',
             }}
           />
+
+
         </View>
 
 
