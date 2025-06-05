@@ -103,9 +103,12 @@ export default function PetCard({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
-          {report.name || `${report.type} (${report.color})`}
-        </Text>
+        <View style={styles.topRow}>
+          <Text style={styles.title} numberOfLines={1}>
+            {report.name || `${report.type} (${report.color})`}
+          </Text>
+          <Text style={styles.dateText}>{formattedDate}</Text>
+        </View>
 
         <View style={styles.infoRow}>
           <MapPin size={14} color={colors.textSecondary} />
@@ -126,12 +129,11 @@ export default function PetCard({
 
         <View style={styles.infoRow}>
           <Calendar size={14} color={colors.textSecondary} />
-          <Text style={styles.infoText}>{formattedDate}</Text>
+          <Text style={styles.infoText}>
+            Age: {report.ageCategory ? report.ageCategory.charAt(0).toUpperCase() + report.ageCategory.slice(1) : 'Unknown'}
+          </Text>
         </View>
 
-        <Text style={styles.infoText}>
-          Age: {report.ageCategory ? report.ageCategory.charAt(0).toUpperCase() + report.ageCategory.slice(1) : 'Unknown'}
-        </Text>
 
 
         <View style={styles.interactionBar}>
@@ -171,13 +173,13 @@ export default function PetCard({
           </TouchableOpacity>
         )}
       </View>
-    </TouchableOpacity>
+    </TouchableOpacity >
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 200,
+    width: 220,
     borderRadius: 12,
     backgroundColor: colors.white,
     shadowColor: colors.shadow,
@@ -192,15 +194,32 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
+    justifyContent: 'center', // 👈 centers the tags
+    marginTop: 4,
+    marginBottom: 4,
+    gap: 6, // or rowGap/columnGap if supported
   },
+
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start', // 👈 aligns top edge
+    marginBottom: 8,
+  },
+  dateText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2, // 👈 fine-tune vertical alignment
+  },
+
   tag: {
     backgroundColor: colors.gray[100],
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    marginBottom: 6,
   },
+
   tagText: {
     fontSize: 10,
     color: colors.textSecondary,
@@ -210,7 +229,11 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     height: 140,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    overflow: 'hidden', // add this
   },
+
   image: {
     width: '100%',
     height: '100%',
@@ -253,12 +276,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 12,
+    gap: 6,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
+    flexShrink: 1, // ensures the name takes only the space it needs
+    marginRight: 6,
   },
   infoRow: {
     flexDirection: 'row',
