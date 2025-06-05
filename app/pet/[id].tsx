@@ -176,7 +176,7 @@ export default function PetDetailScreen() {
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Age</Text>
-                <Text style={styles.infoValue}>{pet.age || 'Unknown'}</Text>
+                <Text style={styles.infoValue}>{pet.ageCategory || 'Unknown'}</Text>
               </View>
             </View>
           </View>

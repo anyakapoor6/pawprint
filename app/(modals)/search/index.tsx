@@ -19,7 +19,7 @@ type FilterState = {
   color: string;
   size: 'small' | 'medium' | 'large' | 'all';
   gender: 'male' | 'female' | 'unknown' | 'all';
-  age: string;
+  age: 'baby' | 'adult' | 'senior' | 'all';
   distance: number;
   dateRange: 'recent' | 'week' | 'month' | 'all';
   location?: {
@@ -41,7 +41,7 @@ export default function SearchScreen() {
     color: '',
     size: 'all',
     gender: 'all',
-    age: '',
+    age: 'all',
     distance: 25,
     dateRange: 'all',
   });
@@ -152,14 +152,10 @@ export default function SearchScreen() {
       filtered = filtered.filter(r => r.gender === filters.gender);
     }
 
-    if (filters.age) {
-      filtered = filtered.filter(r => {
-        if (!r.age) return false;
-        const reportAge = parseInt(r.age);
-        const filterAge = parseInt(filters.age);
-        return !isNaN(reportAge) && !isNaN(filterAge) && reportAge === filterAge;
-      });
+    if (filters.age !== 'all') {
+      filtered = filtered.filter(r => r.ageCategory === filters.age);
     }
+
 
     if (filters.location && filters.distance) {
       filtered = filtered.filter(report => {
@@ -201,7 +197,7 @@ export default function SearchScreen() {
       color: '',
       size: 'all',
       gender: 'all',
-      age: '',
+      age: 'all',
       distance: 25,
       dateRange: 'all',
     });
@@ -344,16 +340,28 @@ export default function SearchScreen() {
           </View>
 
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Age (in years)</Text>
-            <TextInput
-              style={styles.filterInput}
-              value={filters.age}
-              onChangeText={(text) => updateFilter('age', text)}
-              placeholder="Enter age"
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="numeric"
-            />
+            <Text style={styles.filterLabel}>Age Group</Text>
+            <View style={styles.filterOptions}>
+              {(['all', 'baby', 'adult', 'senior'] as const).map((age) => (
+                <TouchableOpacity
+                  key={age}
+                  style={[
+                    styles.filterOption,
+                    filters.age === age && styles.filterOptionActive
+                  ]}
+                  onPress={() => updateFilter('age', age)}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    filters.age === age && styles.filterOptionTextActive
+                  ]}>
+                    {age === 'all' ? 'All' : age.charAt(0).toUpperCase() + age.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
+
 
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Location</Text>

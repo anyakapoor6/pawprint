@@ -10,10 +10,10 @@ export const mockReports: PetReport[] = [
     color: 'Golden',
     size: 'large',
     gender: 'male',
-    age: '3 years',
+    ageCategory: 'adult',
     description: 'Last seen near the lake. Wearing a red collar with tags.',
     photos: [
-      'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg'
     ],
     reportType: 'lost',
     status: 'active',
@@ -45,9 +45,10 @@ export const mockReports: PetReport[] = [
     color: 'Cream',
     size: 'small',
     gender: 'female',
+    ageCategory: 'baby',
     description: 'Indoor cat, may be scared. Has a blue collar with bell.',
     photos: [
-      'https://images.pexels.com/photos/1770918/pexels-photo-1770918.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/1770918/pexels-photo-1770918.jpeg'
     ],
     reportType: 'lost',
     status: 'active',
@@ -75,10 +76,10 @@ export const mockReports: PetReport[] = [
     color: 'Chocolate',
     size: 'large',
     gender: 'male',
-    age: '2 years',
+    ageCategory: 'adult',
     description: 'Found wandering near the park. Very friendly, wearing a green collar.',
     photos: [
-      'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg'
     ],
     reportType: 'found',
     status: 'active',
@@ -105,10 +106,10 @@ export const mockReports: PetReport[] = [
     color: 'White',
     size: 'small',
     gender: 'female',
-    age: '4 years',
+    ageCategory: 'adult',
     description: 'Found in residential area. Long-haired white cat with blue eyes.',
     photos: [
-      'https://images.pexels.com/photos/1521306/pexels-photo-1521306.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/1521306/pexels-photo-1521306.jpeg'
     ],
     reportType: 'found',
     status: 'active',
@@ -135,10 +136,10 @@ export const mockReports: PetReport[] = [
     color: 'Black and Tan',
     size: 'large',
     gender: 'male',
-    age: '5 years',
+    ageCategory: 'senior',
     description: 'Missing since yesterday evening. Has a distinctive scar on right ear.',
     photos: [
-      'https://images.pexels.com/photos/333083/pexels-photo-333083.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/333083/pexels-photo-333083.jpeg'
     ],
     reportType: 'lost',
     status: 'active',
@@ -164,29 +165,33 @@ export const mockReports: PetReport[] = [
   {
     id: '6',
     userId: 'user6',
-    type: 'rabbit',
-    breed: 'Holland Lop',
-    color: 'Brown and White',
+    name: 'Milo',
+    type: 'cat',
+    breed: 'Tabby',
+    color: 'Gray and White',
     size: 'small',
-    description: 'Found hopping around in community garden. Very gentle.',
+    gender: 'male',
+    ageCategory: 'baby',
+    description: 'Milo slipped out the front door. He’s very playful but may be scared of strangers.',
     photos: [
-      'https://images.pexels.com/photos/4001296/pexels-photo-4001296.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/320014/pexels-photo-320014.jpeg'
     ],
-    reportType: 'found',
+    reportType: 'lost',
     status: 'active',
     isUrgent: false,
     dateReported: '2024-03-14',
+    lastSeenDate: '2024-03-14',
     lastSeenLocation: {
-      latitude: 40.722301,
-      longitude: -73.984892,
-      address: 'East Village, New York'
+      latitude: 40.73061,
+      longitude: -73.935242,
+      address: 'Astoria, New York'
     },
     contactInfo: {
-      name: 'Lisa Martinez',
-      email: 'lisa.m@example.com',
-      phone: '555-0128'
+      name: 'Anna Lopez',
+      email: 'anna.lopez@example.com',
+      phone: '555-0129'
     },
-    tags: ['gentle', 'domestic']
+    tags: ['kitten', 'playful', 'indoor']
   }
 ];
 
@@ -198,15 +203,15 @@ export const mockStories: Story[] = [
     content: 'We never lost hope of finding our beloved Bailey after he ran away during the 4th of July fireworks. Thanks to a kind stranger who recognized him from PawPrint and the amazing AI matching feature, Bailey is finally back home where he belongs! The reunion was emotional and Bailey couldn\'t stop wagging his tail. We\'re so grateful to this wonderful community!',
     petReportId: '101',
     petName: 'Bailey',
-    petPhoto: 'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    userPhoto: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    petPhoto: 'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg',
+    userPhoto: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg',
     userName: 'Michael Anderson',
     date: '2024-03-01',
     likes: 342,
     comments: 57,
     photos: [
-      'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+      'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg',
+      'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg'
     ]
   }
 ];

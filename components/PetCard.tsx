@@ -130,7 +130,7 @@ export default function PetCard({
         </View>
 
         <Text style={styles.infoText}>
-          Age: {report.age ? report.age.charAt(0).toUpperCase() + report.age.slice(1) : 'Unknown'}
+          Age: {report.ageCategory ? report.ageCategory.charAt(0).toUpperCase() + report.ageCategory.slice(1) : 'Unknown'}
         </Text>
 
 

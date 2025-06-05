@@ -40,7 +40,7 @@ export interface PetReport {
   color: string;
   size: PetSize;
   gender?: string;
-  age?: string;
+  ageCategory: 'baby' | 'adult' | 'senior';
   description: string;
   photos: string[];
   reportType: ReportType;
