@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
-import { mockReports } from '@/data/mockData';
+import { usePets } from '@/store/pets';
+
 
 const DEFAULT_REGION = {
   latitude: 40.7128,
@@ -23,6 +24,8 @@ if (Platform.OS !== 'web') {
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { reports } = usePets();
+
 
   useEffect(() => {
     (async () => {
@@ -69,7 +72,7 @@ export default function MapScreen() {
         showsUserLocation
         showsMyLocationButton
       >
-        {mockReports.map((report) => (
+        {reports.map((report) => (
           <Marker
             key={report.id}
             coordinate={{

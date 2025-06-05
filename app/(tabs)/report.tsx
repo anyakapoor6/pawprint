@@ -9,7 +9,7 @@ import { useAuth } from '../../store/auth';
 import { PetType, ReportType, PetReport, ReportStatus } from '@/types/pet';
 import * as Location from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-
+import { FlatList, KeyboardAvoidingView } from 'react-native';
 
 
 
@@ -453,11 +453,9 @@ export default function CreateReportScreen() {
               language: 'en',
             }}
           />
-
+          \
 
         </View>
-
-
 
 
         <Text style={styles.sectionTitle}>Photos</Text>
@@ -783,3 +781,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
