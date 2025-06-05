@@ -294,6 +294,30 @@ export default function SearchScreen() {
           </View>
 
           <View style={styles.filterSection}>
+            <Text style={styles.filterLabel}>Breed</Text>
+            <TextInput
+              style={styles.filterInput}
+              value={filters.breed}
+              onChangeText={(text) => updateFilter('breed', text)}
+              placeholder="Enter breed"
+              placeholderTextColor={colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.filterSection}>
+            <Text style={styles.filterLabel}>Color</Text>
+            <TextInput
+              style={styles.filterInput}
+              value={filters.color}
+              onChangeText={(text) => updateFilter('color', text)}
+              placeholder="Enter color"
+              placeholderTextColor={colors.textTertiary}
+            />
+          </View>
+
+
+
+          <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Size</Text>
             <View style={styles.filterOptions}>
               {(['all', 'small', 'medium', 'large'] as const).map((size) => (
