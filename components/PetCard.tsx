@@ -189,7 +189,7 @@ export default function PetCard({
             onPress={handleResolve}
           >
             <Check size={14} color={colors.white} />
-            <Text style={styles.resolveButtonText}>Mark as Found</Text>
+            <Text style={styles.resolveButtonText}>Pet Was Reunited</Text>
           </TouchableOpacity>
         )}
       </View>

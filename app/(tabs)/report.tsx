@@ -200,13 +200,16 @@ export default function CreateReportScreen() {
       setPetAge('');
       setSelectedTags([]);
       setDescription('');
-      setLocation('');
       setPhotos([]);
       setIsUrgent(false);
-      setCoordinates(null);
+      // Clear location input field correctly
       setLocation('');
       setCoordinates(null);
-      locationRef.current?.clear();
+
+      setTimeout(() => {
+        locationRef.current?.setAddressText(''); // <-- this actually clears the input value
+      }, 0);
+
 
 
 
