@@ -96,10 +96,15 @@ export default function HomeScreen() {
 	}, []);
 
 
-	const urgentReports = reports.filter(r => r.isUrgent);
-	const recentReports = [...reports].sort((a, b) =>
-		new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
+	const urgentReports = reports.filter(
+		r => r.isUrgent && r.status !== 'resolved'
 	);
+
+	const recentReports = reports
+		.filter(r => r.status !== 'resolved')
+		.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
+		.slice(0, 10);
+
 	const foundReports = reports.filter((r) => {
 		if (r.reportType !== 'found' || r.status !== 'active') return false;
 		if (!userLocation || !r.lastSeenLocation) return true;

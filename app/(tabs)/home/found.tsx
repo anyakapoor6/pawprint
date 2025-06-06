@@ -1,25 +1,53 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
-import { colors } from '@/constants/colors';
-import { mockReports } from '@/data/mockData';
-import MiniPetCard from '@/components/MiniPetCard';
+import * as Location from 'expo-location';
 
-import PetCard from '@/components/PetCard';
-import { Dimensions } from 'react-native';
+import { colors } from '@/constants/colors';
+import MiniPetCard from '@/components/MiniPetCard';
+import { usePets } from '@/store/pets';
+import { isNearMe } from '@/components/isNearMe';
+import { PetReport } from '@/types/pet';
 
 const screenWidth = Dimensions.get('window').width;
-const cardMargin = 12; // horizontal space between cards
-const cardPadding = 32; // total horizontal padding of the parent view (16 left + 16 right)
+const cardMargin = 12;
+const cardPadding = 32;
 const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
-
 
 
 export default function FoundPetsScreen() {
   const router = useRouter();
-  const foundPets = mockReports.filter(
-    report => report.reportType === 'found' && report.status === 'active'
+  const { getAllReports } = usePets();
+  const reports = getAllReports();
+  const { userLocation } = usePets();
+
+
+  const [myLocation, setMyLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+
+      const location = await Location.getCurrentPositionAsync({});
+      setMyLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    })();
+  }, []);
+
+
+  const foundPets = reports.filter(
+    (r) =>
+      r.reportType === 'found' &&
+      r.status !== 'resolved' &&
+      r.lastSeenLocation &&
+      userLocation &&
+      isNearMe(r.lastSeenLocation, userLocation)
   );
+
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
@@ -31,28 +59,20 @@ export default function FoundPetsScreen() {
         <Text style={styles.headerTitle}>Found Pets</Text>
         <View style={styles.headerInfo}>
           <MapPin size={16} color={colors.secondary} />
-          <Text style={styles.headerSubtitle}>
-            Pets found in your area
-          </Text>
+          <Text style={styles.headerSubtitle}>Pets found in your area</Text>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
         {foundPets.length > 0 ? (
           <View style={styles.grid}>
-            {foundPets.map((report, index) => (
-              <View
-                key={report.id}
-                style={[
-                  styles.gridItem,
-                  index % 2 === 0 && { marginRight: 12 },
-                ]}
-              >
+            {foundPets.map((report: PetReport, index: number) => (
+              <View key={report.id} style={[styles.gridItem, index % 2 === 0 && { marginRight: 12 }]}>
                 <MiniPetCard report={report} onPress={() => handlePetPress(report.id)} />
               </View>
             ))}
-          </View>
 
+          </View>
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No found pets</Text>
@@ -65,6 +85,7 @@ export default function FoundPetsScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
