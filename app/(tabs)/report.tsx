@@ -132,6 +132,15 @@ export default function CreateReportScreen() {
   };
 
   const handleSubmit = async () => {
+
+    console.log("SUBMITTING...");
+    console.log("petType:", petType, typeof petType);
+    console.log("petColor:", petColor, typeof petColor);
+    console.log("petSize:", petSize, typeof petSize);
+    console.log("description:", description, typeof description);
+    console.log("location:", location, typeof location, location.length);
+    console.log("photos.length:", photos.length);
+
     if (!petType || !petColor || !petSize || !description || !location || photos.length === 0) {
       Alert.alert('Error', 'Please fill in all required fields and add at least one photo');
       return;
@@ -140,8 +149,6 @@ export default function CreateReportScreen() {
     setLoading(true);
 
     const coords = coordinates || { latitude: 0, longitude: 0 };
-
-
 
     try {
       const newReport = {
@@ -217,300 +224,321 @@ export default function CreateReportScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>
-          Report a {reportType === 'lost' ? 'Lost' : 'Found'} Pet
-        </Text>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+      <FlatList
+        data={[1]} // dummy
+        keyExtractor={() => 'form'}
+        renderItem={() => (
+          <View style={styles.scrollContent}>
 
-        <View style={styles.typeSelector}>
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              reportType === 'lost' && styles.typeButtonActive
-            ]}
-            onPress={() => handleTypeSelection('lost')}
-          >
-            <Text style={[
-              styles.typeButtonText,
-              reportType === 'lost' && styles.typeButtonTextActive
-            ]}>
-              Lost Pet
+            <Text style={styles.title}>
+              Report a {reportType === 'lost' ? 'Lost' : 'Found'} Pet
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              reportType === 'found' && styles.typeButtonActive
-            ]}
-            onPress={() => handleTypeSelection('found')}
-          >
-            <Text style={[
-              styles.typeButtonText,
-              reportType === 'found' && styles.typeButtonTextActive
-            ]}>
-              Found Pet
-            </Text>
-          </TouchableOpacity>
-        </View>
 
-        {reportType === 'lost' && (
-          <TouchableOpacity
-            style={[styles.urgentToggle, isUrgent && styles.urgentToggleActive]}
-            onPress={() => setIsUrgent(!isUrgent)}
-          >
-            <AlertTriangle size={20} color={isUrgent ? colors.white : colors.urgent} />
-            <Text style={[styles.urgentText, isUrgent && styles.urgentTextActive]}>
-              Mark as Urgent
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <Text style={styles.sectionTitle}>Pet Type</Text>
-        <View style={styles.petTypeContainer}>
-          {(['dog', 'cat'] as PetType[]).map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.petTypeButton,
-                petType === type && styles.petTypeButtonActive
-              ]}
-              onPress={() => handlePetTypeSelection(type)}
-            >
-              <Text style={[
-                styles.petTypeText,
-                petType === type && styles.petTypeTextActive
-              ]}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {reportType === 'lost' && (
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Pet's Name</Text>
-            <TextInput
-              style={styles.input}
-              value={petName}
-              onChangeText={setPetName}
-              placeholder="Pet's name (if applicable)"
-              placeholderTextColor={colors.textTertiary}
-            />
-          </View>
-        )}
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Breed</Text>
-          <TextInput
-            style={styles.input}
-            value={petBreed}
-            onChangeText={setPetBreed}
-            placeholder="Breed (if known)"
-            placeholderTextColor={colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Color</Text>
-          <TextInput
-            style={styles.input}
-            value={petColor}
-            onChangeText={setPetColor}
-            placeholder="Primary color(s)"
-            placeholderTextColor={colors.textTertiary}
-          />
-        </View>
-
-        {/* After: Age category selection buttons */}
-        <Text style={styles.label}>Age (Optional)</Text>
-        <View style={styles.ageContainer}>
-          {(['baby', 'adult', 'senior'] as const).map((ageCategory) => (
-            <TouchableOpacity
-              key={ageCategory}
-              style={[
-                styles.ageButton,
-                petAge === ageCategory && styles.ageButtonActive
-              ]}
-              onPress={() => setPetAge(ageCategory)}
-            >
-              <Text style={[
-                styles.ageButtonText,
-                petAge === ageCategory && styles.ageButtonTextActive
-              ]}>
-                {ageCategory.charAt(0).toUpperCase() + ageCategory.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-
-        <Text style={styles.sectionTitle}>Size</Text>
-        <View style={styles.sizeContainer}>
-          {(['small', 'medium', 'large'] as const).map((size) => (
-            <TouchableOpacity
-              key={size}
-              style={[
-                styles.sizeButton,
-                petSize === size && styles.sizeButtonActive
-              ]}
-              onPress={() => handleSizeSelection(size)}
-            >
-              <Text style={[
-                styles.sizeButtonText,
-                petSize === size && styles.sizeButtonTextActive
-              ]}>
-                {size.charAt(0).toUpperCase() + size.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Gender</Text>
-        <View style={styles.genderContainer}>
-          {(['male', 'female', 'unknown'] as const).map((gender) => (
-            <TouchableOpacity
-              key={gender}
-              style={[
-                styles.genderButton,
-                petGender === gender && styles.genderButtonActive
-              ]}
-              onPress={() => handleGenderSelection(gender)}
-            >
-              <Text style={[
-                styles.genderButtonText,
-                petGender === gender && styles.genderButtonTextActive
-              ]}>
-                {gender === 'male' ? 'Male' : gender === 'female' ? 'Female' : 'Unknown'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Tags (Optional)</Text>
-        <View style={styles.tagContainer}>
-          {tagOptions.map((tag) => {
-            const isSelected = selectedTags.includes(tag);
-            return (
+            <View style={styles.typeSelector}>
               <TouchableOpacity
-                key={tag}
-                style={[styles.tagButton, isSelected && styles.tagButtonSelected]}
-                onPress={() =>
-                  setSelectedTags((prev) =>
-                    isSelected
-                      ? prev.filter((t) => t !== tag)
-                      : [...prev, tag]
-                  )
-                }
+                style={[
+                  styles.typeButton,
+                  reportType === 'lost' && styles.typeButtonActive
+                ]}
+                onPress={() => handleTypeSelection('lost')}
               >
-                <Text
-                  style={[
-                    styles.tagButtonText,
-                    isSelected && styles.tagButtonTextSelected,
-                  ]}
-                >
-                  {tag}
+                <Text style={[
+                  styles.typeButtonText,
+                  reportType === 'lost' && styles.typeButtonTextActive
+                ]}>
+                  Lost Pet
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Describe the pet in detail (distinctive features, behavior, etc.)"
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <Text style={styles.label}>
-          {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
-        </Text>
-
-        {/* Render outside of ScrollView */}
-        <View style={{ zIndex: 100 }}>
-          <GooglePlacesAutocomplete
-            placeholder="Search for a location"
-            predefinedPlaces={[]}
-            textInputProps={{
-              onFocus: () => { },
-            }}
-            onPress={(data, details = null) => {
-              setLocation(data.description);
-              if (details?.geometry?.location) {
-                setCoordinates({
-                  latitude: details.geometry.location.lat,
-                  longitude: details.geometry.location.lng,
-                });
-              }
-            }}
-            fetchDetails={true}
-            styles={{
-              textInput: {
-                ...styles.input,
-                marginBottom: 16,
-                zIndex: 100,
-              },
-              listView: {
-                zIndex: 200,
-                backgroundColor: 'white',
-                elevation: 5,
-              },
-            }}
-            query={{
-              key: 'YOUR_GOOGLE_PLACES_API_KEY',
-              language: 'en',
-            }}
-          />
-          \
-
-        </View>
-
-
-        <Text style={styles.sectionTitle}>Photos</Text>
-        <Text style={styles.photoHelper}>
-          Clear photos help increase the chances of finding your pet.
-        </Text>
-        <View style={styles.photosContainer}>
-          {photos.map((photo, index) => (
-            <View key={index} style={styles.photoItem}>
-              <Image source={{ uri: photo }} style={styles.photoThumbnail} />
               <TouchableOpacity
-                style={styles.removePhotoButton}
-                onPress={() => handleRemovePhoto(index)}
+                style={[
+                  styles.typeButton,
+                  reportType === 'found' && styles.typeButtonActive
+                ]}
+                onPress={() => handleTypeSelection('found')}
               >
-                <X size={16} color={colors.white} />
+                <Text style={[
+                  styles.typeButtonText,
+                  reportType === 'found' && styles.typeButtonTextActive
+                ]}>
+                  Found Pet
+                </Text>
               </TouchableOpacity>
             </View>
-          ))}
-          <TouchableOpacity
-            style={styles.addPhotoButton}
-            onPress={handleAddPhoto}
-          >
-            <ImagePlus size={24} color={colors.primary} />
-            <Text style={styles.addPhotoText}>Add Photo</Text>
-          </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          <Text style={styles.submitButtonText}>
-            {loading ? 'Submitting...' : 'Submit Report'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+            {reportType === 'lost' && (
+              <TouchableOpacity
+                style={[styles.urgentToggle, isUrgent && styles.urgentToggleActive]}
+                onPress={() => setIsUrgent(!isUrgent)}
+              >
+                <AlertTriangle size={20} color={isUrgent ? colors.white : colors.urgent} />
+                <Text style={[styles.urgentText, isUrgent && styles.urgentTextActive]}>
+                  Mark as Urgent
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={[styles.inputGroup, { zIndex: 10 }]}>
+              <Text style={styles.label}>
+                {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
+              </Text>
+
+              <GooglePlacesAutocomplete
+                placeholder="Search for a location"
+                fetchDetails={true}
+                minLength={1}
+                debounce={200}
+                onPress={(data, details = null) => {
+                  console.log("SELECTED:", data, details);
+                  if (data?.description) {
+                    setLocation(data.description);
+                  }
+
+                  if (details?.geometry?.location) {
+                    setCoordinates({
+                      latitude: details.geometry.location.lat,
+                      longitude: details.geometry.location.lng,
+                    });
+                  }
+                }}
+
+                query={{
+                  key: 'AIzaSyB7axeVt4Ofja7fIHawyDXHKQ1M4GocEC4',
+                  language: 'en',
+                }}
+                textInputProps={{
+                  placeholderTextColor: colors.textTertiary,
+                }}
+                styles={{
+                  container: { flex: 0, zIndex: 9999 },
+                  textInput: {
+                    ...styles.input,
+                    marginBottom: 16,
+                  },
+                  listView: {
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                    zIndex: 10,
+                    marginBottom: 10,
+                    position: 'absolute',
+                    top: 60,
+                    maxHeight: 200,
+                  },
+                }}
+                enablePoweredByContainer={false}
+                listViewDisplayed="auto"
+                predefinedPlaces={[]} // Prevents crash
+              />
+            </View>
+
+
+            <Text style={styles.sectionTitle}>Pet Type</Text>
+            <View style={styles.petTypeContainer}>
+              {(['dog', 'cat'] as PetType[]).map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.petTypeButton,
+                    petType === type && styles.petTypeButtonActive
+                  ]}
+                  onPress={() => handlePetTypeSelection(type)}
+                >
+                  <Text style={[
+                    styles.petTypeText,
+                    petType === type && styles.petTypeTextActive
+                  ]}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {reportType === 'lost' && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Pet's Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={petName}
+                  onChangeText={setPetName}
+                  placeholder="Pet's name (if applicable)"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </View>
+            )}
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Breed</Text>
+              <TextInput
+                style={styles.input}
+                value={petBreed}
+                onChangeText={setPetBreed}
+                placeholder="Breed (if known)"
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Color</Text>
+              <TextInput
+                style={styles.input}
+                value={petColor}
+                onChangeText={setPetColor}
+                placeholder="Primary color(s)"
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
+
+            {/* After: Age category selection buttons */}
+            <Text style={styles.label}>Age (Optional)</Text>
+            <View style={styles.ageContainer}>
+              {(['baby', 'adult', 'senior'] as const).map((ageCategory) => (
+                <TouchableOpacity
+                  key={ageCategory}
+                  style={[
+                    styles.ageButton,
+                    petAge === ageCategory && styles.ageButtonActive
+                  ]}
+                  onPress={() => setPetAge(ageCategory)}
+                >
+                  <Text style={[
+                    styles.ageButtonText,
+                    petAge === ageCategory && styles.ageButtonTextActive
+                  ]}>
+                    {ageCategory.charAt(0).toUpperCase() + ageCategory.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+
+            <Text style={styles.sectionTitle}>Size</Text>
+            <View style={styles.sizeContainer}>
+              {(['small', 'medium', 'large'] as const).map((size) => (
+                <TouchableOpacity
+                  key={size}
+                  style={[
+                    styles.sizeButton,
+                    petSize === size && styles.sizeButtonActive
+                  ]}
+                  onPress={() => handleSizeSelection(size)}
+                >
+                  <Text style={[
+                    styles.sizeButtonText,
+                    petSize === size && styles.sizeButtonTextActive
+                  ]}>
+                    {size.charAt(0).toUpperCase() + size.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.sectionTitle}>Gender</Text>
+            <View style={styles.genderContainer}>
+              {(['male', 'female', 'unknown'] as const).map((gender) => (
+                <TouchableOpacity
+                  key={gender}
+                  style={[
+                    styles.genderButton,
+                    petGender === gender && styles.genderButtonActive
+                  ]}
+                  onPress={() => handleGenderSelection(gender)}
+                >
+                  <Text style={[
+                    styles.genderButtonText,
+                    petGender === gender && styles.genderButtonTextActive
+                  ]}>
+                    {gender === 'male' ? 'Male' : gender === 'female' ? 'Female' : 'Unknown'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.sectionTitle}>Tags (Optional)</Text>
+            <View style={styles.tagContainer}>
+              {tagOptions.map((tag) => {
+                const isSelected = selectedTags.includes(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[styles.tagButton, isSelected && styles.tagButtonSelected]}
+                    onPress={() =>
+                      setSelectedTags((prev) =>
+                        isSelected
+                          ? prev.filter((t) => t !== tag)
+                          : [...prev, tag]
+                      )
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.tagButtonText,
+                        isSelected && styles.tagButtonTextSelected,
+                      ]}
+                    >
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Describe the pet in detail (distinctive features, behavior, etc.)"
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+
+
+            <Text style={styles.sectionTitle}>Photos</Text>
+            <Text style={styles.photoHelper}>
+              Clear photos help increase the chances of finding your pet.
+            </Text>
+            <View style={styles.photosContainer}>
+              {photos.map((photo, index) => (
+                <View key={index} style={styles.photoItem}>
+                  <Image source={{ uri: photo }} style={styles.photoThumbnail} />
+                  <TouchableOpacity
+                    style={styles.removePhotoButton}
+                    onPress={() => handleRemovePhoto(index)}
+                  >
+                    <X size={16} color={colors.white} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={styles.addPhotoButton}
+                onPress={handleAddPhoto}
+              >
+                <ImagePlus size={24} color={colors.primary} />
+                <Text style={styles.addPhotoText}>Add Photo</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              <Text style={styles.submitButtonText}>
+                {loading ? 'Submitting...' : 'Submit Report'}
+              </Text>
+            </TouchableOpacity>
+          </View> // closes View inside renderItem
+        )}
+        keyboardShouldPersistTaps="handled"
+      />
+    </KeyboardAvoidingView>
   );
 }
 
