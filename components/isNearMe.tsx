@@ -6,7 +6,7 @@ interface GeoLocation {
 export function isNearMe(
 	locationA: GeoLocation,
 	locationB: GeoLocation,
-	thresholdKm = 10
+	thresholdKm = 50
 ): boolean {
 	const toRad = (value: number) => (value * Math.PI) / 180;
 

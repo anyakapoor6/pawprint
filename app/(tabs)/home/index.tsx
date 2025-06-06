@@ -105,7 +105,6 @@ export default function HomeScreen() {
 			userLocation &&
 			isNearMe(r.lastSeenLocation, userLocation)
 		)
-		.slice(0, 5);
 
 	const recentReports = reports
 		.filter(r =>
@@ -115,7 +114,7 @@ export default function HomeScreen() {
 			isNearMe(r.lastSeenLocation, userLocation)
 		)
 		.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
-		.slice(0, 10);
+
 
 	const foundPets = reports.filter(
 		(r) =>
@@ -124,7 +123,7 @@ export default function HomeScreen() {
 			r.lastSeenLocation &&
 			userLocation &&
 			isNearMe(r.lastSeenLocation, userLocation)
-	).slice(0, 6); // or however many to show on home
+	)
 
 
 
@@ -169,7 +168,7 @@ export default function HomeScreen() {
 					icon={<Clock size={25} color={colors.secondary} />}
 				>
 					<FlatList
-						data={urgentReports.slice(0, 5)}
+						data={recentReports.slice(0, 5)}
 						horizontal
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
@@ -181,9 +180,6 @@ export default function HomeScreen() {
 						showsHorizontalScrollIndicator={false}
 						contentContainerStyle={{ paddingRight: 16 }} // make space for the last card
 					/>
-
-
-
 
 
 				</Section>
