@@ -97,12 +97,23 @@ export default function HomeScreen() {
 	}, []);
 
 
-	const urgentReports = reports.filter(
-		r => r.isUrgent && r.status !== 'resolved'
-	);
+	const urgentReports = reports
+		.filter(r =>
+			r.isUrgent &&
+			r.status !== 'resolved' &&
+			r.lastSeenLocation &&
+			userLocation &&
+			isNearMe(r.lastSeenLocation, userLocation)
+		)
+		.slice(0, 5);
 
 	const recentReports = reports
-		.filter(r => r.status !== 'resolved')
+		.filter(r =>
+			r.status !== 'resolved' &&
+			r.lastSeenLocation &&
+			userLocation &&
+			isNearMe(r.lastSeenLocation, userLocation)
+		)
 		.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
 		.slice(0, 10);
 
@@ -127,7 +138,7 @@ export default function HomeScreen() {
 				<Text style={styles.title}>Find Your Lost Pet</Text>
 
 				<Section
-					title="Urgent Cases"
+					title="Urgent Cases Near Me"
 					iconColor={colors.urgent}
 					onSeeAll={() => router.push('/home/urgent')}
 					icon={<AlertTriangle size={25} color={colors.urgent} />}
@@ -152,7 +163,7 @@ export default function HomeScreen() {
 				</Section>
 
 				<Section
-					title="Recently Reported"
+					title="Recently Reported Near Me"
 					iconColor={colors.secondary}
 					onSeeAll={() => router.push('/home/recent')}
 					icon={<Clock size={25} color={colors.secondary} />}

@@ -6,6 +6,10 @@ import { mockReports } from '@/data/mockData';
 import MiniPetCard from '@/components/MiniPetCard';
 import PetCard from '@/components/PetCard';
 import { Dimensions } from 'react-native';
+import { isNearMe } from '@/components/isNearMe';
+import * as Location from 'expo-location';
+import { useEffect } from 'react';
+import { usePets } from '@/store/pets';
 
 const screenWidth = Dimensions.get('window').width;
 const cardMargin = 12; // horizontal space between cards
@@ -14,44 +18,68 @@ const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
 
 
 
-export default function UrgentCasesScreen() {
-  const router = useRouter();
-  const urgentCases = mockReports.filter(report => report.isUrgent);
+export default function UrgentPetsScreen() {
+  const { reports, userLocation, setUserLocation } = usePets();
 
-  const handlePetPress = (id: string) => {
-    router.push(`/pet/${id}`);
-  };
+  useEffect(() => {
+    if (!userLocation) {
+      (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({});
+          setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        }
+      })();
+    }
+  }, []);
+
+  const urgentNearby = reports.filter(
+    r =>
+      r.isUrgent &&
+      r.status !== 'resolved' &&
+      r.lastSeenLocation &&
+      userLocation &&
+      isNearMe(r.lastSeenLocation, userLocation)
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Urgent Cases</Text>
+        <Text style={styles.headerTitle}>Urgent Cases Near You</Text>
         <View style={styles.headerInfo}>
           <AlertTriangle size={16} color={colors.urgent} />
-          <Text style={styles.headerSubtitle}>
-            These pets need immediate attention
-          </Text>
+          <Text style={styles.headerSubtitle}>These pets need urgent help</Text>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.grid}>
-          {urgentCases.map((report, index) => (
-            <View
-              key={report.id}
-              style={[
-                styles.gridItem,
-                index % 2 === 0 && { marginRight: 12 },
-              ]}
-            >
-              <MiniPetCard report={report} onPress={() => handlePetPress(report.id)} />
-            </View>
-          ))}
-        </View>
-
+        {urgentNearby.length > 0 ? (
+          <View style={styles.grid}>
+            {urgentNearby.map((report, index) => (
+              <View
+                key={report.id}
+                style={[
+                  styles.gridItem,
+                  index % 2 === 0 && { marginRight: 12 },
+                ]}
+              >
+                <MiniPetCard report={report} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No urgent reports</Text>
+            <Text style={styles.emptyStateText}>
+              There are currently no urgent pet reports near you
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
+
+
 }
 
 const styles = StyleSheet.create({
@@ -94,5 +122,25 @@ const styles = StyleSheet.create({
   gridItem: {
     width: cardWidth,
     marginBottom: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

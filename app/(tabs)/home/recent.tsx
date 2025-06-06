@@ -8,6 +8,12 @@ import MiniPetCard from '@/components/MiniPetCard';
 import PetCard from '@/components/PetCard';
 import { Dimensions } from 'react-native';
 
+import { useEffect } from 'react';
+import * as Location from 'expo-location';
+import { usePets } from '@/store/pets';
+import { isNearMe } from '@/components/isNearMe';
+
+
 const screenWidth = Dimensions.get('window').width;
 const cardMargin = 12; // horizontal space between cards
 const cardPadding = 32; // total horizontal padding of the parent view (16 left + 16 right)
@@ -16,10 +22,18 @@ const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
 
 
 export default function RecentReportsScreen() {
+  const { reports, userLocation, setUserLocation } = usePets();
   const router = useRouter();
-  const recentReports = [...mockReports].sort(
-    (a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()
-  );
+  const recentReports = reports
+    .filter(
+      r =>
+        r.status !== 'resolved' &&
+        r.lastSeenLocation &&
+        userLocation &&
+        isNearMe(r.lastSeenLocation, userLocation)
+    )
+    .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
+
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
@@ -38,23 +52,32 @@ export default function RecentReportsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.grid}>
-          {recentReports.map((report, index) => (
-            <View
-              key={report.id}
-              style={[
-                styles.gridItem,
-                index % 2 === 0 && { marginRight: 12 },
-              ]}
-            >
-              <MiniPetCard report={report} onPress={() => handlePetPress(report.id)} />
-            </View>
-          ))}
-        </View>
-
+        {recentReports.length > 0 ? (
+          <View style={styles.grid}>
+            {recentReports.map((report, index) => (
+              <View
+                key={report.id}
+                style={[
+                  styles.gridItem,
+                  index % 2 === 0 && { marginRight: 12 },
+                ]}
+              >
+                <MiniPetCard report={report} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No recent reports</Text>
+            <Text style={styles.emptyStateText}>
+              There are currently no recently reported pets near you
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -97,5 +120,25 @@ const styles = StyleSheet.create({
   gridItem: {
     width: cardWidth,
     marginBottom: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
