@@ -75,14 +75,18 @@ export default function PetCard({
         )}
         <View style={[
           styles.typeBadge,
-          report.status === 'resolved' ? styles.resolvedBadge :
-            report.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
+          report.status === 'resolved'
+            ? styles.reunitedBadge
+            : report.reportType === 'lost'
+              ? styles.lostBadge
+              : styles.foundBadge
         ]}>
           <Text style={styles.typeText}>
-            {report.status === 'resolved' ? 'FOUND' :
+            {report.status === 'resolved' ? 'REUNITED' :
               report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>
+
         {showSaveButton && !isOwner && (
           <TouchableOpacity
             style={[styles.saveButton, isSaved && styles.savedButton]}
@@ -208,6 +212,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
+  reunitedBadge: {
+    backgroundColor: '#ec4899', // Tailwind rose-500 pink
+  },
 
 
   tagRow: {

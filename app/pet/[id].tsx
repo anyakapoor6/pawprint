@@ -118,12 +118,18 @@ export default function PetDetailScreen() {
 
           <View style={[
             styles.statusBadge,
-            pet.reportType === 'lost' ? styles.lostBadge : styles.foundBadge
+            pet.status === 'resolved'
+              ? styles.reunitedBadge
+              : pet.reportType === 'lost'
+                ? styles.lostBadge
+                : styles.foundBadge
           ]}>
             <Text style={styles.statusText}>
-              {pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
+              {pet.status === 'resolved' ? 'REUNITED' :
+                pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
             </Text>
           </View>
+
 
           {pet.isUrgent && (
             <View style={styles.urgentBadge}>
@@ -429,6 +435,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  reunitedBadge: {
+    backgroundColor: '#ec4899', // tailwind rose-500 pink
+  },
+
   lostBadge: {
     backgroundColor: 'rgba(255, 107, 107, 0.85)',
   },
