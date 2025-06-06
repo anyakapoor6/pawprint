@@ -27,11 +27,12 @@ export default function RecentReportsScreen() {
   const recentReports = reports
     .filter(
       r =>
-        r.status !== 'resolved' &&
+        r.status !== 'reunited' &&
         r.lastSeenLocation &&
         userLocation &&
         isNearMe(r.lastSeenLocation, userLocation)
     )
+
     .sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
 
 

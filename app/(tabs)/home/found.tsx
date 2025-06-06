@@ -43,7 +43,7 @@ export default function FoundPetsScreen() {
   const foundPets = reports.filter(
     (r) =>
       r.reportType === 'found' &&
-      r.status !== 'resolved' &&
+      r.status !== 'reunited' &&
       r.lastSeenLocation &&
       (!userLocation || isNearMe(r.lastSeenLocation, userLocation))
   );

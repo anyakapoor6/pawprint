@@ -14,15 +14,15 @@ export const useStats = create<StatsState>((set) => ({
   successRate: 0,
   calculateStats: () => {
     // Get total resolved reports
-    const resolvedReports = mockReports.filter(report => report.status === 'resolved');
+    const resolvedReports = mockReports.filter(report => report.status === 'reunited');
     const totalReports = mockReports.length;
-    
+
     // Calculate unique users
     const uniqueUsers = new Set(mockReports.map(report => report.userId)).size;
-    
+
     // Calculate success rate
-    const successRate = totalReports > 0 
-      ? (resolvedReports.length / totalReports) * 100 
+    const successRate = totalReports > 0
+      ? (resolvedReports.length / totalReports) * 100
       : 0;
 
     set({

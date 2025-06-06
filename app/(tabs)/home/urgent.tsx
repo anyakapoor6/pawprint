@@ -36,11 +36,12 @@ export default function UrgentPetsScreen() {
   const urgentNearby = reports.filter(
     r =>
       r.isUrgent &&
-      r.status !== 'resolved' &&
+      r.status !== 'reunited' &&
       r.lastSeenLocation &&
       userLocation &&
       isNearMe(r.lastSeenLocation, userLocation)
   );
+
 
   return (
     <View style={styles.container}>

@@ -100,7 +100,7 @@ export default function HomeScreen() {
 	const urgentReports = reports
 		.filter(r =>
 			r.isUrgent &&
-			r.status !== 'resolved' &&
+			r.status !== 'reunited' &&
 			r.lastSeenLocation &&
 			userLocation &&
 			isNearMe(r.lastSeenLocation, userLocation)
@@ -108,7 +108,7 @@ export default function HomeScreen() {
 
 	const recentReports = reports
 		.filter(r =>
-			r.status !== 'resolved' &&
+			r.status !== 'reunited' &&
 			r.lastSeenLocation &&
 			userLocation &&
 			isNearMe(r.lastSeenLocation, userLocation)
@@ -119,7 +119,7 @@ export default function HomeScreen() {
 	const foundPets = reports.filter(
 		(r) =>
 			r.reportType === 'found' &&
-			r.status !== 'resolved' &&
+			r.status !== 'reunited' &&
 			r.lastSeenLocation &&
 			userLocation &&
 			isNearMe(r.lastSeenLocation, userLocation)
