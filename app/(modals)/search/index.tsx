@@ -5,8 +5,10 @@ import { Search as SearchIcon, MapPin, Filter, X, ChevronLeft } from 'lucide-rea
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { PetReport, ReportType, PetType } from '@/types/pet';
-import { mockReports } from '@/data/mockData';
+import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
+import React from 'react';
+
 
 interface SearchScreenProps {
   onClose?: () => void;
@@ -47,11 +49,13 @@ export default function SearchScreen() {
   });
 
   const router = useRouter();
+  const { reports } = usePets();
+
 
   const handleSearch = (text: string) => {
     setSearchTerm(text);
     if (text.length > 2) {
-      const filtered = mockReports.filter((report) => {
+      const filtered = reports.filter((report) => {
         const searchLower = text.toLowerCase();
         const nameLower = (report.name || '').toLowerCase();
         const breedLower = (report.breed || '').toLowerCase();
@@ -122,7 +126,7 @@ export default function SearchScreen() {
   };
 
   const applyFilters = () => {
-    let filtered = [...mockReports];
+    let filtered = [...reports];
 
     if (filters.reportType !== 'all') {
       filtered = filtered.filter(r => r.reportType === filters.reportType);
@@ -178,7 +182,7 @@ export default function SearchScreen() {
   };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
+    const R = 3958.8; // Earth's radius in miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -401,8 +405,9 @@ export default function SearchScreen() {
             {filters.location && (
               <View style={styles.distanceContainer}>
                 <Text style={styles.distanceLabel}>
-                  Search within {filters.distance} km
+                  Search within {filters.distance} mi
                 </Text>
+
                 <View style={styles.distanceOptions}>
                   {[5, 10, 25, 50, 100].map((distance) => (
                     <TouchableOpacity
@@ -417,7 +422,7 @@ export default function SearchScreen() {
                         styles.distanceOptionText,
                         filters.distance === distance && styles.distanceOptionTextActive
                       ]}>
-                        {distance}km
+                        {distance} mi
                       </Text>
                     </TouchableOpacity>
                   ))}
