@@ -18,25 +18,26 @@ const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
 
 export default function FoundPetsScreen() {
   const router = useRouter();
-  const { getAllReports } = usePets();
+
+
+  const { setUserLocation, userLocation, getAllReports } = usePets();
   const reports = getAllReports();
-  const { userLocation } = usePets();
 
 
-  const [myLocation, setMyLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return;
 
-      const location = await Location.getCurrentPositionAsync({});
-      setMyLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+      const loc = await Location.getCurrentPositionAsync({});
+      setUserLocation({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
       });
     })();
   }, []);
+
 
 
   const foundPets = reports.filter(
@@ -44,9 +45,9 @@ export default function FoundPetsScreen() {
       r.reportType === 'found' &&
       r.status !== 'resolved' &&
       r.lastSeenLocation &&
-      userLocation &&
-      isNearMe(r.lastSeenLocation, userLocation)
+      (!userLocation || isNearMe(r.lastSeenLocation, userLocation))
   );
+
 
 
   const handlePetPress = (id: string) => {

@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePets } from '@/store/pets';
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
+import { isNearMe } from '@/components/isNearMe';
 
 
 type SectionProps = {
@@ -105,16 +106,15 @@ export default function HomeScreen() {
 		.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime())
 		.slice(0, 10);
 
-	const foundReports = reports.filter((r) => {
-		if (r.reportType !== 'found' || r.status !== 'active') return false;
-		if (!userLocation || !r.lastSeenLocation) return true;
+	const foundPets = reports.filter(
+		(r) =>
+			r.reportType === 'found' &&
+			r.status !== 'resolved' &&
+			r.lastSeenLocation &&
+			userLocation &&
+			isNearMe(r.lastSeenLocation, userLocation)
+	).slice(0, 6); // or however many to show on home
 
-		const dist = Math.sqrt(
-			Math.pow(userLocation.latitude - r.lastSeenLocation.latitude, 2) +
-			Math.pow(userLocation.longitude - r.lastSeenLocation.longitude, 2)
-		);
-		return dist < 0.1; // ~10km radius
-	});
 
 
 	return (
@@ -184,7 +184,7 @@ export default function HomeScreen() {
 					icon={<MapPin size={25} color={colors.primary} />}
 				>
 					<FlatList
-						data={urgentReports.slice(0, 5)}
+						data={foundPets.slice(0, 5)}
 						horizontal
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
