@@ -82,7 +82,7 @@ export const mockReports: PetReport[] = [
       'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg'
     ],
     reportType: 'found',
-    status: 'active',
+    status: 'reunited', // ✅ change this
     isUrgent: false,
     dateReported: '2024-03-11',
     lastSeenLocation: {
@@ -97,6 +97,7 @@ export const mockReports: PetReport[] = [
     },
     tags: ['friendly', 'collar']
   },
+
   {
     id: '4',
     userId: 'user4',

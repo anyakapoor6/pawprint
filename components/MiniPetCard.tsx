@@ -29,17 +29,43 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			onPress={onPress ?? (() => router.push(`/pet/${report.id}`))}
 		>
 			<View>
-				{showResolveButton && (
+				{report.status === 'active' && (
 					<TouchableOpacity style={styles.resolveButton} onPress={onResolve}>
 						<Text style={styles.resolveText}>Mark as Reunited</Text>
 					</TouchableOpacity>
 				)}
+
+
+				<View
+					style={[
+						styles.badge,
+						{
+							backgroundColor:
+								report.status === 'reunited'
+									? '#fcb6d0' // pink
+									: report.reportType === 'lost'
+										? colors.error // red
+										: colors.success, // green
+						},
+					]}
+				>
+					<Text style={styles.badgeText}>
+						{report.status === 'reunited'
+							? 'Reunited'
+							: report.reportType === 'lost'
+								? 'Lost'
+								: 'Found'}
+					</Text>
+				</View>
+
 				<Image source={{ uri: report.photos[0] }} style={styles.image} />
 			</View>
 
 			<View style={styles.infoContainer}>
 				<View style={styles.topRow}>
-					<Text style={styles.name} numberOfLines={1}>{report.name || report.type}</Text>
+					<Text style={styles.name} numberOfLines={1}>
+						{report.name || report.type}
+					</Text>
 					<Text style={styles.date}>{formattedDate}</Text>
 				</View>
 				<View style={styles.locationRow}>
@@ -66,6 +92,7 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 		</TouchableOpacity>
 	);
 
+
 }
 
 const styles = StyleSheet.create({
@@ -84,6 +111,21 @@ const styles = StyleSheet.create({
 	infoContainer: {
 		padding: 8,
 	},
+	badge: {
+		position: 'absolute',
+		top: 6,
+		left: 6,
+		borderRadius: 6,
+		paddingHorizontal: 8,
+		paddingVertical: 2,
+		zIndex: 10,
+	},
+	badgeText: {
+		color: colors.white,
+		fontSize: 10,
+		fontWeight: '600',
+	},
+
 	topRow: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -130,12 +172,13 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 6,
 		right: 6,
-		backgroundColor: colors.success,
+		backgroundColor: '#fcb6d0',
 		borderRadius: 6,
 		paddingHorizontal: 8,
 		paddingVertical: 2,
 		zIndex: 10,
 	},
+
 	resolveText: {
 		color: colors.white,
 		fontSize: 10,

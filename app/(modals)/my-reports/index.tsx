@@ -7,13 +7,36 @@ import { PetReport } from '@/types/pet';
 import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
 import MiniPetCard from '@/components/MiniPetCard';
+import { useAuth } from '@/store/auth';
 
 export default function MyReportsScreen() {
   const router = useRouter();
-  const { getReportsByStatus, updatePetStatus } = usePets();
   const [activeTab, setActiveTab] = useState<'active' | 'resolved'>('active');
 
-  const userReports = getReportsByStatus(activeTab === 'active' ? 'active' : 'resolved');
+  const { getUserReports, updatePetStatus } = usePets();
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  console.log('Current user:', user);
+
+
+  if (!userId) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 100 }}>
+          Please sign in to view your reports.
+        </Text>
+      </View>
+    );
+  }
+
+
+  const userReports = getUserReports(userId).filter((report: PetReport) => {
+    if (activeTab === 'active') return report.status === 'active';
+    if (activeTab === 'resolved') return report.status === 'reunited';
+    return false;
+  });
+
 
   const handlePetPress = (id: string) => {
     router.push(`/pet/${id}`);
@@ -35,7 +58,7 @@ export default function MyReportsScreen() {
         {
           text: 'Yes, Mark as Reunited',
           onPress: () => {
-            updatePetStatus(report.id, 'resolved');
+            updatePetStatus(report.id, 'reunited');
             Alert.alert(
               'Report Resolved',
               'Would you like to share your success story?',
@@ -51,6 +74,7 @@ export default function MyReportsScreen() {
               ]
             );
           }
+
         }
       ]
     );
@@ -182,8 +206,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 40,
+    padding: 40,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    marginTop: 20,
   },
+
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',

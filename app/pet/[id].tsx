@@ -118,14 +118,14 @@ export default function PetDetailScreen() {
 
           <View style={[
             styles.statusBadge,
-            pet.status === 'resolved'
+            pet.status === 'reunited'
               ? styles.reunitedBadge
               : pet.reportType === 'lost'
                 ? styles.lostBadge
                 : styles.foundBadge
           ]}>
             <Text style={styles.statusText}>
-              {pet.status === 'resolved' ? 'REUNITED' :
+              {pet.status === 'reunited' ? 'REUNITED' :
                 pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
             </Text>
           </View>

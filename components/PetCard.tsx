@@ -75,14 +75,14 @@ export default function PetCard({
         )}
         <View style={[
           styles.typeBadge,
-          report.status === 'resolved'
+          report.status === 'reunited'
             ? styles.reunitedBadge
             : report.reportType === 'lost'
               ? styles.lostBadge
               : styles.foundBadge
         ]}>
           <Text style={styles.typeText}>
-            {report.status === 'resolved' ? 'REUNITED' :
+            {report.status === 'reunited' ? 'REUNITED' :
               report.reportType === 'lost' ? 'LOST' : 'FOUND'}
           </Text>
         </View>

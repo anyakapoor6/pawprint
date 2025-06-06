@@ -1,7 +1,7 @@
 export type PetType = 'dog' | 'cat';
 export type ReportType = 'lost' | 'found';
 export type PetSize = 'small' | 'medium' | 'large';
-export type ReportStatus = 'active' | 'resolved';
+export type ReportStatus = 'active' | 'reunited';
 
 export interface Location {
   latitude: number;

@@ -16,6 +16,7 @@ export const colors = {
   text: '#1A1A1A',
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
+  pink: '#E56B85', // or any shade you prefer
   border: '#E5E7EB',
   shadow: '#000000',
   white: '#FFFFFF',

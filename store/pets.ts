@@ -14,6 +14,7 @@ interface PetsState {
   getNearbyPets: (radius?: number) => PetReport[];
   setUserLocation: (location: { latitude: number; longitude: number }) => void;
   getUrgentPets: () => PetReport[];
+  getUserReports: (userId: string) => PetReport[];
 }
 
 const calculateDistance = (
@@ -73,9 +74,9 @@ export const usePets = create<PetsState>((set, get) => ({
 
   getReportsByStatus: (status: ReportStatus) => {
     const reports = get().reports ?? [];
-    if (status === 'resolved') {
+    if (status === 'reunited') {
       return reports.filter(report =>
-        report.status === 'resolved' || report.reportType === 'found'
+        report.status === 'reunited' || report.reportType === 'found'
       );
     } else {
       return reports.filter(report =>
@@ -91,6 +92,11 @@ export const usePets = create<PetsState>((set, get) => ({
   getAllReports: () => {
     return get().reports;
   },
+
+  getUserReports: (userId: string) => {
+    return get().reports.filter(report => report.userId === userId);
+  },
+
 
   getNearbyPets: (radius = 10) => {
     const { reports, userLocation } = get();
