@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
 import PetCard from '@/components/PetCard';
+import MiniPetCard from '@/components/MiniPetCard';
 
 interface SavedPetsScreenProps {
   onClose?: () => void;
@@ -40,7 +41,7 @@ export default function SavedPetsScreen({ onClose }: SavedPetsScreenProps) {
               style={styles.petItem}
               onPress={() => handlePetPress(pet.id)}
             >
-              <PetCard report={pet} />
+              <MiniPetCard report={pet} />
             </TouchableOpacity>
           ))}
         </View>

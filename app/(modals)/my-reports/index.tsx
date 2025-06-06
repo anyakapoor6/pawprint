@@ -6,12 +6,13 @@ import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
+import MiniPetCard from '@/components/MiniPetCard';
 
 export default function MyReportsScreen() {
   const router = useRouter();
   const { getReportsByStatus, updatePetStatus } = usePets();
   const [activeTab, setActiveTab] = useState<'active' | 'resolved'>('active');
-  
+
   const userReports = getReportsByStatus(activeTab === 'active' ? 'active' : 'resolved');
 
   const handlePetPress = (id: string) => {
@@ -58,7 +59,7 @@ export default function MyReportsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
         >
@@ -69,7 +70,7 @@ export default function MyReportsScreen() {
       </View>
 
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.tab, activeTab === 'active' && styles.activeTab]}
           onPress={() => setActiveTab('active')}
         >
@@ -77,7 +78,7 @@ export default function MyReportsScreen() {
             Active
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.tab, activeTab === 'resolved' && styles.activeTab]}
           onPress={() => setActiveTab('resolved')}
         >
@@ -91,8 +92,8 @@ export default function MyReportsScreen() {
         <View style={styles.reportsGrid}>
           {userReports.map((report) => (
             <View key={report.id} style={styles.reportItem}>
-              <PetCard 
-                report={report} 
+              <MiniPetCard
+                report={report}
                 onPress={() => handlePetPress(report.id)}
                 showResolveButton={activeTab === 'active' && report.reportType === 'lost'}
                 onResolve={() => handleResolvePet(report)}
@@ -100,14 +101,14 @@ export default function MyReportsScreen() {
             </View>
           ))}
         </View>
-        
+
         {userReports.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>
               No {activeTab} reports
             </Text>
             <Text style={styles.emptyStateText}>
-              {activeTab === 'active' 
+              {activeTab === 'active'
                 ? "You don't have any active reports at the moment"
                 : "You haven't resolved any reports yet"}
             </Text>

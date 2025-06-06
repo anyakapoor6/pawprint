@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
 import PetCard from '@/components/PetCard';
+import MiniPetCard from '@/components/MiniPetCard';
 
 export default function SavedPetsScreen() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function SavedPetsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
         >
@@ -35,14 +36,14 @@ export default function SavedPetsScreen() {
         <View style={styles.petsGrid}>
           {savedPets.map((pet) => (
             <View key={pet.id} style={styles.petItem}>
-              <PetCard 
+              <MiniPetCard
                 report={pet}
                 onPress={() => handlePetPress(pet.id)}
               />
             </View>
           ))}
         </View>
-        
+
         {savedPets.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No saved pets</Text>
