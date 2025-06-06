@@ -9,7 +9,11 @@ import { useAuth } from '../../store/auth';
 import { PetType, ReportType, PetReport, ReportStatus } from '@/types/pet';
 import * as Location from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 import { FlatList, KeyboardAvoidingView } from 'react-native';
+import { useRef } from 'react';
+
+
 
 
 
@@ -36,6 +40,7 @@ export default function CreateReportScreen() {
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
 
 
+  const locationRef = useRef<GooglePlacesAutocompleteRef>(null);
 
 
   const handleTypeSelection = (type: ReportType) => {
@@ -199,6 +204,11 @@ export default function CreateReportScreen() {
       setPhotos([]);
       setIsUrgent(false);
       setCoordinates(null);
+      setLocation('');
+      setCoordinates(null);
+      locationRef.current?.clear();
+
+
 
 
       Alert.alert(
@@ -284,15 +294,17 @@ export default function CreateReportScreen() {
               </Text>
 
               <GooglePlacesAutocomplete
+                ref={locationRef}
                 placeholder="Search for a location"
                 fetchDetails={true}
                 minLength={1}
                 debounce={200}
                 onPress={(data, details = null) => {
                   console.log("SELECTED:", data, details);
-                  if (data?.description) {
-                    setLocation(data.description);
-                  }
+                  setLocation(data.description || '');
+                  // if (data?.description) {
+                  //   setLocation(data.description);
+                  // }
 
                   if (details?.geometry?.location) {
                     setCoordinates({
@@ -307,6 +319,8 @@ export default function CreateReportScreen() {
                   language: 'en',
                 }}
                 textInputProps={{
+                  value: location,
+                  onChangeText: setLocation,
                   placeholderTextColor: colors.textTertiary,
                 }}
                 styles={{
