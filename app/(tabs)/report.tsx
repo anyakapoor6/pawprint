@@ -289,7 +289,7 @@ export default function CreateReportScreen() {
             )}
 
             <View style={[styles.inputGroup, { zIndex: 10 }]}>
-              <Text style={styles.label}>
+              <Text style={styles.sectionTitle}>
                 {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
               </Text>
 
@@ -371,7 +371,7 @@ export default function CreateReportScreen() {
 
             {reportType === 'lost' && (
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Pet's Name</Text>
+                <Text style={styles.sectionTitle}>Pet's Name</Text>
                 <TextInput
                   style={styles.input}
                   value={petName}
@@ -383,7 +383,7 @@ export default function CreateReportScreen() {
             )}
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Breed</Text>
+              <Text style={styles.sectionTitle}>Breed</Text>
               <TextInput
                 style={styles.input}
                 value={petBreed}
@@ -394,7 +394,7 @@ export default function CreateReportScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Color</Text>
+              <Text style={styles.sectionTitle}>Color</Text>
               <TextInput
                 style={styles.input}
                 value={petColor}
@@ -405,7 +405,7 @@ export default function CreateReportScreen() {
             </View>
 
             {/* After: Age category selection buttons */}
-            <Text style={styles.label}>Age (Optional)</Text>
+            <Text style={styles.sectionTitle}>Age (Optional)</Text>
             <View style={styles.ageContainer}>
               {(['baby', 'adult', 'senior'] as const).map((ageCategory) => (
                 <TouchableOpacity
@@ -500,7 +500,7 @@ export default function CreateReportScreen() {
 
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.sectionTitle}>Description</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={description}

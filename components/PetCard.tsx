@@ -60,7 +60,8 @@ export default function PetCard({
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <TouchableOpacity style={styles.container} onPress={onPress || (() => router.push(`/pet/${report.id}`))}>
+
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: report.photos[0] }}
@@ -195,6 +196,7 @@ export default function PetCard({
 const styles = StyleSheet.create({
   container: {
     width: 220,
+    marginHorizontal: 8,  // spacing on both sides
     borderRadius: 12,
     backgroundColor: colors.white,
     shadowColor: colors.shadow,
@@ -202,10 +204,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    marginRight: 12,
     marginBottom: 8,
     overflow: 'hidden',
   },
+
+
+
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

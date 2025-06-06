@@ -132,12 +132,18 @@ export default function HomeScreen() {
 						horizontal
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
-							<View style={styles.cardSpacing}>
-								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							<View style={{ marginRight: 12 }}>
+								<PetCard report={item} />
 							</View>
 						)}
+
 						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{ paddingRight: 16 }} // make space for the last card
 					/>
+
+
+
+
 				</Section>
 
 				<Section
@@ -147,16 +153,23 @@ export default function HomeScreen() {
 					icon={<Clock size={25} color={colors.secondary} />}
 				>
 					<FlatList
-						data={recentReports.slice(0, 5)}
+						data={urgentReports.slice(0, 5)}
 						horizontal
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
-							<View style={styles.cardSpacing}>
-								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							<View style={{ marginRight: 12 }}>
+								<PetCard report={item} />
 							</View>
 						)}
+
 						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{ paddingRight: 16 }} // make space for the last card
 					/>
+
+
+
+
+
 				</Section>
 
 				<Section
@@ -166,16 +179,22 @@ export default function HomeScreen() {
 					icon={<MapPin size={25} color={colors.primary} />}
 				>
 					<FlatList
-						data={foundReports.slice(0, 5)}
+						data={urgentReports.slice(0, 5)}
 						horizontal
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
-							<View style={styles.cardSpacing}>
-								<PetCard report={item} onPress={() => router.push(`/pet/${item.id}`)} />
+							<View style={{ marginRight: 12 }}>
+								<PetCard report={item} />
 							</View>
 						)}
+
 						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{ paddingRight: 16 }} // make space for the last card
 					/>
+
+
+
+
 				</Section>
 
 				<Section

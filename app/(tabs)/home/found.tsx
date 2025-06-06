@@ -3,7 +3,17 @@ import { useRouter } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
+import MiniPetCard from '@/components/MiniPetCard';
+
 import PetCard from '@/components/PetCard';
+import { Dimensions } from 'react-native';
+
+const screenWidth = Dimensions.get('window').width;
+const cardMargin = 12; // horizontal space between cards
+const cardPadding = 32; // total horizontal padding of the parent view (16 left + 16 right)
+const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
+
+
 
 export default function FoundPetsScreen() {
   const router = useRouter();
@@ -30,19 +40,19 @@ export default function FoundPetsScreen() {
       <ScrollView style={styles.content}>
         {foundPets.length > 0 ? (
           <View style={styles.grid}>
-            {foundPets.map(report => (
-              <TouchableOpacity
+            {foundPets.map((report, index) => (
+              <View
                 key={report.id}
-                style={styles.gridItem}
-                onPress={() => handlePetPress(report.id)}
+                style={[
+                  styles.gridItem,
+                  index % 2 === 0 && { marginRight: 12 },
+                ]}
               >
-                <PetCard 
-                  report={report}
-                  onPress={() => handlePetPress(report.id)}
-                />
-              </TouchableOpacity>
+                <MiniPetCard report={report} onPress={() => handlePetPress(report.id)} />
+              </View>
             ))}
           </View>
+
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No found pets</Text>
@@ -94,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridItem: {
-    width: '48%',
+    width: cardWidth,
     marginBottom: 16,
   },
   emptyState: {

@@ -3,7 +3,16 @@ import { useRouter } from 'expo-router';
 import { TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
+import MiniPetCard from '@/components/MiniPetCard';
 import PetCard from '@/components/PetCard';
+import { Dimensions } from 'react-native';
+
+const screenWidth = Dimensions.get('window').width;
+const cardMargin = 12; // horizontal space between cards
+const cardPadding = 32; // total horizontal padding of the parent view (16 left + 16 right)
+const cardWidth = (screenWidth - cardPadding - cardMargin) / 2;
+
+
 
 export default function UrgentCasesScreen() {
   const router = useRouter();
@@ -27,15 +36,19 @@ export default function UrgentCasesScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.grid}>
-          {urgentCases.map(report => (
-            <View key={report.id} style={styles.gridItem}>
-              <PetCard 
-                report={report}
-                onPress={() => handlePetPress(report.id)}
-              />
+          {urgentCases.map((report, index) => (
+            <View
+              key={report.id}
+              style={[
+                styles.gridItem,
+                index % 2 === 0 && { marginRight: 12 },
+              ]}
+            >
+              <MiniPetCard report={report} onPress={() => handlePetPress(report.id)} />
             </View>
           ))}
         </View>
+
       </ScrollView>
     </View>
   );
@@ -79,7 +92,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridItem: {
-    width: '48%',
+    width: cardWidth,
     marginBottom: 16,
   },
 });
