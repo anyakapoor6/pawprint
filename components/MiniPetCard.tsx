@@ -31,7 +31,7 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			<View>
 				{showResolveButton && (
 					<TouchableOpacity style={styles.resolveButton} onPress={onResolve}>
-						<Text style={styles.resolveText}>Mark as Found</Text>
+						<Text style={styles.resolveText}>Mark as Reunited</Text>
 					</TouchableOpacity>
 				)}
 				<Image source={{ uri: report.photos[0] }} style={styles.image} />

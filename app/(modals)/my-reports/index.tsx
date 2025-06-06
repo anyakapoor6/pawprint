@@ -26,14 +26,14 @@ export default function MyReportsScreen() {
   const handleResolvePet = (report: PetReport) => {
     Alert.alert(
       'Resolve Pet Report',
-      `Has ${report.name || 'this pet'} been found?`,
+      `Has ${report.name || 'this pet'} been reunited?`,
       [
         {
           text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Yes, Mark as Found',
+          text: 'Yes, Mark as Reunited',
           onPress: () => {
             updatePetStatus(report.id, 'resolved');
             Alert.alert(

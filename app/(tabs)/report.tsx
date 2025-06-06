@@ -690,13 +690,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: colors.gray[100],
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginRight: 8,
     marginBottom: 8,
   },
   petTypeButtonActive: {
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
+
   petTypeText: {
     fontSize: 14,
     color: colors.textSecondary,
