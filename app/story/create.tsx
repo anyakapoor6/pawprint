@@ -7,6 +7,7 @@ import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useStories } from '@/store/stories';
 
+
 export default function CreateStoryScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -16,6 +17,31 @@ export default function CreateStoryScreen() {
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera access is needed to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets) {
+        const newPhotos = result.assets.map(asset => asset.uri);
+        setPhotos(prev => [...prev, ...newPhotos]);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      Alert.alert('Error', 'Unable to take photo. Please try again.');
+    }
+  };
+
 
   const handleAddPhoto = async () => {
     try {
@@ -154,11 +180,22 @@ export default function CreateStoryScreen() {
             ))}
             <TouchableOpacity
               style={styles.addPhotoButton}
-              onPress={handleAddPhoto}
+              onPress={() =>
+                Alert.alert(
+                  'Add Photo',
+                  'Choose a method',
+                  [
+                    { text: 'Take Photo', onPress: takePhoto },
+                    { text: 'Choose from Library', onPress: handleAddPhoto },
+                    { text: 'Cancel', style: 'cancel' }
+                  ]
+                )
+              }
             >
               <ImagePlus size={24} color={colors.primary} />
               <Text style={styles.addPhotoText}>Add Photo</Text>
             </TouchableOpacity>
+
           </ScrollView>
         </View>
 

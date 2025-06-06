@@ -88,7 +88,7 @@ export default function CreateReportScreen() {
           [
             {
               text: 'Take Photo',
-              onPress: () => setShowCamera(true)
+              onPress: takePhoto
             },
             {
               text: 'Choose from Library',
@@ -106,6 +106,31 @@ export default function CreateReportScreen() {
       Alert.alert('Error', 'Failed to add photo. Please try again.');
     }
   };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is needed to take a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets) {
+        const newPhotos = result.assets.map(asset => asset.uri);
+        setPhotos(prev => [...prev, ...newPhotos]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
 
   const pickImage = async () => {
     try {
