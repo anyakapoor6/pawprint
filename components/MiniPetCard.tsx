@@ -11,9 +11,12 @@ interface MiniPetCardProps {
 	report: PetReport;
 	onPress?: () => void;
 	style?: any;
+	showResolveButton?: boolean;
+	onResolve?: () => void;
 }
 
-export default function MiniPetCard({ report, onPress, style }: MiniPetCardProps) {
+export default function MiniPetCard({ report, onPress, style, showResolveButton, onResolve }: MiniPetCardProps) {
+
 	const router = useRouter();
 	const { getLikeCount, getComments, isLiked } = usePetInteractions();
 	const likeCount = getLikeCount(report.id);
@@ -22,10 +25,18 @@ export default function MiniPetCard({ report, onPress, style }: MiniPetCardProps
 
 	return (
 		<TouchableOpacity
-			style={[styles.card, style]} // merge parent style
+			style={[styles.card, style]}
 			onPress={onPress ?? (() => router.push(`/pet/${report.id}`))}
 		>
-			<Image source={{ uri: report.photos[0] }} style={styles.image} />
+			<View>
+				{showResolveButton && (
+					<TouchableOpacity style={styles.resolveButton} onPress={onResolve}>
+						<Text style={styles.resolveText}>Mark as Found</Text>
+					</TouchableOpacity>
+				)}
+				<Image source={{ uri: report.photos[0] }} style={styles.image} />
+			</View>
+
 			<View style={styles.infoContainer}>
 				<View style={styles.topRow}>
 					<Text style={styles.name} numberOfLines={1}>{report.name || report.type}</Text>
@@ -54,6 +65,7 @@ export default function MiniPetCard({ report, onPress, style }: MiniPetCardProps
 			</View>
 		</TouchableOpacity>
 	);
+
 }
 
 const styles = StyleSheet.create({
@@ -114,4 +126,20 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.textSecondary,
 	},
+	resolveButton: {
+		position: 'absolute',
+		top: 6,
+		right: 6,
+		backgroundColor: colors.success,
+		borderRadius: 6,
+		paddingHorizontal: 8,
+		paddingVertical: 2,
+		zIndex: 10,
+	},
+	resolveText: {
+		color: colors.white,
+		fontSize: 10,
+		fontWeight: '600',
+	},
+
 });
