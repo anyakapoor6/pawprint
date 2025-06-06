@@ -37,15 +37,15 @@ export default function EditReportScreen() {
         input.type = 'file';
         input.accept = 'image/*';
         input.multiple = true;
-        
+
         const promise = new Promise((resolve) => {
           input.onchange = (e: any) => {
             resolve(e.target.files);
           };
         });
-        
+
         input.click();
-        
+
         const files = await promise;
         if (files) {
           const fileArray = Array.from(files as FileList);
@@ -54,7 +54,7 @@ export default function EditReportScreen() {
         }
       } else {
         const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.images,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsMultipleSelection: true,
           quality: 1,
         });
@@ -117,7 +117,7 @@ export default function EditReportScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >

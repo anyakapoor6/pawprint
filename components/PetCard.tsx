@@ -1,6 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MapPin, Calendar, Heart, Check, CreditCard as Edit, MessageCircle } from 'lucide-react-native';
+import { MapPin, Calendar, Heart, Check, Pencil, MessageCircle } from 'lucide-react-native';
 import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
@@ -104,7 +104,7 @@ export default function PetCard({
             style={styles.editButton}
             onPress={handleEdit}
           >
-            <Edit size={16} color={colors.white} />
+            <Pencil size={16} color={colors.white} />
           </TouchableOpacity>
         )}
       </View>
