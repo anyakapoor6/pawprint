@@ -6,6 +6,12 @@ import { PetReport } from '@/types/pet';
 import { usePetInteractions } from '@/store/petInteractions';
 import { Dimensions } from 'react-native';
 import { useAuth } from '@/store/auth';
+import { Animated } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import FloatingHearts from '@/components/FloatingHearts';
+import CelebrationOverlay from '@/components/CelebrationOverlay';
+
+
 
 
 interface MiniPetCardProps {
@@ -24,6 +30,20 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 	const likeCount = getLikeCount(report.id);
 	const commentCount = getComments(report.id).length;
 	const formattedDate = new Date(report.dateReported).toLocaleDateString();
+	const [showHearts, setShowHearts] = useState(false);
+	const heartAnim = useRef(new Animated.Value(0)).current;
+
+	const [showHeartBurst, setShowHeartBurst] = useState(false);
+	const [showCelebration, setShowCelebration] = useState(false);
+
+
+	const triggerHeartBurst = () => {
+		setShowHeartBurst(true);
+		setTimeout(() => setShowHeartBurst(false), 2500);
+	};
+
+
+
 
 	return (
 		<TouchableOpacity
@@ -35,9 +55,11 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 					<TouchableOpacity
 						style={styles.resolveButton}
 						onPress={(e) => {
-							e.stopPropagation?.(); // optional
-							onResolve?.();
+							e.stopPropagation?.();
+							onResolve?.(); // This could trigger the story modal
+							setTimeout(() => setShowCelebration(true), 800); // delay until after prompt
 						}}
+
 					>
 						<Text style={styles.resolveText}>Mark as Reunited</Text>
 					</TouchableOpacity>
@@ -96,6 +118,31 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 					</View>
 				</View>
 			</View>
+
+			{showHeartBurst && <FloatingHearts count={15} />}
+			{showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />}
+
+
+
+			{showHearts && (
+				<Animated.Text
+					style={{
+						position: 'absolute',
+						top: 30,
+						right: 10,
+						fontSize: 24,
+						zIndex: 99,
+						transform: [{ translateY: heartAnim }],
+						opacity: heartAnim.interpolate({
+							inputRange: [-50, 0],
+							outputRange: [0, 1],
+						}),
+					}}
+				>
+					💖
+				</Animated.Text>
+			)}
+
 		</TouchableOpacity>
 	);
 
