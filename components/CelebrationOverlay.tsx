@@ -1,39 +1,26 @@
-// components/CelebrationOverlay.tsx
-import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { View, Animated, StyleSheet, Dimensions } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
 export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) {
 	const scaleAnim = useRef(new Animated.Value(0)).current;
 	const [burst, setBurst] = useState(false);
-	const [burstHearts] = useState(
-		Array.from({ length: 10 }, () => ({
-			x: Math.random() * width,
-			delay: Math.random() * 300,
-			anim: new Animated.Value(0),
-		}))
-	);
 
 	useEffect(() => {
-		// Step 1: Grow big heart
+		// Animate the big heart growing
 		Animated.timing(scaleAnim, {
-			toValue: 1.5,
-			duration: 700,
+			toValue: 1,
+			duration: 1000,
 			useNativeDriver: true,
 		}).start(() => {
-			// Step 2: Trigger burst
+			// After it grows, trigger burst
 			setBurst(true);
-			burstHearts.forEach(({ anim, delay }) => {
-				Animated.timing(anim, {
-					toValue: -height,
-					duration: 1000,
-					delay,
-					useNativeDriver: true,
-				}).start();
-			});
-			// Step 3: Dismiss after animation
-			setTimeout(() => onDone?.(), 1500);
+
+			// Wait for burst to finish, then clean up
+			setTimeout(() => {
+				onDone?.();
+			}, 1500);
 		});
 	}, []);
 
@@ -52,18 +39,19 @@ export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) 
 						},
 					]}
 				>
-					💖
+					❤️
 				</Animated.Text>
 			)}
+
 			{burst &&
-				burstHearts.map(({ x, anim }, i) => (
+				Array.from({ length: 20 }).map((_, i) => (
 					<Animated.Text
 						key={i}
 						style={[
 							styles.burstHeart,
 							{
-								left: x,
-								transform: [{ translateY: anim }],
+								top: Math.random() * height,
+								left: Math.random() * width,
 							},
 						]}
 					>
@@ -76,16 +64,15 @@ export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) 
 
 const styles = StyleSheet.create({
 	bigHeart: {
-		fontSize: 80,
 		position: 'absolute',
-		top: height / 2 - 40,
-		left: width / 2 - 40,
-		zIndex: 999,
+		top: height / 2 - 60,
+		left: width / 2 - 60,
+		fontSize: 120,
+		zIndex: 100,
 	},
 	burstHeart: {
-		fontSize: 24,
 		position: 'absolute',
-		bottom: 40,
-		zIndex: 998,
+		fontSize: 24,
+		opacity: 0.8,
 	},
 });

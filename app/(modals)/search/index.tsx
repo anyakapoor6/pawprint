@@ -58,6 +58,8 @@ export default function SearchScreen() {
     setSearchTerm(text);
     if (text.length > 2) {
       const filtered = reports.filter((report) => {
+        if (report.status === 'reunited') return false; // exclude reunited
+
         const searchLower = text.toLowerCase();
         const nameLower = (report.name || '').toLowerCase();
         const breedLower = (report.breed || '').toLowerCase();
@@ -128,7 +130,7 @@ export default function SearchScreen() {
   };
 
   const applyFilters = () => {
-    let filtered = [...reports];
+    let filtered = reports.filter(r => r.status !== 'reunited');
 
     if (filters.reportType !== 'all') {
       filtered = filtered.filter(r => r.reportType === filters.reportType);
