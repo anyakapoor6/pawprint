@@ -9,7 +9,7 @@ import { useAuth } from '@/store/auth';
 import { Animated } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import FloatingHearts from '@/components/FloatingHearts';
-import CelebrationOverlay from '@/components/CelebrationOverlay';
+//import CelebrationOverlay from '@/components/CelebrationOverlay';
 
 
 
@@ -120,11 +120,11 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			</View>
 
 			{showHeartBurst && <FloatingHearts count={15} />}
-			{showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />}
+			{/* {showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />} */}
 
 
 
-			{showHearts && (
+			{/* {showHearts && (
 				<Animated.Text
 					style={{
 						position: 'absolute',
@@ -141,7 +141,7 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 				>
 					💖
 				</Animated.Text>
-			)}
+			)} */}
 
 		</TouchableOpacity>
 	);

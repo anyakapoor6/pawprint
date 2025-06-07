@@ -1,5 +1,6 @@
-import { View, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Animated, StyleSheet, Dimensions, Text } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
+import { InteractionManager } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -8,19 +9,19 @@ export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) 
 	const [burst, setBurst] = useState(false);
 
 	useEffect(() => {
-		// Animate the big heart growing
-		Animated.timing(scaleAnim, {
-			toValue: 1,
-			duration: 1000,
-			useNativeDriver: true,
-		}).start(() => {
-			// After it grows, trigger burst
-			setBurst(true);
+		// Wait until after all interactions/rendering to avoid useInsertionEffect warning
+		InteractionManager.runAfterInteractions(() => {
+			Animated.timing(scaleAnim, {
+				toValue: 1,
+				duration: 1000,
+				useNativeDriver: true,
+			}).start(() => {
+				setBurst(true);
 
-			// Wait for burst to finish, then clean up
-			setTimeout(() => {
-				onDone?.();
-			}, 1500);
+				setTimeout(() => {
+					onDone?.();
+				}, 1500);
+			});
 		});
 	}, []);
 
@@ -44,8 +45,8 @@ export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) 
 			)}
 
 			{burst &&
-				Array.from({ length: 20 }).map((_, i) => (
-					<Animated.Text
+				Array.from({ length: 16 }).map((_, i) => (
+					<Text
 						key={i}
 						style={[
 							styles.burstHeart,
@@ -56,7 +57,7 @@ export default function CelebrationOverlay({ onDone }: { onDone?: () => void }) 
 						]}
 					>
 						💖
-					</Animated.Text>
+					</Text>
 				))}
 		</View>
 	);
