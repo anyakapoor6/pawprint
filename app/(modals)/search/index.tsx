@@ -8,6 +8,8 @@ import { PetReport, ReportType, PetType } from '@/types/pet';
 import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
 import React from 'react';
+import MiniPetCard from '@/components/MiniPetCard';
+
 
 
 interface SearchScreenProps {
@@ -459,7 +461,7 @@ export default function SearchScreen() {
               <View style={styles.resultsGrid}>
                 {results.map((report) => (
                   <View key={report.id} style={styles.resultItem}>
-                    <PetCard
+                    <MiniPetCard
                       report={report}
                       onPress={() => handlePetPress(report.id)}
                     />

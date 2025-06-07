@@ -5,6 +5,7 @@ import { colors } from '@/constants/colors';
 import { PetReport } from '@/types/pet';
 import { usePetInteractions } from '@/store/petInteractions';
 import { Dimensions } from 'react-native';
+import { useAuth } from '@/store/auth';
 
 
 interface MiniPetCardProps {
@@ -18,6 +19,7 @@ interface MiniPetCardProps {
 export default function MiniPetCard({ report, onPress, style, showResolveButton, onResolve }: MiniPetCardProps) {
 
 	const router = useRouter();
+	const { user } = useAuth();
 	const { getLikeCount, getComments, isLiked } = usePetInteractions();
 	const likeCount = getLikeCount(report.id);
 	const commentCount = getComments(report.id).length;
@@ -29,12 +31,17 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			onPress={onPress ?? (() => router.push(`/pet/${report.id}`))}
 		>
 			<View>
-				{report.status === 'active' && (
-					<TouchableOpacity style={styles.resolveButton} onPress={onResolve}>
+				{showResolveButton && report.status === 'active' && user?.id === report.userId && (
+					<TouchableOpacity
+						style={styles.resolveButton}
+						onPress={(e) => {
+							e.stopPropagation?.(); // optional
+							onResolve?.();
+						}}
+					>
 						<Text style={styles.resolveText}>Mark as Reunited</Text>
 					</TouchableOpacity>
 				)}
-
 
 				<View
 					style={[

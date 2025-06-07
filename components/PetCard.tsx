@@ -183,7 +183,7 @@ export default function PetCard({
           </TouchableOpacity>
         </View>
 
-        {showResolveButton && report.status === 'active' && (
+        {showResolveButton && report.status === 'active' && isOwner && (
           <TouchableOpacity
             style={styles.resolveButton}
             onPress={handleResolve}
@@ -192,6 +192,7 @@ export default function PetCard({
             <Text style={styles.resolveButtonText}>Pet Was Reunited</Text>
           </TouchableOpacity>
         )}
+
       </View>
     </TouchableOpacity >
   );
