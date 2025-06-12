@@ -82,7 +82,14 @@ export default function MapScreen() {
             }}
             title={report.name || `${report.type} (${report.color})`}
             description={report.description}
-            pinColor={report.reportType === 'lost' ? 'red' : 'green'}
+            pinColor={
+              report.status === 'reunited'
+                ? '#FF69B4' // pink
+                : report.reportType === 'lost'
+                  ? 'red'
+                  : 'green'
+            }
+
           />
         ))}
       </MapView>
