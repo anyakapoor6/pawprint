@@ -3,6 +3,11 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { usePets } from '@/store/pets';
+import { Image, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
+import { CalloutSubview } from 'react-native-maps';
+
+
 
 
 const DEFAULT_REGION = {
@@ -13,11 +18,12 @@ const DEFAULT_REGION = {
 };
 
 // Only import react-native-maps if NOT running on web
-let MapView: any, Marker: any, PROVIDER_GOOGLE: any;
+let MapView: any, Marker: any, Callout: any, PROVIDER_GOOGLE: any;
 if (Platform.OS !== 'web') {
   const Maps = require('react-native-maps');
   MapView = Maps.default;
   Marker = Maps.Marker;
+  Callout = Maps.Callout;
   PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
 }
 
@@ -68,11 +74,10 @@ export default function MapScreen() {
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        region={initialRegion} // <-- forces map to center on user location
+        region={initialRegion}
         showsUserLocation
         showsMyLocationButton
       >
-
         {reports.map((report) => (
           <Marker
             key={report.id}
@@ -80,8 +85,6 @@ export default function MapScreen() {
               latitude: report.lastSeenLocation?.latitude || DEFAULT_REGION.latitude,
               longitude: report.lastSeenLocation?.longitude || DEFAULT_REGION.longitude,
             }}
-            title={report.name || `${report.type} (${report.color})`}
-            description={report.description}
             pinColor={
               report.status === 'reunited'
                 ? '#FF69B4' // pink
@@ -89,12 +92,32 @@ export default function MapScreen() {
                   ? 'red'
                   : 'green'
             }
+          >
+            <Callout onPress={() => router.push(`/pet/${report.id}`)}>
+              <View style={styles.calloutContainer}>
+                {report.photos?.[0] && (
+                  <Image
+                    source={{ uri: report.photos[0] }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                )}
+                <Text style={styles.name}>{report.name || 'Unnamed Pet'}</Text>
+                <Text style={styles.description} numberOfLines={3}>
+                  {report.description || 'No description provided.'}
+                </Text>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>View Listing</Text>
+                </View>
+              </View>
+            </Callout>
 
-          />
+          </Marker>
         ))}
       </MapView>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -112,4 +135,43 @@ const styles = StyleSheet.create({
     marginTop: 40,
     color: colors.textSecondary,
   },
+  calloutContainer: {
+    width: 200,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  name: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  image: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  description: {
+    fontSize: 12,
+    color: '#555',
+    marginBottom: 8,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
 });
