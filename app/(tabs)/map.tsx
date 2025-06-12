@@ -68,10 +68,11 @@ export default function MapScreen() {
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        initialRegion={initialRegion}
+        region={initialRegion} // <-- forces map to center on user location
         showsUserLocation
         showsMyLocationButton
       >
+
         {reports.map((report) => (
           <Marker
             key={report.id}
