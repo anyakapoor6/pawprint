@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { AlertTriangle, Clock, MapPin, Heart } from 'lucide-react-native';
+import { AlertTriangle, Clock, MapPin, Heart, Pencil } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { mockReports } from '@/data/mockData';
 import { useStories } from '@/store/stories';
@@ -125,6 +125,14 @@ export default function HomeScreen() {
 			isNearMe(r.lastSeenLocation, userLocation)
 	)
 
+	const reunitedReports = reports.filter(
+		r =>
+			r.status === 'reunited' &&
+			r.lastSeenLocation &&
+			userLocation &&
+			isNearMe(r.lastSeenLocation, userLocation)
+	);
+
 
 
 	return (
@@ -209,11 +217,35 @@ export default function HomeScreen() {
 
 				</Section>
 
+
+				<Section
+					title="Reunited Near Me"
+					iconColor={colors.pink}
+					onSeeAll={() => router.push('/home/reunited')}
+					icon={<Heart size={25} color={colors.pink} />}
+				>
+					<FlatList
+						data={reunitedReports.slice(0, 5)}
+						horizontal
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => (
+							<View style={{ marginRight: 12 }}>
+								<PetCard report={item} />
+							</View>
+						)}
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{ paddingRight: 16 }}
+					/>
+				</Section>
+
+
+
+
 				<Section
 					title="Storyboard"
 					iconColor={colors.accent}
 					onSeeAll={() => router.push('/home/stories')}
-					icon={<Heart size={25} color={colors.accent} />}
+					icon={<Pencil size={25} color={colors.accent} />}
 				>
 					{stories.length > 0 && <StoryCard story={stories[0]} />}
 				</Section>
