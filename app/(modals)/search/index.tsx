@@ -16,8 +16,10 @@ interface SearchScreenProps {
   onClose?: () => void;
 }
 
+type ReportTypeFilter = ReportType | 'all' | 'reunited';
+
 type FilterState = {
-  reportType: ReportType | 'all';
+  reportType: ReportTypeFilter;
   petType: PetType | 'all';
   breed: string;
   color: string;
@@ -133,8 +135,18 @@ export default function SearchScreen() {
     let filtered = reports.filter(r => r.status !== 'reunited');
 
     if (filters.reportType !== 'all') {
-      filtered = filtered.filter(r => r.reportType === filters.reportType);
+      if (filters.reportType === 'reunited') {
+        filtered = reports.filter(r => r.status === 'reunited');
+      } else {
+        filtered = reports.filter(
+          r => r.reportType === filters.reportType && r.status !== 'reunited'
+        );
+      }
+    } else {
+      // Default to excluding reunited unless explicitly filtered for it
+      filtered = reports.filter(r => r.status !== 'reunited');
     }
+
 
     if (filters.petType !== 'all') {
       filtered = filtered.filter(r => r.type === filters.petType);
@@ -258,7 +270,8 @@ export default function SearchScreen() {
           <View style={styles.filterSection}>
             <Text style={styles.filterLabel}>Report Type</Text>
             <View style={styles.filterOptions}>
-              {(['all', 'lost', 'found'] as const).map((type) => (
+              {(['all', 'lost', 'found', 'reunited'] as const).map((type) => (
+
                 <TouchableOpacity
                   key={type}
                   style={[
@@ -271,7 +284,14 @@ export default function SearchScreen() {
                     styles.filterOptionText,
                     filters.reportType === type && styles.filterOptionTextActive
                   ]}>
-                    {type === 'all' ? 'All' : type === 'lost' ? 'Lost' : 'Found'}
+                    {type === 'all'
+                      ? 'All'
+                      : type === 'lost'
+                        ? 'Lost'
+                        : type === 'found'
+                          ? 'Found'
+                          : 'Reunited'}
+
                   </Text>
                 </TouchableOpacity>
               ))}
