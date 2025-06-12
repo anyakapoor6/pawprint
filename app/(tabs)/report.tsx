@@ -163,13 +163,13 @@ export default function CreateReportScreen() {
 
   const handleSubmit = async () => {
 
-    console.log("SUBMITTING...");
-    console.log("petType:", petType, typeof petType);
-    console.log("petColor:", petColor, typeof petColor);
-    console.log("petSize:", petSize, typeof petSize);
-    console.log("description:", description, typeof description);
-    console.log("location:", location, typeof location, location.length);
-    console.log("photos.length:", photos.length);
+    // console.log("SUBMITTING...");
+    // console.log("petType:", petType, typeof petType);
+    // console.log("petColor:", petColor, typeof petColor);
+    // console.log("petSize:", petSize, typeof petSize);
+    // console.log("description:", description, typeof description);
+    // console.log("location:", location, typeof location, location.length);
+    // console.log("photos.length:", photos.length);
 
     if (!petType || !petColor || !petSize || !description || !location || photos.length === 0) {
       Alert.alert('Error', 'Please fill in all required fields and add at least one photo');
@@ -316,7 +316,8 @@ export default function CreateReportScreen() {
               </TouchableOpacity>
             )}
 
-            <View style={[styles.inputGroup, { zIndex: 10 }]}>
+            <View style={[styles.inputGroup, { zIndex: Platform.OS === 'android' ? 1 : 10 }]}>
+
               <Text style={styles.sectionTitle}>
                 {reportType === 'lost' ? 'Last Seen Location' : 'Found Location'}
               </Text>
@@ -328,7 +329,7 @@ export default function CreateReportScreen() {
                 minLength={1}
                 debounce={200}
                 onPress={(data, details = null) => {
-                  console.log("SELECTED:", data, details);
+                  // console.log("SELECTED:", data, details);
                   setLocation(data.description || '');
                   // if (data?.description) {
                   //   setLocation(data.description);
@@ -362,13 +363,15 @@ export default function CreateReportScreen() {
                     borderWidth: 1,
                     borderColor: colors.border,
                     borderRadius: 8,
-                    zIndex: 10,
                     marginBottom: 10,
+                    maxHeight: 200,
+                    elevation: 10, // for Android
+                    zIndex: 9999, // for iOS
                     position: 'absolute',
                     top: 60,
-                    maxHeight: 200,
                   },
                 }}
+
                 enablePoweredByContainer={false}
                 listViewDisplayed="auto"
                 predefinedPlaces={[]} // Prevents crash
