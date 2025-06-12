@@ -212,6 +212,14 @@ export default function CreateReportScreen() {
         tags: selectedTags,
       };
 
+
+      // Fallback for unnamed pets (mostly found reports)
+      if (!newReport.name || newReport.name.trim() === '') {
+        const fallbackColor = newReport.color?.trim() || 'Unknown';
+        const fallbackType = newReport.type?.trim() || 'Pet';
+        newReport.name = `${fallbackColor} ${fallbackType}`;
+      }
+
       await addReport(newReport);
 
       // Reset all form values
@@ -234,8 +242,6 @@ export default function CreateReportScreen() {
       setTimeout(() => {
         locationRef.current?.setAddressText(''); // <-- this actually clears the input value
       }, 0);
-
-
 
 
 

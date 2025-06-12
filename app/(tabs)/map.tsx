@@ -34,6 +34,15 @@ export default function MapScreen() {
 
 
   useEffect(() => {
+    console.log('Full reports object:', reports);
+  }, [reports]);
+
+  useEffect(() => {
+    console.log('Reports updated:', reports.map(r => r.name));
+  }, [reports]);
+
+
+  useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -72,48 +81,60 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
+        key={reports.length}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         region={initialRegion}
         showsUserLocation
         showsMyLocationButton
       >
-        {reports.map((report) => (
-          <Marker
-            key={report.id}
-            coordinate={{
-              latitude: report.lastSeenLocation?.latitude || DEFAULT_REGION.latitude,
-              longitude: report.lastSeenLocation?.longitude || DEFAULT_REGION.longitude,
-            }}
-            pinColor={
-              report.status === 'reunited'
-                ? '#FF69B4' // pink
-                : report.reportType === 'lost'
-                  ? 'red'
-                  : 'green'
-            }
-          >
-            <Callout onPress={() => router.push(`/pet/${report.id}`)}>
-              <View style={styles.calloutContainer}>
-                {report.photos?.[0] && (
-                  <Image
-                    source={{ uri: report.photos[0] }}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                )}
-                <Text style={styles.name}>{report.name || 'Unnamed Pet'}</Text>
-                <Text style={styles.description} numberOfLines={3}>
-                  {report.description || 'No description provided.'}
-                </Text>
-                <View style={styles.button}>
-                  <Text style={styles.buttonText}>View Listing</Text>
-                </View>
-              </View>
-            </Callout>
+        {reports
+          .filter(report =>
+            report.lastSeenLocation &&
+            report.lastSeenLocation.latitude !== 0 &&
+            report.lastSeenLocation.longitude !== 0
+          )
 
-          </Marker>
-        ))}
+          .map(report => (
+            <Marker
+              key={report.id}
+              coordinate={{
+                latitude: report.lastSeenLocation!.latitude,
+                longitude: report.lastSeenLocation!.longitude,
+              }}
+              pinColor={
+                report.status === 'reunited'
+                  ? '#FF69B4'
+                  : report.reportType === 'lost'
+                    ? 'red'
+                    : 'green'
+              }
+            >
+              <Callout onPress={() => router.push(`/pet/${report.id}`)}>
+                <View style={styles.calloutContainer}>
+                  {report.photos?.[0] && (
+                    <Image
+                      source={{ uri: report.photos[0] }}
+                      style={styles.image}
+                      resizeMode="cover"
+                    />
+                  )}
+                  <Text style={styles.name}>
+                    {report.name?.trim() || `${report.color || 'Unknown'} ${report.type || 'Pet'}`}
+                  </Text>
+
+                  <Text style={styles.description} numberOfLines={3}>
+                    {report.description || 'No description provided.'}
+                  </Text>
+                  <View style={styles.button}>
+                    <Text style={styles.buttonText}>View Listing</Text>
+                  </View>
+                </View>
+              </Callout>
+
+            </Marker>
+          ))}
+
       </MapView>
     </View>
   );

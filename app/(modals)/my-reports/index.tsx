@@ -119,7 +119,7 @@ export default function MyReportsScreen() {
               <MiniPetCard
                 report={report}
                 onPress={() => handlePetPress(report.id)}
-                showResolveButton={activeTab === 'active' && report.reportType === 'lost'}
+                showResolveButton={activeTab === 'active'}
                 onResolve={() => handleResolvePet(report)}
               />
             </View>

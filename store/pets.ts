@@ -39,7 +39,7 @@ const deg2rad = (deg: number) => {
 };
 
 export const usePets = create<PetsState>((set, get) => ({
-  reports: mockReports,
+  reports: [...mockReports], // this ensures a fresh copy and proper state tracking
   userLocation: null,
 
   setUserLocation: (location) => {
