@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
 import * as Location from 'expo-location';
 import { colors } from '@/constants/colors';
 import { usePets } from '@/store/pets';
@@ -36,6 +36,11 @@ export default function MapScreen() {
   const [showLost, setShowLost] = useState(true);
   const [showFound, setShowFound] = useState(true);
   const [showReunited, setShowReunited] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalPets, setModalPets] = useState<typeof reports>([]);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+
+
 
 
 
@@ -139,46 +144,132 @@ export default function MapScreen() {
         region={initialRegion}
         showsUserLocation
         showsMyLocationButton
+      // pointerEvents="auto"
       >
-        {filteredReports.map(report => (
-          <Marker
-            key={report.id}
-            coordinate={{
-              latitude: report.lastSeenLocation!.latitude,
-              longitude: report.lastSeenLocation!.longitude,
-            }}
-            pinColor={
-              report.status === 'reunited'
-                ? '#FF69B4'
-                : report.reportType === 'lost'
-                  ? 'red'
-                  : 'green'
-            }
-          >
-            <Callout onPress={() => router.push(`/pet/${report.id}`)}>
-              <View style={styles.calloutContainer}>
-                {report.photos?.[0] && (
-                  <Image
-                    source={{ uri: report.photos[0] }}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                )}
-                <Text style={styles.name}>
-                  {report.name?.trim() || `${report.color || 'Unknown'} ${report.type || 'Pet'}`}
-                </Text>
-                <Text style={styles.description} numberOfLines={3}>
-                  {report.description || 'No description provided.'}
-                </Text>
-                <View style={styles.button}>
-                  <Text style={styles.buttonText}>View Listing</Text>
+        {filteredReports.map((report) => {
+          const { latitude, longitude } = report.lastSeenLocation!;
+          const roundedLat = Number(latitude.toFixed(5));
+          const roundedLng = Number(longitude.toFixed(5));
+
+          // Get all pets with same rounded location
+          const sameLocationReports = filteredReports.filter(r => {
+            const rLat = Number(r.lastSeenLocation!.latitude.toFixed(5));
+            const rLng = Number(r.lastSeenLocation!.longitude.toFixed(5));
+            return rLat === roundedLat && rLng === roundedLng;
+          });
+
+          return (
+            <Marker
+              key={report.id}
+              onPress={() => {
+                if (selectedMarkerId === report.id) {
+                  // Deselect if it's already selected
+                  setSelectedMarkerId(null);
+                  setModalVisible(false);
+                } else {
+                  setSelectedMarkerId(report.id);
+                }
+              }}
+
+              coordinate={{ latitude, longitude }}
+              pinColor={
+                report.status === 'reunited'
+                  ? '#FF69B4'
+                  : report.reportType === 'lost'
+                    ? 'red'
+                    : 'green'
+              }
+            >
+              <Callout
+                tooltip={false}
+                onPress={() => {
+                  setModalPets(sameLocationReports);
+                  setModalVisible(true);
+                }}
+              >
+                <View style={{ width: 240, paddingVertical: 4 }}>
+                  {/* Horizontal scroll preview */}
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 8 }}
+                  >
+                    {sameLocationReports.map((pet, index) => (
+                      <View key={index} style={{ marginRight: 12, alignItems: 'center' }}>
+                        {pet.photos?.[0] && (
+                          <Image
+                            source={{ uri: pet.photos[0] }}
+                            style={{ width: 70, height: 70, borderRadius: 8, marginBottom: 4 }}
+                          />
+                        )}
+                        <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: '500' }}>
+                          {pet.name || pet.type}
+                        </Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+
+                  {/* Tap message */}
+                  {sameLocationReports.length > 1 && (
+                    <Text
+                      style={{
+                        marginTop: 6,
+                        textAlign: 'center',
+                        color: colors.primary,
+                        fontWeight: '600',
+                        fontSize: 13,
+                      }}
+                    >
+                      Tap to see all ({sameLocationReports.length})
+                    </Text>
+                  )}
                 </View>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
+              </Callout>
+
+
+            </Marker>
+          );
+        })}
+
 
       </MapView>
+      {modalVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pets at this Location</Text>
+            <ScrollView>
+              {modalPets.map((pet, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    setModalVisible(false);
+                    router.push(`/pet/${pet.id}`);
+                  }}
+                >
+                  <View style={styles.miniCard}>
+                    {pet.photos?.[0] && (
+                      <Image source={{ uri: pet.photos[0] }} style={styles.miniCardImage} />
+                    )}
+                    <View style={{ marginLeft: 10 }}>
+                      <Text style={{ fontWeight: '600' }}>{pet.name || pet.type}</Text>
+                      <Text style={{ fontSize: 12, color: '#666' }}>
+                        {(pet.reportType || pet.status || 'unknown').toUpperCase()}
+                      </Text>
+
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={{ marginTop: 12, alignSelf: 'center' }}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={{ color: 'gray' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 
@@ -215,6 +306,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     color: colors.textSecondary,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '70%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  miniCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  miniCardImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
   calloutContainer: {
     width: 200,
