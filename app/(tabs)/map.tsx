@@ -97,11 +97,11 @@ export default function MapScreen() {
       report.lastSeenLocation.longitude !== 0
     )
     .filter(report => {
-      if (report.status === 'reunited' && !showReunited) return false;
-      if (report.reportType === 'lost' && !showLost) return false;
-      if (report.reportType === 'found' && !showFound) return false;
-      return true;
-    });
+      if (report.status === 'reunited') return showReunited;
+      if (report.reportType === 'lost') return showLost;
+      if (report.reportType === 'found') return showFound;
+      return false; // fallback for unknown types
+    })
 
 
   return (
