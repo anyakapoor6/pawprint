@@ -6,10 +6,19 @@ import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
+import type { Route } from 'expo-router';
+
+
+
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+
+  const handleNavigate = (route: string) => {
+    router.push(route as any); // quick workaround
+  };
+
   const { getUserStories } = useStories();
   const userStories = getUserStories(user?.id || '');
 
@@ -18,9 +27,6 @@ export default function ProfileScreen() {
     router.replace('/sign-in');
   };
 
-  const handleNavigate = (route: string) => {
-    router.push(route);
-  };
 
   return (
     <View style={styles.container}>

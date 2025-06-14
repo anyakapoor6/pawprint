@@ -1,19 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/lib/supabase'; // update path as needed
+import { useAuth } from '@/store/auth';
+
+
+
+
 
 
 export default function NotificationPreferencesScreen() {
 	const router = useRouter();
+	const { user } = useAuth();
+	const userId = user?.id;
 
 	const [prefs, setPrefs] = useState({
 		lostNearby: true,
 		foundNearby: false,
 		urgentCases: true,
 		reportUpdates: true,
+		reunitedNearby: true,
 		aiMatches: true,
 		newStories: false,
 		storyEngagement: true,
@@ -22,8 +31,38 @@ export default function NotificationPreferencesScreen() {
 		productTips: false,
 	});
 
-	const toggle = (key: keyof typeof prefs) => {
-		setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
+	// ✅ Load saved prefs from Supabase
+	useEffect(() => {
+		const loadPrefs = async () => {
+			if (!userId) return;
+
+			const { data, error } = await supabase
+				.from('notification_preferences')
+				.select('*')
+				.eq('user_id', userId)
+				.single();
+
+			if (data) {
+				setPrefs(prev => ({ ...prev, ...data }));
+			}
+		};
+
+		loadPrefs();
+	}, [userId]);
+
+	const toggle = async (key: keyof typeof prefs) => {
+		const updated = { ...prefs, [key]: !prefs[key] };
+		setPrefs(updated);
+
+		if (!userId) return;
+		if (userId) {
+			await supabase
+				.from('notification_preferences')
+				.upsert({
+					user_id: userId,
+					...updated,
+				});
+		}
 	};
 
 	return (
@@ -37,22 +76,24 @@ export default function NotificationPreferencesScreen() {
 				</View>
 
 				<Text style={styles.section}>Pet Reports</Text>
+				<Toggle label="Urgent case posted" value={prefs.urgentCases} onToggle={() => toggle('urgentCases')} />
 				<Toggle label="Lost pet reported near me" value={prefs.lostNearby} onToggle={() => toggle('lostNearby')} />
 				<Toggle label="Found pet near me" value={prefs.foundNearby} onToggle={() => toggle('foundNearby')} />
-				<Toggle label="Urgent case posted" value={prefs.urgentCases} onToggle={() => toggle('urgentCases')} />
+				<Toggle label="Reunited Pet near me" value={prefs.reunitedNearby} onToggle={() => toggle('reunitedNearby')} />
+
 
 				<Text style={styles.section}>My Reports</Text>
 				<Toggle label="Updates on my lost/found report" value={prefs.reportUpdates} onToggle={() => toggle('reportUpdates')} />
 				<Toggle label="New matches found (AI)" value={prefs.aiMatches} onToggle={() => toggle('aiMatches')} />
 
 				<Text style={styles.section}>Community</Text>
-				<Toggle label="New story published" value={prefs.newStories} onToggle={() => toggle('newStories')} />
-				<Toggle label="Comments/likes on my story" value={prefs.storyEngagement} onToggle={() => toggle('storyEngagement')} />
-				<Toggle label="Engagement on followed posts" value={prefs.otherPostEngagement} onToggle={() => toggle('otherPostEngagement')} />
+				<Toggle label="New stories published" value={prefs.newStories} onToggle={() => toggle('newStories')} />
+				<Toggle label="Comments/Likes on my story" value={prefs.storyEngagement} onToggle={() => toggle('storyEngagement')} />
+				<Toggle label="Engagement on posts" value={prefs.otherPostEngagement} onToggle={() => toggle('otherPostEngagement')} />
 
-				<Text style={styles.section}>App Activity</Text>
+				{/* <Text style={styles.section}>App Activity</Text>
 				<Toggle label="Weekly pet report digest" value={prefs.weeklyDigest} onToggle={() => toggle('weeklyDigest')} />
-				<Toggle label="Product updates & tips" value={prefs.productTips} onToggle={() => toggle('productTips')} />
+				<Toggle label="Product updates & tips" value={prefs.productTips} onToggle={() => toggle('productTips')} /> */}
 			</ScrollView>
 		</SafeAreaView>
 	);

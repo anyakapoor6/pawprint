@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
+import { registerForPushNotificationsAsync } from '@/lib/registerPushToken';
+import { supabase } from '@/lib/supabase';
+
+
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -17,12 +21,33 @@ export default function SignIn() {
         return;
       }
 
-      // Mock successful sign in
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        console.error('Sign-in error:', error);
+        setError(error?.message || 'Invalid email or password');
+        return;
+      }
+
+
+      const userId = data.user.id;
+
+      // ✅ Register device for push notifications
+      const token = await registerForPushNotificationsAsync(userId);
+      console.log("Expo Push Token:", token);
+
+
       router.replace('/home');
     } catch (err) {
-      setError('Invalid email or password');
+      console.error('Unexpected sign-in error:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     }
+
   };
+
 
   return (
     <View style={styles.container}>

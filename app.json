@@ -2,6 +2,7 @@
   "expo": {
     "name": "bolt-expo-nativewind",
     "slug": "bolt-expo-nativewind",
+    "projectId": "a2fbb212-504b-4044-8600-d1ad9b9af927",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +10,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anyak6.boltexponativewind",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router",
@@ -25,6 +30,13 @@
       "image": "./assets/images/pawprintlogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a2fbb212-504b-4044-8600-d1ad9b9af927"
+      }
+    },
+    "owner": "anyak6"
   }
 }
