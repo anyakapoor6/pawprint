@@ -22,6 +22,7 @@ export const colors = {
   white: '#FFFFFF',
   black: '#000000',
   urgent: '#FF4E50',
+  textPrimary: '#333333',
   gray: {
     50: '#F9FAFB',
     100: '#F3F4F6',

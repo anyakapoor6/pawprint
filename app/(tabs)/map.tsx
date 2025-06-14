@@ -6,6 +6,8 @@ import { usePets } from '@/store/pets';
 import { Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { CalloutSubview } from 'react-native-maps';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 
 
@@ -31,6 +33,11 @@ export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { reports } = usePets();
+  const [showLost, setShowLost] = useState(true);
+  const [showFound, setShowFound] = useState(true);
+  const [showReunited, setShowReunited] = useState(true);
+
+
 
 
   useEffect(() => {
@@ -78,8 +85,53 @@ export default function MapScreen() {
     longitudeDelta: 0.0421,
   } : DEFAULT_REGION;
 
+  const filteredReports = reports
+    .filter(report =>
+      report.lastSeenLocation &&
+      report.lastSeenLocation.latitude !== 0 &&
+      report.lastSeenLocation.longitude !== 0
+    )
+    .filter(report => {
+      if (report.status === 'reunited' && !showReunited) return false;
+      if (report.reportType === 'lost' && !showLost) return false;
+      if (report.reportType === 'found' && !showFound) return false;
+      return true;
+    });
+
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+
+      <View style={styles.filterRow}>
+        <TouchableOpacity
+          style={styles.filterOption}
+          onPress={() => setShowLost(!showLost)}
+        >
+          <Text style={styles.filterText}>
+            {showLost ? '☑️' : '⬜️'} Lost
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.filterOption}
+          onPress={() => setShowFound(!showFound)}
+        >
+          <Text style={styles.filterText}>
+            {showFound ? '☑️' : '⬜️'} Found
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.filterOption}
+          onPress={() => setShowReunited(!showReunited)}
+        >
+          <Text style={styles.filterText}>
+            {showReunited ? '☑️' : '⬜️'} Reunited
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+
       <MapView
         key={reports.length}
         style={styles.map}
@@ -88,55 +140,46 @@ export default function MapScreen() {
         showsUserLocation
         showsMyLocationButton
       >
-        {reports
-          .filter(report =>
-            report.lastSeenLocation &&
-            report.lastSeenLocation.latitude !== 0 &&
-            report.lastSeenLocation.longitude !== 0
-          )
-
-          .map(report => (
-            <Marker
-              key={report.id}
-              coordinate={{
-                latitude: report.lastSeenLocation!.latitude,
-                longitude: report.lastSeenLocation!.longitude,
-              }}
-              pinColor={
-                report.status === 'reunited'
-                  ? '#FF69B4'
-                  : report.reportType === 'lost'
-                    ? 'red'
-                    : 'green'
-              }
-            >
-              <Callout onPress={() => router.push(`/pet/${report.id}`)}>
-                <View style={styles.calloutContainer}>
-                  {report.photos?.[0] && (
-                    <Image
-                      source={{ uri: report.photos[0] }}
-                      style={styles.image}
-                      resizeMode="cover"
-                    />
-                  )}
-                  <Text style={styles.name}>
-                    {report.name?.trim() || `${report.color || 'Unknown'} ${report.type || 'Pet'}`}
-                  </Text>
-
-                  <Text style={styles.description} numberOfLines={3}>
-                    {report.description || 'No description provided.'}
-                  </Text>
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>View Listing</Text>
-                  </View>
+        {filteredReports.map(report => (
+          <Marker
+            key={report.id}
+            coordinate={{
+              latitude: report.lastSeenLocation!.latitude,
+              longitude: report.lastSeenLocation!.longitude,
+            }}
+            pinColor={
+              report.status === 'reunited'
+                ? '#FF69B4'
+                : report.reportType === 'lost'
+                  ? 'red'
+                  : 'green'
+            }
+          >
+            <Callout onPress={() => router.push(`/pet/${report.id}`)}>
+              <View style={styles.calloutContainer}>
+                {report.photos?.[0] && (
+                  <Image
+                    source={{ uri: report.photos[0] }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                )}
+                <Text style={styles.name}>
+                  {report.name?.trim() || `${report.color || 'Unknown'} ${report.type || 'Pet'}`}
+                </Text>
+                <Text style={styles.description} numberOfLines={3}>
+                  {report.description || 'No description provided.'}
+                </Text>
+                <View style={styles.button}>
+                  <Text style={styles.buttonText}>View Listing</Text>
                 </View>
-              </Callout>
-
-            </Marker>
-          ))}
+              </View>
+            </Callout>
+          </Marker>
+        ))}
 
       </MapView>
-    </View>
+    </SafeAreaView>
   );
 
 }
@@ -149,6 +192,23 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 10,
+    left: 10,
+    right: 10,
+    zIndex: 999,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
   },
   text: {
     fontSize: 16,
@@ -194,5 +254,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  filterOption: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+
+  filterText: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+
 
 });
