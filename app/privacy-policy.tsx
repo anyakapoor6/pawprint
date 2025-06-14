@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
+import React from 'react';
+
 
 export default function PrivacyPolicyScreen() {
   const router = useRouter();

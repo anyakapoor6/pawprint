@@ -6,6 +6,8 @@ import { colors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase'; // update path as needed
 import { useAuth } from '@/store/auth';
+import React from 'react';
+
 
 
 

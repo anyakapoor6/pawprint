@@ -7,6 +7,8 @@ import { useAuth } from '@/store/auth';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
 import type { Route } from 'expo-router';
+import React from 'react';
+
 
 
 

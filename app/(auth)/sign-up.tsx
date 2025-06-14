@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
+import React from 'react';
 
 export default function SignUp() {
   const [name, setName] = useState('');

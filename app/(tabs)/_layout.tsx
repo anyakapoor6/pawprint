@@ -2,6 +2,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import { Home, MapPin, Camera, AlertTriangle, User } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
+import React from 'react';
+
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();

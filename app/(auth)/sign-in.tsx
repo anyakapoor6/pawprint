@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { registerForPushNotificationsAsync } from '@/lib/registerPushToken';
 import { supabase } from '@/lib/supabase';
+import React from 'react';
 
 
 

@@ -7,6 +7,8 @@ import { Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+
 
 
 

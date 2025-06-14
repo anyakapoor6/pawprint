@@ -8,6 +8,7 @@ import { usePets } from '@/store/pets';
 import PetCard from '@/components/PetCard';
 import MiniPetCard from '@/components/MiniPetCard';
 import { useAuth } from '@/store/auth';
+import React from 'react';
 
 export default function MyReportsScreen() {
   const router = useRouter();

@@ -12,6 +12,8 @@ import { usePets } from '@/store/pets';
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import { isNearMe } from '@/components/isNearMe';
+import React from 'react';
+
 
 
 type SectionProps = {
