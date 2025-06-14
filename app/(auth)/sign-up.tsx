@@ -17,9 +17,9 @@ export default function SignUp() {
         setError('Please fill in all fields');
         return;
       }
-      
+
       // Mock successful sign up
-      router.replace('/(tabs)');
+      router.replace('/home');
     } catch (err) {
       setError('Failed to create account');
     }
@@ -72,7 +72,7 @@ export default function SignUp() {
           <Text style={styles.buttonText}>Create Account</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.signInButton}
           onPress={() => router.push('/sign-in')}
         >

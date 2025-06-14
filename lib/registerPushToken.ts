@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Alert, Platform } from 'react-native';
@@ -22,17 +23,16 @@ export async function registerForPushNotificationsAsync(userId: string) {
 		return;
 	}
 
-	const token = (
-		await Notifications.getExpoPushTokenAsync({
-			projectId: 'YOUR_EXPO_PROJECT_ID', // <--- paste your real projectId here!
-		})
-	).data;
+	const projectId = Constants?.expoConfig?.extra?.eas?.projectId || 'a2fbb212-504b-4044-8600-d1ad9b9af927';
+
+	const token = (await Notifications.getExpoPushTokenAsync({
+		projectId,
+	})).data;
 
 	console.log('Expo push token:', token);
 
-	// Save token to Supabase
 	const { error } = await supabase
-		.from('profiles') // ✅ correct table name
+		.from('profiles')
 		.update({ expo_push_token: token })
 		.eq('id', userId);
 
@@ -40,8 +40,5 @@ export async function registerForPushNotificationsAsync(userId: string) {
 		console.error('Failed to save token to Supabase:', error.message);
 	}
 
-
-	// ✅ Return the token so SignIn can access it
 	return token;
-
 }

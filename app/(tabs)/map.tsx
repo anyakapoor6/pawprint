@@ -5,7 +5,7 @@ import { colors } from '@/constants/colors';
 import { usePets } from '@/store/pets';
 import { Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { CalloutSubview } from 'react-native-maps';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -20,14 +20,14 @@ const DEFAULT_REGION = {
 };
 
 // Only import react-native-maps if NOT running on web
-let MapView: any, Marker: any, Callout: any, PROVIDER_GOOGLE: any;
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-  Callout = Maps.Callout;
-  PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-}
+// let MapView: any, Marker: any, Callout: any, PROVIDER_GOOGLE: any;
+// if (Platform.OS !== 'web') {
+//   const Maps = require('react-native-maps');
+//   MapView = Maps.default;
+//   Marker = Maps.Marker;
+//   Callout = Maps.Callout;
+//   PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
+// }
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);

@@ -2,7 +2,6 @@
   "expo": {
     "name": "bolt-expo-nativewind",
     "slug": "bolt-expo-nativewind",
-    "projectId": "a2fbb212-504b-4044-8600-d1ad9b9af927",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,14 +12,22 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anyak6.boltexponativewind",
       "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to show pets near you.",
+        "NSLocationAlwaysUsageDescription": "We use your location to show nearby reports.",
+        "NSCameraUsageDescription": "We use your camera to scan pets and upload photos.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyB7axeVt4Ofja7fIHawyDXHKQ1M4GocEC4"
       }
     },
     "plugins": [
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true,
