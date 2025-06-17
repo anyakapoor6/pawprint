@@ -1,24 +1,25 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Camera, ImagePlus, X, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { colors } from '../../constants/colors';
-import { usePets } from '../../store/pets';
-import { useAuth } from '../../store/auth';
-import { PetType, ReportType, PetReport, ReportStatus } from '@/types/pet';
+import { colors } from '@/constants/colors';
+import { useReports } from '@/store/reports';
+import { useAuth } from '@/store/auth';
+import { PetType, ReportType, ReportStatus } from '@/types/pet';
 import * as Location from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { GooglePlacesAutocompleteRef } from 'react-native-google-places-autocomplete';
 import { FlatList, KeyboardAvoidingView } from 'react-native';
-import { useRef } from 'react';
-
-
-
-
+import { usePets } from '@/store/pets';
+import { getUserReports } from '@/lib/user';
+import { UserReport } from '@/lib/user';
+import { PetReport } from '@/types/pet';
 
 export default function CreateReportScreen() {
   const router = useRouter();
+  const { submitReport, isLoading: reportsLoading } = useReports();
+  const { user } = useAuth();
   const [reportType, setReportType] = useState<ReportType>('lost');
   const [petType, setPetType] = useState<PetType | null>(null);
   const [petName, setPetName] = useState('');
@@ -34,14 +35,9 @@ export default function CreateReportScreen() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUrgent, setIsUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addReport } = usePets();
-  const { user } = useAuth();
   const [showCamera, setShowCamera] = useState(false);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
-
-
   const locationRef = useRef<GooglePlacesAutocompleteRef>(null);
-
 
   const handleTypeSelection = (type: ReportType) => {
     setReportType(type);
@@ -131,7 +127,6 @@ export default function CreateReportScreen() {
     }
   };
 
-
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -161,15 +156,36 @@ export default function CreateReportScreen() {
     setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  function userReportToPetReport(userReport: UserReport): PetReport {
+    return {
+      id: userReport.id,
+      userId: userReport.user_id,
+      pet_id: userReport.pet_id,
+      type: userReport.pet_type as PetType,
+      name: userReport.pet_name,
+      breed: userReport.pet_breed,
+      color: userReport.pet_color,
+      size: userReport.pet_size,
+      gender: userReport.pet_gender,
+      ageCategory: userReport.pet_age || 'adult',
+      description: userReport.description,
+      photos: userReport.photos,
+      reportType: userReport.report_type as ReportType,
+      status: userReport.status,
+      isUrgent: userReport.is_urgent,
+      dateReported: userReport.created_at,
+      lastSeenLocation: userReport.last_seen_location,
+      tags: userReport.tags,
+      contactInfo: { name: '', email: '' }, // Default contact info
+    };
+  }
 
-    // console.log("SUBMITTING...");
-    // console.log("petType:", petType, typeof petType);
-    // console.log("petColor:", petColor, typeof petColor);
-    // console.log("petSize:", petSize, typeof petSize);
-    // console.log("description:", description, typeof description);
-    // console.log("location:", location, typeof location, location.length);
-    // console.log("photos.length:", photos.length);
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      Alert.alert('Error', 'Please sign in to submit a report');
+      router.push('/sign-in');
+      return;
+    }
 
     if (!petType || !petColor || !petSize || !description || !location || photos.length === 0) {
       Alert.alert('Error', 'Please fill in all required fields and add at least one photo');
@@ -181,48 +197,40 @@ export default function CreateReportScreen() {
     const coords = coordinates || { latitude: 0, longitude: 0 };
 
     try {
-      const newReport = {
-        id: Date.now().toString(),
-        userId: user?.id || 'anonymous',
-        name: petName,
-        type: petType,
-        breed: petBreed,
-        color: petColor,
-        size: petSize,
-        gender: petGender || 'unknown',
-        ageCategory: petAge as 'baby' | 'adult' | 'senior',
+      // Create a pet record first (this will be handled by the backend)
+      const petId = Date.now().toString(); // Temporary ID until we implement pet creation
+
+      // Submit the report with the required fields from UserReport type
+      const reportData: Omit<UserReport, 'id' | 'created_at'> = {
+        user_id: user.id,
+        pet_id: petId,
+        report_type: reportType,
         description,
-        photos,
-        reportType,
-        status: 'active' as ReportStatus,
-        isUrgent,
-        dateReported: new Date().toISOString(),
-        lastSeenDate: new Date().toISOString(),
-        lastSeenLocation: {
+        status: 'pending',
+        pet_type: petType,
+        pet_name: petName,
+        pet_breed: petBreed,
+        pet_color: petColor,
+        pet_size: petSize,
+        pet_gender: petGender ?? 'unknown',
+        pet_age: petAge || 'adult',
+        is_urgent: isUrgent,
+        last_seen_location: {
           latitude: coords.latitude,
           longitude: coords.longitude,
           address: location,
         },
-
-        contactInfo: {
-          name: user?.name || 'Anonymous',
-          email: user?.email || 'anonymous@example.com',
-          phone: user?.phone,
-        },
+        photos,
         tags: selectedTags,
       };
 
-
-      // Fallback for unnamed pets (mostly found reports)
-      if (!newReport.name || newReport.name.trim() === '') {
-        const fallbackColor = newReport.color?.trim() || 'Unknown';
-        const fallbackType = newReport.type?.trim() || 'Pet';
-        newReport.name = `${fallbackColor} ${fallbackType}`;
+      await submitReport(reportData);
+      const userReports = await getUserReports(user.id);
+      if (userReports && userReports.length > 0) {
+        usePets.getState().addReport(userReportToPetReport(userReports[0]));
       }
 
-      await addReport(newReport);
-
-      // Reset all form values
+      // Reset form
       setReportType('lost');
       setPetType(null);
       setPetName('');
@@ -235,33 +243,25 @@ export default function CreateReportScreen() {
       setDescription('');
       setPhotos([]);
       setIsUrgent(false);
-      // Clear location input field correctly
       setLocation('');
       setCoordinates(null);
 
-      setTimeout(() => {
-        locationRef.current?.setAddressText(''); // <-- this actually clears the input value
-      }, 0);
-
-
-
       Alert.alert(
-        "Report Submitted",
-        "Your report has been submitted successfully. Would you like to share your story to help others?",
+        'Success',
+        'Report submitted successfully!',
         [
           {
-            text: "Not Now",
-            style: "cancel",
-            onPress: () => router.replace('/home')
+            text: 'OK',
+            onPress: () => router.back(),
           },
-          {
-            text: "Share Story",
-            onPress: () => router.push('/story/create')
-          }
         ]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit report. Please try again.');
+      console.error('Error submitting report:', error);
+      Alert.alert(
+        'Error',
+        'Failed to submit report. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -335,11 +335,7 @@ export default function CreateReportScreen() {
                 minLength={1}
                 debounce={200}
                 onPress={(data, details = null) => {
-                  // console.log("SELECTED:", data, details);
                   setLocation(data.description || '');
-                  // if (data?.description) {
-                  //   setLocation(data.description);
-                  // }
 
                   if (details?.geometry?.location) {
                     setCoordinates({

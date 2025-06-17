@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import { supabase } from '@/lib/supabase';
+import { signOut as signOutUser, getUserProfile, updateUserProfile } from '@/lib/user';
 
 interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
   phone?: string;
   photo?: string;
 }
@@ -39,66 +40,137 @@ const MOCK_USERS = [
   },
 ];
 
-export const useAuth = create<AuthState>((set) => ({
+export const useAuth = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
 
-  signIn: async (email, password) => {
-    const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-    if (!user) throw new Error('Invalid credentials');
+  signIn: async (email: string, password: string) => {
+    try {
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    const { password: _, ...userWithoutPassword } = user;
-    await SecureStore.setItemAsync('user', JSON.stringify(userWithoutPassword));
-    set({ user: userWithoutPassword });
+      if (error) throw error;
+      if (!user) throw new Error('No user returned from sign in');
+
+      // Get user profile
+      const { data: profile, error: profileError } = await getUserProfile(user.id);
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('No profile found');
+
+      set({
+        user: {
+          id: user.id,
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          photo: profile.photo_url,
+        },
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('Error signing in:', error);
+      throw error;
+    }
   },
 
-  signUp: async (email, password, name) => {
-    if (MOCK_USERS.some(u => u.email === email)) {
-      throw new Error('User already exists');
+  signUp: async (email: string, password: string, name: string) => {
+    try {
+      const { data: { user }, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      if (!user) throw new Error('No user returned from sign up');
+
+      // Create initial profile
+      const { error: profileError } = await updateUserProfile(user.id, {
+        name,
+        email,
+      });
+
+      if (profileError) throw profileError;
+
+      set({
+        user: {
+          id: user.id,
+          name,
+          email,
+        },
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
     }
-
-    const newUser = {
-      id: String(MOCK_USERS.length + 1),
-      email,
-      name,
-      photo: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
-    };
-
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-    set({ user: newUser });
   },
 
   signOut: async () => {
-    await SecureStore.deleteItemAsync('user');
-    set({ user: null });
+    try {
+      const { success, error } = await signOutUser();
+      if (error) throw error;
+
+      set({ user: null, isLoading: false });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
   },
 
   restoreSession: async () => {
     try {
-      const userString = await SecureStore.getItemAsync('user');
-      if (userString) {
-        const user = JSON.parse(userString);
-        set({ user });
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+
+      if (session?.user) {
+        const { data: profile, error: profileError } = await getUserProfile(session.user.id);
+        if (profileError) throw profileError;
+        if (!profile) throw new Error('No profile found');
+
+        set({
+          user: {
+            id: session.user.id,
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            photo: profile.photo_url,
+          },
+          isLoading: false,
+        });
+      } else {
+        set({ user: null, isLoading: false });
       }
     } catch (error) {
-      console.error('Failed to restore session:', error);
-    } finally {
-      set({ isLoading: false });
+      console.error('Error restoring session:', error);
+      set({ user: null, isLoading: false });
     }
   },
 
   updateProfile: async (updates: Partial<User>) => {
+    const { user } = get();
+    if (!user) throw new Error('No user logged in');
+
     try {
-      const currentUser = await SecureStore.getItemAsync('user');
-      if (!currentUser) throw new Error('No user found');
+      const { data: profile, error } = await updateUserProfile(user.id, {
+        name: updates.name,
+        email: updates.email,
+        phone: updates.phone,
+        photo_url: updates.photo,
+      });
 
-      const user = JSON.parse(currentUser);
-      const updatedUser = { ...user, ...updates };
+      if (error) throw error;
+      if (!profile) throw new Error('Failed to update profile');
 
-      await SecureStore.setItemAsync('user', JSON.stringify(updatedUser));
-      set({ user: updatedUser });
+      set({
+        user: {
+          ...user,
+          ...updates,
+        },
+      });
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      console.error('Error updating profile:', error);
       throw error;
     }
   },

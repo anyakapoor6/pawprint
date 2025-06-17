@@ -1,26 +1,112 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Settings, Bell, Heart, LogOut, ChevronRight, Search as SearchIcon, BookOpen } from 'lucide-react-native';
+import { Settings, Bell, Heart, LogOut, ChevronRight, Search as SearchIcon, BookOpen, MessageCircle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
-import { useStories } from '@/store/stories';
+import { useReports } from '@/store/reports';
+import { useEngagement } from '@/store/engagement';
+import { getUserProfile } from '@/lib/user';
+import type { UserProfile, UserReport } from '@/lib/user';
+import type { Route } from 'expo-router';
 import StoryCard from '@/components/StoryCard';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const { getUserStories } = useStories();
-  const userStories = getUserStories(user?.id || '');
+  const { reports, getUserReports, isLoading: reportsLoading } = useReports();
+  const { loadStoryEngagementPreview, loadReportEngagementPreview, storyEngagementPreviews, reportEngagementPreviews } = useEngagement();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+
+  const loadProfile = async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data, error } = await getUserProfile(user.id);
+      if (error) throw error;
+      setProfile(data);
+
+      // Load user's reports and their engagement data
+      const userReports = await getUserReports(user.id);
+      await Promise.all([
+        ...userReports.map((report: UserReport) => loadReportEngagementPreview(report.id)),
+      ]);
+
+      // Calculate total engagement metrics
+      const storyLikes = Object.values(storyEngagementPreviews).reduce((sum, preview) => sum + preview.like_count, 0);
+      const reportLikes = Object.values(reportEngagementPreviews).reduce((sum, preview) => sum + preview.like_count, 0);
+      const storyComments = Object.values(storyEngagementPreviews).reduce((sum, preview) => sum + preview.comment_count, 0);
+      const reportComments = Object.values(reportEngagementPreviews).reduce((sum, preview) => sum + preview.comment_count, 0);
+
+      setTotalLikes(storyLikes + reportLikes);
+      setTotalComments(storyComments + reportComments);
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      setError('Failed to load profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, [user?.id]);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.replace('/sign-in');
+    try {
+      await signOut();
+      router.replace('/sign-in' as Route);
+    } catch (err) {
+      console.error('Error signing out:', err);
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
   };
 
-  const handleNavigate = (route: string) => {
+  const handleNavigate = (route: Route) => {
     router.push(route);
   };
+
+  if (authLoading) {
+    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
+  }
+  if (!user) {
+    // Optionally, redirect to sign-in here
+    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
+  }
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            loadProfile();
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const activeReports = (reports || []).filter(report => report && report.status === 'pending');
 
   return (
     <View style={styles.container}>
@@ -38,21 +124,34 @@ export default function ProfileScreen() {
           style={styles.profileHeader}
           onPress={() => router.push('/profile/edit')}
         >
-          <Image source={{ uri: user?.photo }} style={styles.profileImage} />
-          <Text style={styles.profileName}>{user?.name}</Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
+          <Image
+            source={{ uri: profile?.photo_url || user?.photo }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{profile?.name || user?.name}</Text>
+          <Text style={styles.profileEmail}>{profile?.email || user?.email}</Text>
           <Text style={styles.editProfileText}>Edit Profile</Text>
         </TouchableOpacity>
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userStories.length}</Text>
-            <Text style={styles.statLabel}>Stories</Text>
+            <Text style={styles.statNumber}>{reports.length}</Text>
+            <Text style={styles.statLabel}>Reports</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Active Reports</Text>
+            <Text style={styles.statNumber}>{activeReports.length}</Text>
+            <Text style={styles.statLabel}>Active</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{totalLikes}</Text>
+            <Text style={styles.statLabel}>Likes</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{totalComments}</Text>
+            <Text style={styles.statLabel}>Comments</Text>
           </View>
         </View>
       </View>
@@ -324,5 +423,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     marginBottom: 8,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,13 +1,13 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, GestureResponderEvent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MapPin, Calendar, Heart, Check, Pencil, MessageCircle } from 'lucide-react-native';
-import { PetReport } from '@/types/pet';
 import { colors } from '@/constants/colors';
 import { useSavedPets } from '@/store/savedPets';
 import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
 import { Linking } from 'react-native';
-
+import { PetReport } from '@/types/pet';
 
 interface PetCardProps {
   report: PetReport;
@@ -34,13 +34,13 @@ export default function PetCard({
   const likeCount = getLikeCount(report.id);
   const commentCount = getComments(report.id).length;
 
-  const handleSave = (e: any) => {
-    e.stopPropagation();
+  const handleSave = (e: GestureResponderEvent) => {
+    e.stopPropagation && e.stopPropagation();
     toggleSavedPet(report.id, report);
   };
 
-  const handleLike = (e: any) => {
-    e.stopPropagation();
+  const handleLike = (e: GestureResponderEvent) => {
+    e.stopPropagation && e.stopPropagation();
     toggleLike(report.id);
   };
 
@@ -61,7 +61,6 @@ export default function PetCard({
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress || (() => router.push(`/pet/${report.id}`))}>
-
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: report.photos[0] }}
@@ -112,23 +111,10 @@ export default function PetCard({
       <View style={styles.content}>
         <View style={styles.topRow}>
           <Text style={styles.title} numberOfLines={1}>
-            {report.name || `${report.type} (${report.color})`}
+            {report.name || `${report.color} ${report.type}`}
           </Text>
           <Text style={styles.dateText}>{formattedDate}</Text>
         </View>
-
-        {/* {report.contactInfo?.phone && (
-          <TouchableOpacity
-            style={styles.callButton}
-            onPress={() => {
-              const phoneUrl = `tel:${report.contactInfo.phone}`;
-              Linking.openURL(phoneUrl);
-            }}
-          >
-            <Text style={styles.callButtonText}>Call Owner</Text>
-          </TouchableOpacity>
-        )} */}
-
 
         <View style={styles.infoRow}>
           <MapPin size={14} color={colors.textSecondary} />
@@ -153,8 +139,6 @@ export default function PetCard({
             Age: {report.ageCategory ? report.ageCategory.charAt(0).toUpperCase() + report.ageCategory.slice(1) : 'Unknown'}
           </Text>
         </View>
-
-
 
         <View style={styles.interactionBar}>
           <TouchableOpacity
@@ -192,9 +176,8 @@ export default function PetCard({
             <Text style={styles.resolveButtonText}>Pet Was Reunited</Text>
           </TouchableOpacity>
         )}
-
       </View>
-    </TouchableOpacity >
+    </TouchableOpacity>
   );
 }
 
@@ -217,7 +200,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ec4899', // Tailwind rose-500 pink
   },
 
-
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -226,21 +208,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     gap: 6, // or rowGap/columnGap if supported
   },
-
-  // callButton: {
-  //   alignSelf: 'flex-start',
-  //   backgroundColor: colors.success, // or a custom green like '#4CAF50'
-  //   paddingHorizontal: 10,
-  //   paddingVertical: 4,
-  //   borderRadius: 6,
-  //   marginBottom: 8,
-  // },
-
-  // callButtonText: {
-  //   color: colors.white,
-  //   fontSize: 12,
-  //   fontWeight: '600',
-  // },
 
   topRow: {
     flexDirection: 'row',
@@ -306,9 +273,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 107, 107, 0.85)',
   },
   foundBadge: {
-    backgroundColor: 'rgba(80, 200, 120, 0.85)',
-  },
-  resolvedBadge: {
     backgroundColor: 'rgba(80, 200, 120, 0.85)',
   },
   typeText: {

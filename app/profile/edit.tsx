@@ -1,78 +1,65 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Modal, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Modal, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Camera, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/store/auth';
+import { getUserProfile, updateUserProfile } from '@/lib/user';
+import type { UserProfile } from '@/lib/user';
 
-// Curated list of cute pet photos from Pexels
+// Temporary placeholder photos until we implement photo upload
 const PET_PHOTOS = [
-  {
-    id: '1',
-    url: 'https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg',
-    type: 'dog',
-    description: 'Cute Labrador puppy'
-  },
-  {
-    id: '2',
-    url: 'https://images.pexels.com/photos/2061057/pexels-photo-2061057.jpeg',
-    type: 'dog',
-    description: 'Smiling Corgi'
-  },
-  {
-    id: '3',
-    url: 'https://images.pexels.com/photos/1741205/pexels-photo-1741205.jpeg',
-    type: 'dog',
-    description: 'Golden Retriever puppy'
-  },
-  {
-    id: '4',
-    url: 'https://images.pexels.com/photos/1056251/pexels-photo-1056251.jpeg',
-    type: 'dog',
-    description: 'Husky with blue eyes'
-  },
-  {
-    id: '5',
-    url: 'https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg',
-    type: 'cat',
-    description: 'Grey cat with green eyes'
-  },
-  {
-    id: '6',
-    url: 'https://images.pexels.com/photos/1543793/pexels-photo-1543793.jpeg',
-    type: 'cat',
-    description: 'Sleepy orange cat'
-  },
-  {
-    id: '7',
-    url: 'https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg',
-    type: 'cat',
-    description: 'Curious kitten'
-  },
-  {
-    id: '8',
-    url: 'https://images.pexels.com/photos/1314550/pexels-photo-1314550.jpeg',
-    type: 'cat',
-    description: 'Sleeping white cat'
-  }
+  { url: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg', type: 'dog' },
+  { url: 'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg', type: 'cat' },
+  { url: 'https://images.pexels.com/photos/1741235/pexels-photo-1741235.jpeg', type: 'dog' },
+  { url: 'https://images.pexels.com/photos/1056251/pexels-photo-1056251.jpeg', type: 'cat' },
 ];
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user, updateProfile } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [photo, setPhoto] = useState(user?.photo || PET_PHOTOS[0].url);
+  const { user } = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [photo, setPhoto] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedType, setSelectedType] = useState<'all' | 'dog' | 'cat'>('all');
+
+  const loadProfile = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data, error } = await getUserProfile(user.id);
+      if (error) throw error;
+      if (!data) throw new Error('No profile found');
+
+      setName(data.name);
+      setEmail(data.email);
+      setPhone(data.phone || '');
+      setPhoto(data.photo_url || PET_PHOTOS[0].url);
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      setError('Failed to load profile');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const filteredPhotos = selectedType === 'all'
     ? PET_PHOTOS
     : PET_PHOTOS.filter(p => p.type === selectedType);
 
   const handleSave = async () => {
+    if (!user?.id) return;
     if (!name.trim() || !email.trim()) {
       Alert.alert('Error', 'Name and email are required');
       return;
@@ -85,14 +72,17 @@ export default function EditProfileScreen() {
 
     try {
       setLoading(true);
-      await updateProfile({
+      const { error } = await updateUserProfile(user.id, {
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim(),
-        photo,
+        phone: phone.trim() || undefined,
+        photo_url: photo,
       });
-      Alert.alert('Success', 'Profile updated successfully');
-      router.back();
+
+      if (error) throw error;
+
+      await useAuth.getState().restoreSession();
+      router.replace('/(tabs)/profile');
     } catch (error) {
       console.error('Failed to update profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
@@ -100,6 +90,32 @@ export default function EditProfileScreen() {
       setLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            loadProfile();
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -226,7 +242,7 @@ export default function EditProfileScreen() {
           <ScrollView style={styles.photoGrid} contentContainerStyle={styles.photoGridContent}>
             {filteredPhotos.map((petPhoto) => (
               <TouchableOpacity
-                key={petPhoto.id}
+                key={petPhoto.url}
                 style={[
                   styles.photoOption,
                   photo === petPhoto.url && styles.photoOptionSelected
@@ -442,5 +458,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.white,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,12 +1,12 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, TextInput, Platform } from 'react-native';
 import { useLocalSearchParams, Link, useRouter } from 'expo-router';
 import { ArrowLeft, Heart, MessageCircle, Share as ShareIcon, Send, CornerDownRight, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { Story, PetComment } from '@/types/pet';
+import { Story } from '@/types/pet';
 import { useStories } from '@/store/stories';
 import { useAuth } from '@/store/auth';
-import { useLikes } from '@/store/likes';
+import { useEngagement } from '@/store/engagement';
 
 export default function StoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,47 +14,26 @@ export default function StoryDetailScreen() {
   const { stories } = useStories();
   const { user } = useAuth();
   const {
-    toggleStoryLike,
-    toggleCommentLike,
     isStoryLiked,
-    isCommentLiked
-  } = useLikes();
+    toggleStoryLike,
+    createStoryComment,
+    storyLikeCounts,
+    storyCommentCounts,
+    storyComments,
+    loadStoryEngagement,
+    isLoading: engagementLoading
+  } = useEngagement();
   const [comment, setComment] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; userName: string } | null>(null);
-  const [comments, setComments] = useState<PetComment[]>([
-    {
-      id: '1',
-      userId: 'user1',
-      userName: 'Sarah Johnson',
-      userPhoto: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: 'Such a heartwarming story! So happy you found your pet!',
-      timestamp: '2024-03-15T10:30:00Z',
-      likes: 5,
-      replies: [
-        {
-          id: '1-1',
-          userId: 'user3',
-          userName: 'David Wilson',
-          userPhoto: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-          content: 'Thank you! It was an incredible moment when we found him.',
-          timestamp: '2024-03-15T11:00:00Z',
-          likes: 2,
-        }
-      ]
-    },
-    {
-      id: '2',
-      userId: 'user2',
-      userName: 'Michael Chen',
-      userPhoto: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: 'This gives me hope for finding my lost cat. Thank you for sharing!',
-      timestamp: '2024-03-15T11:15:00Z',
-      likes: 3,
-    },
-  ]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const story = stories.find(s => s.id === id);
+
+  useEffect(() => {
+    if (story?.id) {
+      loadStoryEngagement(story.id);
+    }
+  }, [story?.id]);
 
   if (!story) {
     return (
@@ -77,42 +56,21 @@ export default function StoryDetailScreen() {
     }
   };
 
-  const handleComment = () => {
-    if (!comment.trim()) return;
+  const handleComment = async () => {
+    if (!comment.trim() || !user?.id) return;
 
-    const newComment: PetComment = {
-      id: String(Date.now()),
-      userId: user?.id || 'anonymous',
-      userName: user?.name || 'Anonymous',
-      userPhoto: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: comment.trim(),
-      timestamp: new Date().toISOString(),
-      likes: 0,
-    };
+    try {
+      await createStoryComment(story.id, comment.trim());
+      setComment('');
+      setReplyTo(null);
 
-    if (replyTo) {
-      // Add reply to the parent comment
-      setComments(prev => prev.map(c => {
-        if (c.id === replyTo.id) {
-          return {
-            ...c,
-            replies: [...(c.replies || []), newComment]
-          };
-        }
-        return c;
-      }));
-    } else {
-      // Add new top-level comment
-      setComments(prev => [newComment, ...prev]);
+      // Scroll to the new comment
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }, 100);
+    } catch (err) {
+      console.error('Error creating comment:', err);
     }
-
-    setComment('');
-    setReplyTo(null);
-
-    // Scroll to the new comment
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-    }, 100);
   };
 
   const formatDate = (dateString: string) => {
@@ -138,12 +96,16 @@ export default function StoryDetailScreen() {
     return 'Just now';
   };
 
-  const handleLikeStory = () => {
-    toggleStoryLike(story.id);
-  };
-
-  const handleLikeComment = (commentId: string) => {
-    toggleCommentLike(commentId);
+  const handleLikeStory = async () => {
+    if (!user?.id) {
+      router.push('/(auth)/sign-in' as any);
+      return;
+    }
+    try {
+      await toggleStoryLike(story.id);
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
   };
 
   const handleReply = (commentId: string, userName: string) => {
@@ -156,45 +118,27 @@ export default function StoryDetailScreen() {
     setComment('');
   };
 
-  const renderComment = (comment: PetComment, isReply = false) => (
-    <View key={comment.id} style={[styles.commentItem, isReply && styles.replyItem]}>
+  const renderComment = (comment: any) => (
+    <View key={comment.id} style={styles.commentItem}>
       <Image
-        source={{ uri: comment.userPhoto }}
+        source={{ uri: comment.user_photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
         style={styles.commentUserPhoto}
       />
       <View style={styles.commentContent}>
         <View style={styles.commentHeader}>
-          <Text style={styles.commentUserName}>{comment.userName}</Text>
+          <Text style={styles.commentUserName}>{comment.user_name}</Text>
           <Text style={styles.commentTime}>
-            {formatCommentTime(comment.timestamp)}
+            {formatCommentTime(comment.created_at)}
           </Text>
         </View>
         <Text style={styles.commentText}>{comment.content}</Text>
         <View style={styles.commentActions}>
           <TouchableOpacity
             style={styles.commentAction}
-            onPress={() => handleLikeComment(comment.id)}
+            onPress={() => handleReply(comment.id, comment.user_name)}
           >
-            <Heart
-              size={16}
-              color={isCommentLiked(comment.id) ? colors.error : colors.textSecondary}
-              fill={isCommentLiked(comment.id) ? colors.error : 'transparent'}
-            />
-            <Text style={[
-              styles.commentActionText,
-              isCommentLiked(comment.id) && styles.commentActionTextActive
-            ]}>
-              {comment.likes + (isCommentLiked(comment.id) ? 1 : 0)}
-            </Text>
+            <Text style={styles.commentActionText}>Reply</Text>
           </TouchableOpacity>
-          {!isReply && (
-            <TouchableOpacity
-              style={styles.commentAction}
-              onPress={() => handleReply(comment.id, comment.userName)}
-            >
-              <Text style={styles.commentActionText}>Reply</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     </View>
@@ -261,7 +205,9 @@ export default function StoryDetailScreen() {
           )}
 
           <View style={styles.commentsSection}>
-            <Text style={styles.commentsTitle}>Comments ({comments.length})</Text>
+            <Text style={styles.commentsTitle}>
+              Comments ({storyCommentCounts[story.id] || 0})
+            </Text>
 
             <View style={styles.commentInput}>
               {replyTo && (
@@ -294,24 +240,17 @@ export default function StoryDetailScreen() {
                 <TouchableOpacity
                   style={[
                     styles.sendButton,
-                    !comment.trim() && styles.sendButtonDisabled
+                    (!comment.trim() || engagementLoading) && styles.sendButtonDisabled
                   ]}
                   onPress={handleComment}
-                  disabled={!comment.trim()}
+                  disabled={!comment.trim() || engagementLoading}
                 >
-                  <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
+                  <Send size={20} color={comment.trim() && !engagementLoading ? colors.primary : colors.textTertiary} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {comments.map((comment) => (
-              <View key={comment.id}>
-                {renderComment(comment)}
-                {comment.replies?.map((reply: any) => (
-                  renderComment(reply, true)
-                ))}
-              </View>
-            ))}
+            {storyComments[story.id]?.comments.map((comment) => renderComment(comment))}
           </View>
         </View>
       </ScrollView>
@@ -320,6 +259,7 @@ export default function StoryDetailScreen() {
         <TouchableOpacity
           style={styles.footerButton}
           onPress={handleLikeStory}
+          disabled={engagementLoading}
         >
           <Heart
             size={24}
@@ -330,13 +270,15 @@ export default function StoryDetailScreen() {
             styles.footerButtonText,
             isStoryLiked(story.id) && styles.footerButtonTextActive
           ]}>
-            {story.likes + (isStoryLiked(story.id) ? 1 : 0)}
+            {storyLikeCounts[story.id] || 0}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.footerButton}>
           <MessageCircle size={24} color={colors.textSecondary} />
-          <Text style={styles.footerButtonText}>{comments.length}</Text>
+          <Text style={styles.footerButtonText}>
+            {storyCommentCounts[story.id] || 0}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -519,11 +461,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 12,
     padding: 12,
-  },
-  replyItem: {
-    marginLeft: 48,
-    marginBottom: 8,
-    backgroundColor: colors.gray[50],
   },
   commentContent: {
     flex: 1,

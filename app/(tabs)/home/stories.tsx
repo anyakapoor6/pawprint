@@ -4,6 +4,7 @@ import { SquarePen as PenSquare } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useStories } from '@/store/stories';
 import StoryCard from '@/components/StoryCard';
+import React from 'react';
 
 export default function StoriesScreen() {
   const router = useRouter();

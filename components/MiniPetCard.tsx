@@ -1,8 +1,9 @@
+import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MapPin, Heart, MessageCircle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { PetReport } from '@/types/pet';
+import { UserReport } from '@/lib/user';
 import { usePetInteractions } from '@/store/petInteractions';
 import { Dimensions } from 'react-native';
 import { useAuth } from '@/store/auth';
@@ -11,11 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import FloatingHearts from '@/components/FloatingHearts';
 //import CelebrationOverlay from '@/components/CelebrationOverlay';
 
-
-
-
 interface MiniPetCardProps {
-	report: PetReport;
+	report: UserReport;
 	onPress?: () => void;
 	style?: any;
 	showResolveButton?: boolean;
@@ -23,27 +21,21 @@ interface MiniPetCardProps {
 }
 
 export default function MiniPetCard({ report, onPress, style, showResolveButton, onResolve }: MiniPetCardProps) {
-
 	const router = useRouter();
 	const { user } = useAuth();
 	const { getLikeCount, getComments, isLiked } = usePetInteractions();
 	const likeCount = getLikeCount(report.id);
 	const commentCount = getComments(report.id).length;
-	const formattedDate = new Date(report.dateReported).toLocaleDateString();
+	const formattedDate = new Date(report.created_at).toLocaleDateString();
 	const [showHearts, setShowHearts] = useState(false);
 	const heartAnim = useRef(new Animated.Value(0)).current;
-
 	const [showHeartBurst, setShowHeartBurst] = useState(false);
 	const [showCelebration, setShowCelebration] = useState(false);
-
 
 	const triggerHeartBurst = () => {
 		setShowHeartBurst(true);
 		setTimeout(() => setShowHeartBurst(false), 2500);
 	};
-
-
-
 
 	return (
 		<TouchableOpacity
@@ -51,15 +43,14 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			onPress={onPress ?? (() => router.push(`/pet/${report.id}`))}
 		>
 			<View>
-				{showResolveButton && report.status === 'active' && user?.id === report.userId && (
+				{showResolveButton && report.status === 'pending' && user?.id === report.user_id && (
 					<TouchableOpacity
 						style={styles.resolveButton}
 						onPress={(e) => {
 							e.stopPropagation?.();
-							onResolve?.(); // This could trigger the story modal
-							setTimeout(() => setShowCelebration(true), 800); // delay until after prompt
+							onResolve?.();
+							setTimeout(() => setShowCelebration(true), 800);
 						}}
-
 					>
 						<Text style={styles.resolveText}>Mark as Reunited</Text>
 					</TouchableOpacity>
@@ -70,18 +61,18 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 						styles.badge,
 						{
 							backgroundColor:
-								report.status === 'reunited'
+								report.status === 'resolved'
 									? '#fcb6d0' // pink
-									: report.reportType === 'lost'
+									: report.report_type === 'lost'
 										? colors.error // red
 										: colors.success, // green
 						},
 					]}
 				>
 					<Text style={styles.badgeText}>
-						{report.status === 'reunited'
+						{report.status === 'resolved'
 							? 'Reunited'
-							: report.reportType === 'lost'
+							: report.report_type === 'lost'
 								? 'Lost'
 								: 'Found'}
 					</Text>
@@ -93,14 +84,14 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 			<View style={styles.infoContainer}>
 				<View style={styles.topRow}>
 					<Text style={styles.name} numberOfLines={1}>
-						{report.name || report.type}
+						{report.pet_name || report.pet_type}
 					</Text>
 					<Text style={styles.date}>{formattedDate}</Text>
 				</View>
 				<View style={styles.locationRow}>
 					<MapPin size={12} color={colors.textSecondary} />
 					<Text style={styles.location} numberOfLines={1}>
-						{report.lastSeenLocation?.address || 'Unknown'}
+						{report.last_seen_location?.address || 'Unknown'}
 					</Text>
 				</View>
 				<View style={styles.interactionRow}>
@@ -121,8 +112,6 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 
 			{showHeartBurst && <FloatingHearts count={15} />}
 			{/* {showCelebration && <CelebrationOverlay onDone={() => setShowCelebration(false)} />} */}
-
-
 
 			{/* {showHearts && (
 				<Animated.Text
@@ -145,8 +134,6 @@ export default function MiniPetCard({ report, onPress, style, showResolveButton,
 
 		</TouchableOpacity>
 	);
-
-
 }
 
 const styles = StyleSheet.create({

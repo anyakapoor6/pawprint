@@ -1,7 +1,7 @@
 export type PetType = 'dog' | 'cat';
 export type ReportType = 'lost' | 'found';
 export type PetSize = 'small' | 'medium' | 'large';
-export type ReportStatus = 'active' | 'reunited';
+export type ReportStatus = 'pending' | 'reviewed' | 'resolved';
 
 export interface Location {
   latitude: number;
@@ -34,12 +34,13 @@ export interface PetComment {
 export interface PetReport {
   id: string;
   userId: string;
+  pet_id: string;
   name?: string;
   type: PetType;
   breed?: string;
   color: string;
   size: PetSize;
-  gender?: string;
+  gender?: 'male' | 'female' | 'unknown';
   ageCategory: 'baby' | 'adult' | 'senior';
   description: string;
   photos: string[];
@@ -51,6 +52,27 @@ export interface PetReport {
   lastSeenLocation?: Location;
   reward?: Reward;
   contactInfo: ContactInfo;
+  tags: string[];
+}
+
+export interface UserReport {
+  id: string;
+  user_id: string;
+  pet_id: string;
+  report_type: ReportType;
+  description: string;
+  status: ReportStatus;
+  created_at: string;
+  pet_type: PetType;
+  pet_name: string;
+  pet_breed?: string;
+  pet_color: string;
+  pet_size: PetSize;
+  pet_gender: 'male' | 'female' | 'unknown';
+  pet_age?: 'baby' | 'adult' | 'senior';
+  is_urgent: boolean;
+  last_seen_location: Location;
+  photos: string[];
   tags: string[];
 }
 

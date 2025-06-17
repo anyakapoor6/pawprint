@@ -1,28 +1,39 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Share, Alert, TextInput } from 'react-native';
 import { useLocalSearchParams, Link, useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Calendar, Share as ShareIcon, Heart, Award, Send, MessageCircle } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { PetReport, PetComment } from '@/types/pet';
+import { PetReport } from '@/types/pet';
 import { usePets } from '@/store/pets';
-import { usePetInteractions } from '@/store/petInteractions';
 import { useAuth } from '@/store/auth';
+import { useEngagement } from '@/store/engagement';
 import MapView, { Marker } from 'react-native-maps';
 import { Linking } from 'react-native';
-
-
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
   const { getReportById } = usePets();
-  const { toggleLike, isLiked, getLikeCount, getComments, addComment } = usePetInteractions();
+  const {
+    isReportLiked,
+    toggleReportLike,
+    createReportComment,
+    reportLikeCounts,
+    reportCommentCounts,
+    reportComments,
+    loadReportEngagement,
+    isLoading: engagementLoading
+  } = useEngagement();
   const [comment, setComment] = useState('');
 
   const pet = getReportById(id);
-  const likeCount = getLikeCount(id);
-  const comments = getComments(id);
+
+  useEffect(() => {
+    if (pet?.id) {
+      loadReportEngagement(pet.id);
+    }
+  }, [pet?.id]);
 
   if (!pet) {
     return (
@@ -68,278 +79,197 @@ export default function PetDetailScreen() {
     return 'Just now';
   };
 
-  const handleComment = () => {
-    if (!comment.trim()) return;
-
-    const newComment: PetComment = {
-      id: Date.now().toString(),
-      userId: user?.id || 'anonymous',
-      userName: user?.name || 'Anonymous',
-      userPhoto: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      content: comment.trim(),
-      timestamp: new Date().toISOString(),
-      likes: 0,
-    };
-
-    addComment(id, newComment);
-    setComment('');
+  const handleLike = async () => {
+    if (!user?.id) {
+      router.push('/(auth)/sign-in' as any);
+      return;
+    }
+    try {
+      await toggleReportLike(pet.id);
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
   };
+
+  const handleComment = async () => {
+    if (!comment.trim() || !user?.id) return;
+
+    try {
+      await createReportComment(pet.id, comment.trim());
+      setComment('');
+    } catch (err) {
+      console.error('Error creating comment:', err);
+    }
+  };
+
+  const renderComment = (comment: any) => (
+    <View key={comment.id} style={styles.commentItem}>
+      <Image
+        source={{ uri: comment.user_photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
+        style={styles.commentUserPhoto}
+      />
+      <View style={styles.commentContent}>
+        <View style={styles.commentHeader}>
+          <Text style={styles.commentUserName}>{comment.user_name}</Text>
+          <Text style={styles.commentTime}>
+            {formatCommentTime(comment.created_at)}
+          </Text>
+        </View>
+        <Text style={styles.commentText}>{comment.content}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: pet.photos[0] }} style={styles.image} />
+        <View style={styles.header}>
           <TouchableOpacity
-            style={styles.backButtonCircle}
+            style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ChevronLeft size={24} color={colors.white} />
+            <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
-
-          <View style={styles.imageActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => toggleLike(id)}
-            >
-              <Heart
-                size={20}
-                color={isLiked(id) ? colors.error : colors.white}
-                fill={isLiked(id) ? colors.error : 'transparent'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleShare}
-            >
-              <ShareIcon size={20} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={[
-            styles.statusBadge,
-            pet.status === 'reunited'
-              ? styles.reunitedBadge
-              : pet.reportType === 'lost'
-                ? styles.lostBadge
-                : styles.foundBadge
-          ]}>
-            <Text style={styles.statusText}>
-              {pet.status === 'reunited' ? 'REUNITED' :
-                pet.reportType === 'lost' ? 'LOST' : 'FOUND'}
-            </Text>
-          </View>
-
-
-          {pet.isUrgent && (
-            <View style={styles.urgentBadge}>
-              <Text style={styles.urgentText}>URGENT</Text>
-            </View>
-          )}
+          <Text style={styles.headerTitle}>
+            {pet.reportType === 'lost' ? 'Lost Pet' : 'Found Pet'}
+          </Text>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShare}
+          >
+            <ShareIcon size={20} color={colors.text} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>
-            {pet.name || `${pet.type.charAt(0).toUpperCase() + pet.type.slice(1)} (${pet.color})`}
-          </Text>
+          <Image
+            source={{ uri: pet.photos[0] }}
+            style={styles.mainImage}
+            resizeMode="cover"
+          />
 
-          {pet.reward && (
-            <View style={styles.rewardBanner}>
-              <Award size={16} color={colors.white} />
-              <Text style={styles.rewardText}>
-                ${pet.reward.amount} Reward
+          <View style={styles.petInfo}>
+            <Text style={styles.petName}>{pet.name}</Text>
+            <View style={styles.petDetails}>
+              <Text style={styles.petDetail}>
+                {pet.type.charAt(0).toUpperCase() + pet.type.slice(1)}
+                {pet.breed ? ` • ${pet.breed}` : ''}
+              </Text>
+              <Text style={styles.petDetail}>
+                {pet.color} • {pet.size} • {pet.gender}
               </Text>
             </View>
-          )}
 
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Type</Text>
-                <Text style={styles.infoValue}>{pet.type.charAt(0).toUpperCase() + pet.type.slice(1)}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Breed</Text>
-                <Text style={styles.infoValue}>{pet.breed || 'Unknown'}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Color</Text>
-                <Text style={styles.infoValue}>{pet.color}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Size</Text>
-                <Text style={styles.infoValue}>{pet.size.charAt(0).toUpperCase() + pet.size.slice(1)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Gender</Text>
-                <Text style={styles.infoValue}>
-                  {pet.gender ? (pet.gender.charAt(0).toUpperCase() + pet.gender.slice(1)) : 'Unknown'}
+            {pet.reward && (
+              <View style={styles.rewardContainer}>
+                <Award size={16} color={colors.primary} />
+                <Text style={styles.rewardText}>
+                  Reward: ${pet.reward.amount}
                 </Text>
               </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Age</Text>
-                <Text style={styles.infoValue}>{pet.ageCategory || 'Unknown'}</Text>
-              </View>
-            </View>
-          </View>
+            )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description}>{pet.description}</Text>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.locationHeader}>
-              <MapPin size={20} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Last Seen Location</Text>
-            </View>
-            <Text style={styles.locationText}>
-              {pet.lastSeenLocation?.address || 'Location unknown'}
-            </Text>
-            <View style={styles.dateContainer}>
-              <Calendar size={16} color={colors.textSecondary} />
-              <Text style={styles.dateText}>
-                {formatDate(pet.lastSeenDate || pet.dateReported)}
+            <View style={styles.locationContainer}>
+              <MapPin size={16} color={colors.textSecondary} />
+              <Text style={styles.locationText}>
+                {pet.lastSeenLocation?.address}
               </Text>
             </View>
-            <View style={styles.mapPreview}>
-              <MapView
-                style={{ width: '100%', height: '100%' }}
-                initialRegion={{
-                  latitude: pet.lastSeenLocation?.latitude || 0,
-                  longitude: pet.lastSeenLocation?.longitude || 0,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: pet.lastSeenLocation?.latitude || 0,
-                    longitude: pet.lastSeenLocation?.longitude || 0,
+
+            <Text style={styles.description}>{pet.description}</Text>
+
+            {pet.lastSeenLocation && (
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: pet.lastSeenLocation.latitude,
+                    longitude: pet.lastSeenLocation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
                   }}
-                  title={pet.name || 'Pet'}
-                  description={pet.lastSeenLocation?.address || ''}
-                />
-              </MapView>
-            </View>
-
-
-            {pet.tags.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Tags</Text>
-                <View style={styles.tagsContainer}>
-                  {pet.tags.map((tag, index) => (
-                    <View key={index} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: pet.lastSeenLocation.latitude,
+                      longitude: pet.lastSeenLocation.longitude,
+                    }}
+                  />
+                </MapView>
               </View>
             )}
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Contact Information</Text>
-              <Text style={styles.contactName}>{pet.contactInfo.name}</Text>
-              {pet.contactInfo.phone && (
-                <Text style={styles.contactDetail}>{pet.contactInfo.phone}</Text>
-              )}
-              <Text style={styles.contactDetail}>{pet.contactInfo.email}</Text>
-            </View>
-            {pet.contactInfo?.phone && (
-              <TouchableOpacity
-                style={styles.callButton}
-                onPress={() => Linking.openURL(`tel:${pet.contactInfo.phone}`)}
-              >
-                <Text style={styles.callButtonText}>📞 Call Owner</Text>
-              </TouchableOpacity>
-            )}
-
-
-            <View style={styles.interactionStats}>
-              <View style={styles.statItem}>
-                <Heart
-                  size={16}
-                  color={isLiked(id) ? colors.error : colors.textSecondary}
-                  fill={isLiked(id) ? colors.error : 'transparent'}
-                />
-                <Text style={styles.statText}>{likeCount}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <MessageCircle size={16} color={colors.textSecondary} />
-                <Text style={styles.statText}>{comments.length}</Text>
-              </View>
-            </View>
 
             <View style={styles.commentsSection}>
-              <Text style={styles.sectionTitle}>Comments</Text>
+              <Text style={styles.commentsTitle}>
+                Comments ({reportCommentCounts[pet.id] || 0})
+              </Text>
 
               <View style={styles.commentInput}>
                 <Image
                   source={{ uri: user?.photo || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' }}
                   style={styles.commentUserPhoto}
                 />
-                <View style={styles.commentInputContainer}>
-                  <TextInput
-                    style={styles.commentTextInput}
-                    value={comment}
-                    onChangeText={setComment}
-                    placeholder="Write a comment..."
-                    placeholderTextColor={colors.textTertiary}
-                    multiline
-                  />
-                  <TouchableOpacity
-                    style={[styles.sendButton, !comment.trim() && styles.sendButtonDisabled]}
-                    onPress={handleComment}
-                    disabled={!comment.trim()}
-                  >
-                    <Send size={20} color={comment.trim() ? colors.primary : colors.textTertiary} />
-                  </TouchableOpacity>
-                </View>
+                <TextInput
+                  style={styles.commentTextInput}
+                  value={comment}
+                  onChangeText={setComment}
+                  placeholder="Write a comment..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    (!comment.trim() || engagementLoading) && styles.sendButtonDisabled
+                  ]}
+                  onPress={handleComment}
+                  disabled={!comment.trim() || engagementLoading}
+                >
+                  <Send size={20} color={comment.trim() && !engagementLoading ? colors.primary : colors.textTertiary} />
+                </TouchableOpacity>
               </View>
 
-              {comments.map((comment) => (
-                <View key={comment.id} style={styles.commentItem}>
-                  <Image
-                    source={{ uri: comment.userPhoto }}
-                    style={styles.commentUserPhoto}
-                  />
-                  <View style={styles.commentContent}>
-                    <View style={styles.commentHeader}>
-                      <Text style={styles.commentUserName}>{comment.userName}</Text>
-                      <Text style={styles.commentTime}>
-                        {formatCommentTime(comment.timestamp)}
-                      </Text>
-                    </View>
-                    <Text style={styles.commentText}>{comment.content}</Text>
-                    <TouchableOpacity
-                      style={styles.commentLikeButton}
-                      onPress={() => toggleLike(comment.id)}
-                    >
-                      <Heart
-                        size={14}
-                        color={isLiked(comment.id) ? colors.error : colors.textSecondary}
-                        fill={isLiked(comment.id) ? colors.error : 'transparent'}
-                      />
-                      <Text style={[
-                        styles.commentLikeCount,
-                        isLiked(comment.id) && styles.commentLikeCountActive
-                      ]}>
-                        {comment.likes}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
+              {reportComments[pet.id]?.comments.map((comment) => renderComment(comment))}
             </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={handleLike}
+          disabled={engagementLoading}
+        >
+          <Heart
+            size={24}
+            color={isReportLiked(pet.id) ? colors.error : colors.textSecondary}
+            fill={isReportLiked(pet.id) ? colors.error : 'transparent'}
+          />
+          <Text style={[
+            styles.footerButtonText,
+            isReportLiked(pet.id) && styles.footerButtonTextActive
+          ]}>
+            {reportLikeCounts[pet.id] || 0}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.footerButton}>
+          <MessageCircle size={24} color={colors.textSecondary} />
+          <Text style={styles.footerButtonText}>
+            {reportCommentCounts[pet.id] || 0}
+          </Text>
+        </TouchableOpacity>
+
+        {pet.reportType === 'lost' && (
+          <TouchableOpacity
+            style={styles.contactButton}
+            onPress={() => Linking.openURL(`tel:${pet.contactInfo?.phone}`)}
+          >
+            <Text style={styles.contactButtonText}>Contact Owner</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -349,24 +279,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  callButton: {
-    backgroundColor: colors.success,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 24, // 👈 This pushes it up by adding space below
-    marginHorizontal: 16,
-  },
-
-
-  callButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
   scrollContent: {
     paddingBottom: 24,
   },
@@ -391,90 +303,49 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '600',
   },
-  imageContainer: {
-    position: 'relative',
-    height: 300,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  backButtonCircle: {
-    position: 'absolute',
-    top: 48,
-    left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  imageActions: {
-    position: 'absolute',
-    top: 48,
-    right: 16,
+  header: {
     flexDirection: 'row',
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    padding: 16,
   },
-  statusBadge: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingVertical: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  reunitedBadge: {
-    backgroundColor: '#ec4899', // tailwind rose-500 pink
-  },
-
-  lostBadge: {
-    backgroundColor: 'rgba(255, 107, 107, 0.85)',
-  },
-  foundBadge: {
-    backgroundColor: 'rgba(80, 200, 120, 0.85)',
-  },
-  statusText: {
-    color: colors.white,
-    fontSize: 16,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '700',
-    letterSpacing: 1,
+    color: colors.text,
+    marginLeft: 16,
+    marginRight: 'auto',
   },
-  urgentBadge: {
-    position: 'absolute',
-    top: 48,
-    right: 120,
-    backgroundColor: colors.urgent,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  urgentText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '700',
+  shareButton: {
+    padding: 8,
   },
   content: {
     padding: 16,
   },
-  title: {
+  mainImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  petInfo: {
+    marginBottom: 24,
+  },
+  petName: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  rewardBanner: {
+  petDetails: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  petDetail: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginRight: 8,
+  },
+  rewardContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.accent,
@@ -489,49 +360,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  infoCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  infoItem: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textSecondary,
-  },
-  locationHeader: {
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
@@ -539,95 +368,32 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 16,
     color: colors.text,
-    marginBottom: 8,
-  },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
     marginLeft: 8,
   },
-  mapPreview: {
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  mapContainer: {
     height: 180,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
+    marginBottom: 24,
   },
-  mapImage: {
+  map: {
     width: '100%',
     height: '100%',
   },
-  viewMapButton: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: colors.white,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  viewMapButtonText: {
-    color: colors.primary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tag: {
-    backgroundColor: colors.gray[100],
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  tagText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-  },
-  contactName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  contactDetail: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  interactionStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 24,
-  },
-  statText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginLeft: 6,
-  },
   commentsSection: {
     marginTop: 16,
+  },
+  commentsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
   },
   commentInput: {
     flexDirection: 'row',
@@ -639,10 +405,6 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginRight: 12,
-  },
-  commentInputContainer: {
-    flex: 1,
-    position: 'relative',
   },
   commentTextInput: {
     backgroundColor: colors.gray[100],
@@ -694,17 +456,36 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 20,
   },
-  commentLikeButton: {
+  footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    padding: 16,
   },
-  commentLikeCount: {
-    fontSize: 12,
+  footerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 24,
+  },
+  footerButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.textSecondary,
-    marginLeft: 4,
+    marginLeft: 8,
   },
-  commentLikeCountActive: {
+  footerButtonTextActive: {
     color: colors.error,
+  },
+  contactButton: {
+    backgroundColor: colors.success,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
+  contactButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

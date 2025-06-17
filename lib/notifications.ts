@@ -26,3 +26,31 @@ export async function registerForPushAndSaveToken() {
 		if (error) console.error('Error saving push token:', error);
 	}
 }
+
+export async function sendPushNotification(
+	expoToken: string,
+	title: string,
+	body: string,
+	data?: Record<string, any>
+) {
+	try {
+		const { data: result, error } = await supabase.functions.invoke('send-notification', {
+			body: {
+				expoToken,
+				title,
+				body,
+				data,
+			},
+		});
+
+		if (error) {
+			console.error('Error sending push notification:', error);
+			throw error;
+		}
+
+		return result;
+	} catch (error) {
+		console.error('Error invoking send-notification function:', error);
+		throw error;
+	}
+}

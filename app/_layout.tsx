@@ -11,7 +11,7 @@ export default function RootLayout() {
   const { restoreSession } = useAuth();
 
   useEffect(() => {
-    restoreSession();
+    useAuth.getState().restoreSession();
 
     // ✅ Register for push and save token to Supabase
     registerForPushAndSaveToken();
