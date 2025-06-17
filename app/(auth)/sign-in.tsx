@@ -1,54 +1,37 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
-import { registerForPushNotificationsAsync } from '@/lib/registerPushToken';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/store/auth';
 import React from 'react';
-
-
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleSignIn = async () => {
     try {
       setError('');
+      setIsLoading(true);
+
       if (!email || !password) {
         setError('Please enter both email and password');
         return;
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error || !data.user) {
-        console.error('Sign-in error:', error);
-        setError(error?.message || 'Invalid email or password');
-        return;
-      }
-
-
-      const userId = data.user.id;
-
-      // ✅ Register device for push notifications
-      const token = await registerForPushNotificationsAsync(userId);
-      console.log("Expo Push Token:", token);
-
-
-      router.replace('/home');
+      await signIn(email, password);
+      router.replace('/(tabs)/home');
     } catch (err) {
-      console.error('Unexpected sign-in error:', err);
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      console.error('Sign-in error:', err);
+      setError(err instanceof Error ? err.message : 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
     }
-
   };
-
 
   return (
     <View style={styles.container}>
@@ -69,6 +52,7 @@ export default function SignIn() {
             placeholder="Enter your email"
             autoCapitalize="none"
             keyboardType="email-address"
+            editable={!isLoading}
           />
         </View>
 
@@ -80,16 +64,26 @@ export default function SignIn() {
             onChangeText={setPassword}
             placeholder="Enter your password"
             secureTextEntry
+            editable={!isLoading}
           />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSignIn}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleSignIn}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.signUpButton}
           onPress={() => router.push('/sign-up')}
+          disabled={isLoading}
         >
           <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
@@ -150,6 +144,9 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     color: colors.white,

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@/constants/colors';
+import { useAuth } from '@/store/auth';
 import React from 'react';
 
 export default function SignUp() {
@@ -9,20 +10,32 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleSignUp = async () => {
     try {
       setError('');
+      setIsLoading(true);
+
       if (!name || !email || !password) {
         setError('Please fill in all fields');
         return;
       }
 
-      // Mock successful sign up
-      router.replace('/home');
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+
+      await signUp(email, password, name);
+      router.replace('/(tabs)/home');
     } catch (err) {
-      setError('Failed to create account');
+      console.error('Sign-up error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create account');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +56,7 @@ export default function SignUp() {
             value={name}
             onChangeText={setName}
             placeholder="Enter your name"
+            editable={!isLoading}
           />
         </View>
 
@@ -55,6 +69,7 @@ export default function SignUp() {
             placeholder="Enter your email"
             autoCapitalize="none"
             keyboardType="email-address"
+            editable={!isLoading}
           />
         </View>
 
@@ -66,16 +81,26 @@ export default function SignUp() {
             onChangeText={setPassword}
             placeholder="Create a password"
             secureTextEntry
+            editable={!isLoading}
           />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-          <Text style={styles.buttonText}>Create Account</Text>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleSignUp}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.buttonText}>Create Account</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.signInButton}
           onPress={() => router.push('/sign-in')}
+          disabled={isLoading}
         >
           <Text style={styles.signInText}>Already have an account? Sign In</Text>
         </TouchableOpacity>
@@ -150,5 +175,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 14,
     fontWeight: '500',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });

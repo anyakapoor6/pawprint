@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Camera, ImagePlus, X, TriangleAlert as AlertTriangle } from 'lucide-react-native';
@@ -19,7 +19,7 @@ import { PetReport } from '@/types/pet';
 export default function CreateReportScreen() {
   const router = useRouter();
   const { submitReport, isLoading: reportsLoading } = useReports();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [reportType, setReportType] = useState<ReportType>('lost');
   const [petType, setPetType] = useState<PetType | null>(null);
   const [petName, setPetName] = useState('');
@@ -38,6 +38,48 @@ export default function CreateReportScreen() {
   const [showCamera, setShowCamera] = useState(false);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const locationRef = useRef<GooglePlacesAutocompleteRef>(null);
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!authLoading && !user) {
+      Alert.alert(
+        'Authentication Required',
+        'Please sign in to submit a report',
+        [
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/sign-in'),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    }
+  }, [user, authLoading, router]);
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // Show error if no user
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>Please sign in to submit a report</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/sign-in')}>
+          <Text style={styles.buttonText}>Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const handleTypeSelection = (type: ReportType) => {
     setReportType(type);
@@ -872,6 +914,27 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  button: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+  },
+  buttonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',

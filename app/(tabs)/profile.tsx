@@ -23,7 +23,10 @@ export default function ProfileScreen() {
   const [totalComments, setTotalComments] = useState(0);
 
   const loadProfile = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -55,8 +58,12 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    loadProfile();
-  }, [user?.id]);
+    if (!authLoading && user) {
+      loadProfile();
+    } else if (!authLoading && !user) {
+      setIsLoading(false);
+    }
+  }, [user?.id, authLoading]);
 
   const handleSignOut = async () => {
     try {
@@ -72,14 +79,28 @@ export default function ProfileScreen() {
     router.push(route);
   };
 
+  // Show loading state while auth is loading
   if (authLoading) {
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
-  }
-  if (!user) {
-    // Optionally, redirect to sign-in here
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
+  // Show error if no user
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>Please sign in to view your profile</Text>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/sign-in')}>
+          <Text style={styles.buttonText}>Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Show loading state while profile is loading
   if (isLoading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -88,19 +109,13 @@ export default function ProfileScreen() {
     );
   }
 
+  // Show error state
   if (error) {
     return (
       <View style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setError(null);
-            setIsLoading(true);
-            loadProfile();
-          }}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
+        <TouchableOpacity style={styles.button} onPress={loadProfile}>
+          <Text style={styles.buttonText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -125,7 +140,7 @@ export default function ProfileScreen() {
           onPress={() => router.push('/profile/edit')}
         >
           <Image
-            source={{ uri: profile?.photo_url || user?.photo }}
+            source={{ uri: profile?.photo_url || user?.photo || 'https://via.placeholder.com/100' }}
             style={styles.profileImage}
           />
           <Text style={styles.profileName}>{profile?.name || user?.name}</Text>
@@ -242,7 +257,6 @@ export default function ProfileScreen() {
           </View>
           <ChevronRight size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-
 
         <TouchableOpacity
           style={styles.menuItem}
@@ -434,13 +448,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  retryButton: {
+  button: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: colors.primary,
     borderRadius: 20,
   },
-  retryButtonText: {
+  buttonText: {
     color: colors.white,
     fontSize: 14,
     fontWeight: '600',

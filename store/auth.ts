@@ -46,6 +46,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signIn: async (email: string, password: string) => {
     try {
+      set({ isLoading: true });
       const { data: { user }, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -71,12 +72,14 @@ export const useAuth = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       console.error('Error signing in:', error);
+      set({ isLoading: false });
       throw error;
     }
   },
 
   signUp: async (email: string, password: string, name: string) => {
     try {
+      set({ isLoading: true });
       const { data: { user }, error } = await supabase.auth.signUp({
         email,
         password,
@@ -103,24 +106,28 @@ export const useAuth = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       console.error('Error signing up:', error);
+      set({ isLoading: false });
       throw error;
     }
   },
 
   signOut: async () => {
     try {
+      set({ isLoading: true });
       const { success, error } = await signOutUser();
       if (error) throw error;
 
       set({ user: null, isLoading: false });
     } catch (error) {
       console.error('Error signing out:', error);
+      set({ isLoading: false });
       throw error;
     }
   },
 
   restoreSession: async () => {
     try {
+      set({ isLoading: true });
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) throw error;
 
